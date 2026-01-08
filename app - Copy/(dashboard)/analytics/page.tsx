@@ -390,7 +390,7 @@ export default function AnalyticsPage() {
           value={overviewLoading ? "..." : formatNumber(summary?.totalUsers || 0)}
           change={usersChange?.percentage || 0}
           changeLabel={`vs ${formatDateRangeLabel(comparisonPeriod)}`}
-          trend={usersChange?.trend || "neutral"}
+          trend={(usersChange?.trend || "neutral") as "up" | "down" | "neutral"}
           loading={overviewLoading}
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
         />
@@ -399,7 +399,7 @@ export default function AnalyticsPage() {
           value={overviewLoading ? "..." : formatNumber(summary?.sessions || 0)}
           change={sessionsChange?.percentage || 0}
           changeLabel={`vs ${formatDateRangeLabel(comparisonPeriod)}`}
-          trend={sessionsChange?.trend || "neutral"}
+          trend={(sessionsChange?.trend || "neutral") as "up" | "down" | "neutral"}
           loading={overviewLoading}
           icon={<Activity className="h-4 w-4 text-muted-foreground" />}
         />
@@ -408,7 +408,7 @@ export default function AnalyticsPage() {
           value={overviewLoading ? "..." : formatNumber(summary?.pageViews || 0)}
           change={pageViewsChange?.percentage || 0}
           changeLabel={`vs ${formatDateRangeLabel(comparisonPeriod)}`}
-          trend={pageViewsChange?.trend || "neutral"}
+          trend={(pageViewsChange?.trend || "neutral") as "up" | "down" | "neutral"}
           loading={overviewLoading}
           icon={<MousePointerClick className="h-4 w-4 text-muted-foreground" />}
         />

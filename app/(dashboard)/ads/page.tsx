@@ -97,7 +97,7 @@ export default function AdsPage() {
   
   // If account-level has no data, aggregate from campaign-level analytics
   if (!analyticsData?.hasData && campaigns.length > 0) {
-    const campaignMetrics = campaigns.reduce((acc, campaign) => {
+    const campaignMetrics = campaigns.reduce((acc: { impressions: number; clicks: number; spend: number; conversions: number }, campaign: any) => {
       if (campaign.analytics) {
         acc.impressions += campaign.analytics.impressions || 0;
         acc.clicks += campaign.analytics.clicks || 0;
@@ -115,13 +115,13 @@ export default function AdsPage() {
   
   // Check if we have data from either account-level or campaign-level
   const hasAccountData = analyticsData?.hasData || false;
-  const hasCampaignData = campaigns.some(c => 
+  const hasCampaignData = campaigns.some((c: any) => 
     c.analytics && (c.analytics.impressions > 0 || c.analytics.clicks > 0 || c.analytics.spend > 0)
   );
-  const hasActiveCampaigns = campaigns.some(c => 
+  const hasActiveCampaigns = campaigns.some((c: any) => 
     c.status === "ACTIVE" || c.status === "RUNNING"
   );
-  const activeCampaignsCount = campaigns.filter(c => 
+  const activeCampaignsCount = campaigns.filter((c: any) => 
     c.status === "ACTIVE" || c.status === "RUNNING"
   ).length;
   

@@ -32,6 +32,7 @@ interface Email {
   openCount?: number;
   clickCount?: number;
   conversationId?: string;
+  body?: string;
 }
 
 interface EmailsTableProps {
