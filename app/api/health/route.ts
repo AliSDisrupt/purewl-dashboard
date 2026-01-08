@@ -39,11 +39,9 @@ export async function GET() {
     }
   }
 
-  // Check GA4
-  if (!process.env.GA4_PROPERTY_ID || !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    status.ga4.error = !process.env.GA4_PROPERTY_ID 
-      ? "GA4_PROPERTY_ID not configured"
-      : "GOOGLE_APPLICATION_CREDENTIALS not configured";
+  // Check GA4 (credentials are hardcoded, only check property ID)
+  if (!process.env.GA4_PROPERTY_ID) {
+    status.ga4.error = "GA4_PROPERTY_ID not configured";
   } else {
     try {
       const { fetchGA4Overview } = await import("@/lib/mcp/ga4");
