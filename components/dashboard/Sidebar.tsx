@@ -11,7 +11,11 @@ import {
   MessageSquare,
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bot,
+  TrendingDown,
+  TrendingUp,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +25,11 @@ const navigation = [
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "CRM", href: "/crm", icon: Users },
   { name: "Ads", href: "/ads", icon: Megaphone },
+  { name: "Funnel", href: "/funnel", icon: TrendingDown },
   { name: "Community", href: "/community", icon: MessageSquare },
+  { name: "Reports", href: "/reports", icon: FileText },
+  { name: "Agent", href: "/agent", icon: Bot },
+  { name: "Signals", href: "/signals", icon: TrendingUp },
 ];
 
 export function Sidebar() {
@@ -68,7 +76,7 @@ export function Sidebar() {
               exit={{ opacity: 0, width: 0 }}
               className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent whitespace-nowrap"
             >
-              PureWL
+              Orion
             </motion.h1>
           ) : (
             <motion.div
@@ -146,19 +154,29 @@ export function Sidebar() {
         <Link
           href="/settings"
           className={cn(
-            "flex items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-white transition-colors group",
-            isCollapsed ? "justify-center" : "gap-3"
+            "relative flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 group",
+            isCollapsed ? "justify-center" : "gap-3",
+            pathname === "/settings" || pathname.startsWith("/settings")
+              ? "text-white"
+              : "text-muted-foreground hover:text-white hover:bg-white/5"
           )}
           title={isCollapsed ? "Settings" : undefined}
         >
-          <Settings className="h-5 w-5 flex-shrink-0" />
+          {(pathname === "/settings" || pathname.startsWith("/settings")) && (
+            <motion.div
+              layoutId="activeSettingsTab"
+              className="absolute inset-0 bg-primary/20 rounded-lg border border-primary/20"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <Settings className="relative h-5 w-5 z-10 flex-shrink-0" />
           <AnimatePresence>
             {!isCollapsed && (
               <motion.span
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: "auto" }}
                 exit={{ opacity: 0, width: 0 }}
-                className="whitespace-nowrap"
+                className="relative z-10 whitespace-nowrap"
               >
                 Settings
               </motion.span>

@@ -1,0 +1,737 @@
+{
+  "company": {
+    "puresquare": {
+      "name": "PureSquare",
+      "description": "Holistic cybersecurity platform providing user-friendly digital security and online privacy solutions",
+      "founded": 2007,
+      "founders": ["Uzair Gadit", "Aaqib Gadit"],
+      "headquarters": "British Virgin Islands",
+      "operations": ["Pakistan", "USA", "UK", "Ukraine"],
+      "users": "3+ million",
+      "sessions_2024": "120+ million",
+      "community_growth_2024": "48%",
+      "years_experience": 17,
+      "certifications": [
+        "ISO/IEC 27001:2013",
+        "KPMG No-Logs Audit (4x consecutive)",
+        "Always-On Audit Policy",
+        "GDPR Compliant",
+        "SOC2 Compliant"
+      ],
+      "products": [
+        {
+          "name": "PureVPN",
+          "type": "Consumer & Business VPN",
+          "description": "Flagship VPN service with 6,500+ servers in 78+ countries"
+        },
+        {
+          "name": "PureWL",
+          "type": "White-Label Solutions",
+          "description": "B2B white-label VPN and cybersecurity solutions"
+        },
+        {
+          "name": "PureDome",
+          "type": "Business VPN",
+          "description": "Team VPN with centralized management for SMBs"
+        },
+        {
+          "name": "PureKeep",
+          "type": "Password Manager",
+          "description": "Secure vault with password generation and auto-fill"
+        },
+        {
+          "name": "PurePrivacy",
+          "type": "Privacy Tool",
+          "description": "Social media privacy management for Facebook, Instagram"
+        },
+        {
+          "name": "PureEncrypt",
+          "type": "Encryption Tool",
+          "description": "Bank-grade cloud encryption for files, photos, videos"
+        }
+      ],
+      "milestones": [
+        {"year": 2007, "event": "PureVPN founded"},
+        {"year": 2021, "event": "Launched WireGuard protocol"},
+        {"year": 2022, "event": "First commercial VPN with quantum-resistant capabilities (Quantinuum partnership)"},
+        {"year": 2022, "event": "Samsung partnership"},
+        {"year": 2023, "event": "Launched PureSquare as parent brand"},
+        {"year": 2024, "event": "ISO/IEC 27001:2013 certification"},
+        {"year": 2024, "event": "4th consecutive KPMG no-logs audit"},
+        {"year": 2024, "event": "Secured 120M+ internet sessions"},
+        {"year": 2024, "event": "Partnerships: Circles.Life, TP-Link, ZIGChain"},
+        {"year": 2024, "event": "Most successful Black Friday/Cyber Monday in 17 years"}
+      ]
+    },
+    "purevpn": {
+      "name": "PureVPN",
+      "infrastructure": {
+        "servers": "6,500+",
+        "countries": "78+",
+        "locations": "140+",
+        "shared_ips": "1,000,000+",
+        "anonymous_ips": "300,000+",
+        "dedicated_ips": "Large reserve",
+        "speed": "20 Gbps (high-speed servers)",
+        "uptime_sla": "99%",
+        "simultaneous_connections": 10
+      },
+      "protocols": [
+        "WireGuard",
+        "OpenVPN",
+        "IKEv2",
+        "IPSec",
+        "L2TP",
+        "PPTP",
+        "SSTP"
+      ],
+      "encryption": {
+        "standard": "AES-256-bit",
+        "maximum": "Up to 512-bit",
+        "quantum_resistant": true
+      },
+      "features": [
+        "Kill Switch",
+        "Split Tunneling",
+        "DNS Leak Protection",
+        "IPv6 Leak Protection",
+        "WebRTC Blocking",
+        "NAT Firewall",
+        "DDoS Protection",
+        "Port Forwarding",
+        "Obfuscated Servers",
+        "Domain Fronting",
+        "Multiport",
+        "Dedicated IP",
+        "Residential IP",
+        "Tracker Blocker",
+        "Ad Blocker",
+        "VPN Hotspot"
+      ],
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux",
+        "iOS",
+        "Android",
+        "Chrome Extension",
+        "Firefox Extension",
+        "Android TV",
+        "Fire TV Stick",
+        "Kodi",
+        "Huawei",
+        "Chromebook",
+        "Routers",
+        "NAS"
+      ],
+      "streaming_unblocks": [
+        "Netflix (US, UK, others)",
+        "BBC iPlayer",
+        "Hulu",
+        "Disney+",
+        "Amazon Prime Video"
+      ]
+    },
+    "purewl": {
+      "name": "PureWL (Pure White Label)",
+      "description": "B2B white-label division enabling businesses to launch branded cybersecurity products",
+      "value_proposition": {
+        "speed_to_market": "Launch in weeks, not years",
+        "cost_efficiency": "No $2M+ infrastructure investment",
+        "proven_scale": "Battle-tested by millions",
+        "full_customization": "Complete branding control",
+        "technical_support": "24/7 dedicated partner success team",
+        "zero_trial_error": "17+ years of expertise"
+      },
+      "offerings": [
+        {
+          "name": "White-Label VPN",
+          "features": ["Fully customizable apps", "All platforms", "6,500+ servers", "Partner dashboard", "App templates"]
+        },
+        {
+          "name": "White-Label Password Manager",
+          "features": ["Based on PureKeep", "Secure vault", "Password generation", "Cross-platform"]
+        },
+        {
+          "name": "White-Label Privacy Threat Protection",
+          "features": ["Integrated with VPN", "Comprehensive security", "Customizable branding"]
+        },
+        {
+          "name": "Privacy AI Infrastructure",
+          "features": ["Real-time PII redaction", "Role-based access control", "HIPAA-ready", "AI-ready architecture"]
+        }
+      ],
+      "technical_capabilities": {
+        "sdks": ["Android", "iOS", "macOS", "Windows", "Linux", "Browser extensions"],
+        "apis": ["Billing", "User management", "Server access", "Authentication"],
+        "integrations": ["Native CRM plugins", "Billing systems"],
+        "management": ["Centralized control panel", "White-label dashboard", "Order management"],
+        "billing_api": "Free automated billing API"
+      },
+      "gtm_models": [
+        "Bundled Service",
+        "Standalone Product",
+        "Value-Added Feature",
+        "Reseller",
+        "Embedded Integration"
+      ]
+    }
+  },
+  "target_customers": {
+    "segments": [
+      {
+        "name": "ISPs & Telecommunications",
+        "priority": 1,
+        "profile": "Internet service providers, mobile carriers, cable companies",
+        "minimum_customer_base": "50,000+ subscribers",
+        "pain_points": [
+          "Flat ARPU (~$71.34 average, unchanged 2 years)",
+          "Operating costs increasing 6-9% YoY",
+          "Customer churn",
+          "Commodity market differentiation",
+          "Regulatory pressure (GDPR, NIS2, FCC)",
+          "Rising DDoS attacks (25% increase)",
+          "Supply chain attacks (33% increase)"
+        ],
+        "why_they_buy": [
+          "Add value-added security services",
+          "Increase ARPU with minimal cost",
+          "Reduce churn with stickier bundles",
+          "Meet compliance requirements",
+          "Generate fewer support tickets"
+        ],
+        "decision_makers": ["CTO", "VP Product", "VP Business Development"],
+        "deal_size": "$200K - $1M+ ARR",
+        "sales_cycle": "6-12 months",
+        "key_messaging": "Add VPN without infrastructure headache. Connectivity is commodity, security is differentiator.",
+        "partnership_example": "Circles.Life (Singapore Telco)"
+      },
+      {
+        "name": "Security & Antivirus Companies",
+        "priority": 2,
+        "profile": "Cybersecurity firms, antivirus vendors, firewall companies",
+        "pain_points": [
+          "Customers expect VPN in security suites",
+          "Building VPN is expensive ($2M+) and slow (2+ years)",
+          "Need audited, enterprise-grade solution",
+          "Integration complexity"
+        ],
+        "why_they_buy": [
+          "Complete security suite offering",
+          "Cross-sell to existing base",
+          "Add revenue without development cost",
+          "Leverage proven infrastructure"
+        ],
+        "decision_makers": ["CPO", "VP Product", "CTO"],
+        "deal_size": "$100K - $500K ARR",
+        "sales_cycle": "3-6 months",
+        "key_messaging": "Complete your security suite with enterprise-grade VPN. KPMG-audited, ISO 27001, quantum-resistant."
+      },
+      {
+        "name": "Managed Service Providers (MSPs)",
+        "priority": 3,
+        "profile": "IT service providers, system integrators, MSSPs",
+        "pain_points": [
+          "Clients demanding security services",
+          "Building infrastructure is costly",
+          "Need multi-tenant management",
+          "Want recurring revenue"
+        ],
+        "why_they_buy": [
+          "High-margin service addition",
+          "Multi-tenant architecture",
+          "White-label branding",
+          "Scalable pricing"
+        ],
+        "decision_makers": ["VP Sales", "Category Manager", "Owner", "CTO"],
+        "deal_size": "Variable, typically $50K - $150K ARR",
+        "sales_cycle": "1-3 months",
+        "key_messaging": "Add high-margin VPN to your portfolio. Multi-tenant, white-label, ready to deploy."
+      },
+      {
+        "name": "Consumer Tech Brands",
+        "priority": 4,
+        "profile": "Browser companies, email providers, password managers",
+        "pain_points": [
+          "Users expect privacy features",
+          "Privacy as differentiator",
+          "Building VPN is outside core competency",
+          "Need fast time-to-market"
+        ],
+        "why_they_buy": [
+          "Give users demanded privacy",
+          "Differentiate from competitors",
+          "Add premium tier",
+          "Strengthen privacy positioning"
+        ],
+        "decision_makers": ["Product Manager", "VP Product", "CEO"],
+        "deal_size": "$50K - $200K ARR",
+        "sales_cycle": "2-4 months",
+        "key_messaging": "Give your users the privacy they're asking for. Launch in weeks, not years."
+      },
+      {
+        "name": "Enterprise Software Companies",
+        "priority": 5,
+        "profile": "Remote work platforms, collaboration tools, ITSM providers",
+        "pain_points": [
+          "Secure remote access requirements",
+          "Zero trust needs",
+          "Complex hybrid environments",
+          "Compliance (GDPR, HIPAA, SOC2)"
+        ],
+        "why_they_buy": [
+          "Secure connectivity built in",
+          "Meet compliance requirements",
+          "Support hybrid workforce",
+          "Enterprise-grade security"
+        ],
+        "decision_makers": ["CTO", "CISO", "VP Engineering"],
+        "deal_size": "$100K - $300K ARR",
+        "sales_cycle": "3-6 months",
+        "key_messaging": "Secure connectivity built into your platform. Enterprise-grade, compliance-ready."
+      },
+      {
+        "name": "SaaS Vendors",
+        "priority": 6,
+        "profile": "Software-as-a-service companies serving businesses",
+        "pain_points": [
+          "Customers asking for security features",
+          "SaaS market differentiation",
+          "Privacy regulations",
+          "Value-add without dev cost"
+        ],
+        "why_they_buy": [
+          "Add value to existing product",
+          "Reduce churn",
+          "Meet security demands",
+          "Upsell opportunity"
+        ],
+        "decision_makers": ["VP Product", "CTO", "CEO"],
+        "deal_size": "$50K - $200K ARR",
+        "sales_cycle": "2-4 months",
+        "key_messaging": "Elevate your SaaS with built-in security. Reduce churn, increase ARPU."
+      },
+      {
+        "name": "Hardware Manufacturers",
+        "priority": 7,
+        "profile": "Router manufacturers, IoT device makers, smart home equipment",
+        "pain_points": [
+          "Customers expect built-in security",
+          "VPN integration complexity",
+          "Need lightweight solution",
+          "Firmware challenges"
+        ],
+        "why_they_buy": [
+          "Built-in security differentiator",
+          "Easy SDK integration",
+          "Proven protocol support",
+          "Customer privacy demand"
+        ],
+        "decision_makers": ["CTO", "VP Engineering", "Product Manager"],
+        "deal_size": "$50K - $200K ARR",
+        "sales_cycle": "3-6 months",
+        "key_messaging": "Embed VPN directly into devices. Lightweight SDKs, seamless integration.",
+        "partnership_example": "TP-Link"
+      },
+      {
+        "name": "Travel & Hospitality",
+        "priority": 8,
+        "profile": "Hotels, airlines, travel agencies, cruise lines",
+        "pain_points": [
+          "Customer security on public WiFi",
+          "Liability concerns",
+          "Guest experience enhancement",
+          "International content access"
+        ],
+        "why_they_buy": [
+          "Enhance customer experience",
+          "Reduce liability",
+          "Premium service offering",
+          "Support travelers"
+        ],
+        "decision_makers": ["VP Technology", "Customer Experience Director"],
+        "deal_size": "$25K - $100K ARR",
+        "sales_cycle": "2-4 months",
+        "key_messaging": "Secure your guests' digital experience. Reduce liability, add value."
+      },
+      {
+        "name": "Healthcare Organizations",
+        "priority": 9,
+        "profile": "Telehealth providers, healthcare networks, medical technology",
+        "pain_points": [
+          "HIPAA compliance",
+          "Telehealth security",
+          "ePHI transmission requirements",
+          "Highest breach costs ($10.93M average)"
+        ],
+        "why_they_buy": [
+          "HIPAA-compliant communications",
+          "Telehealth enablement",
+          "Patient data protection",
+          "Regulatory compliance"
+        ],
+        "decision_makers": ["CISO", "CTO", "Compliance Officer"],
+        "deal_size": "$100K - $300K ARR",
+        "sales_cycle": "6-12 months",
+        "key_messaging": "HIPAA-ready VPN infrastructure. Protect ePHI, enable telehealth."
+      }
+    ],
+    "ideal_customer_profile": {
+      "must_have": [
+        "Existing customer base (minimum 10,000 users)",
+        "Technical capability to integrate",
+        "Budget for minimum commitment ($50K+ ARR)",
+        "Strategic interest in privacy/security",
+        "Decision-making authority within 6 months"
+      ],
+      "nice_to_have": [
+        "Existing billing infrastructure",
+        "Mobile app presence",
+        "Brand recognition",
+        "International presence",
+        "Previous white-label experience"
+      ],
+      "disqualifiers": [
+        "Very small customer base (<1,000 users)",
+        "No technical resources",
+        "Looking for free/trial only",
+        "Direct PureVPN competitors",
+        "Jurisdiction conflicts",
+        "Budget below $25K ARR",
+        "Decision timeline >12 months"
+      ]
+    }
+  },
+  "kpis": {
+    "marketing": {
+      "mqls": {"target": 50, "warning": 35, "critical": 25, "unit": "per month"},
+      "sqls": {"target": 20, "warning": 14, "critical": 10, "unit": "per month"},
+      "demo_requests": {"target": 30, "warning": 20, "critical": 15, "unit": "per month"},
+      "website_traffic": {"target": 10000, "warning": 7000, "critical": 5000, "unit": "unique visitors"},
+      "website_conversion_rate": {"target": 3.0, "warning": 2.0, "critical": 1.5, "unit": "percent"},
+      "cost_per_lead": {"target": 150, "warning": 180, "critical": 220, "unit": "USD"},
+      "cost_per_demo": {"target": 200, "warning": 250, "critical": 300, "unit": "USD"},
+      "mql_to_sql_conversion": {"target": 40, "warning": 30, "critical": 20, "unit": "percent"}
+    },
+    "channel_benchmarks": {
+      "linkedin_ads": {"ctr": 1.0, "cpl": 150, "conversion": 2.0},
+      "google_brand": {"ctr": 5.0, "cpl": 50, "conversion": 5.0},
+      "google_nonbrand": {"ctr": 2.0, "cpl": 100, "conversion": 3.0},
+      "content_marketing": {"cpl": 50, "conversion": 5.0},
+      "webinars": {"cpl": 75, "conversion": 8.0},
+      "partner_referrals": {"cpl": 25, "conversion": 10.0},
+      "reddit_social": {"ctr": 0.5, "cpl": 100, "conversion": 1.0}
+    },
+    "sales_pipeline": {
+      "lead_to_mql": {"target": 30, "unit": "percent"},
+      "mql_to_sql": {"target": 40, "unit": "percent"},
+      "sql_to_opportunity": {"target": 50, "unit": "percent"},
+      "opportunity_to_proposal": {"target": 60, "unit": "percent"},
+      "proposal_to_won": {"target": 40, "unit": "percent"},
+      "overall_conversion": {"target": 1.5, "unit": "percent"},
+      "average_deal_size": {"target": 75000, "unit": "ARR"},
+      "active_deals": {"target": "15-20"},
+      "pipeline_coverage": {"target": "3-4x quarterly target"},
+      "stuck_deal_threshold": {"value": 14, "unit": "days"}
+    },
+    "revenue": {
+      "mrr_growth": {"target": 10, "unit": "percent MoM"},
+      "acv_range": {"min": 50000, "max": 500000},
+      "cac": {"target": 5000, "unit": "USD"},
+      "ltv": {"target": 150000, "unit": "USD"},
+      "ltv_cac_ratio": {"target": 30},
+      "net_revenue_retention": {"target": 110, "unit": "percent"},
+      "churn_rate": {"target": 5, "unit": "percent annually"}
+    }
+  },
+  "competitors": {
+    "direct": [
+      {
+        "name": "Check Point SASE (formerly Perimeter 81)",
+        "acquired_by": "Check Point (2023)",
+        "focus": "Enterprise SASE, Zero Trust",
+        "servers": "700+ in 35-40 locations",
+        "pricing": "From $8/user/month, 10 user minimum",
+        "strengths": ["Enterprise features", "Check Point brand", "Zero Trust framework"],
+        "weaknesses": ["Requires hardware NGFW", "Expensive", "Complex", "NOT white-label"],
+        "target": "Mid-to-large enterprises",
+        "competitive_positioning": "They secure workforce - we help create products for YOUR customers"
+      },
+      {
+        "name": "NordLayer",
+        "parent": "Nord Security (NordVPN)",
+        "focus": "Business VPN, ZTNA",
+        "pricing": "From $8/user/month, 5 user minimum",
+        "features": ["ThreatBlock", "Dedicated IP", "SSO", "Split tunneling"],
+        "strengths": ["Strong consumer brand", "Good features"],
+        "weaknesses": ["Limited white-label", "Branded as NordLayer", "Not partner-focused"],
+        "target": "SMBs, remote teams",
+        "competitive_positioning": "They're a vendor - we're a partner for YOUR brand"
+      },
+      {
+        "name": "Twingate",
+        "focus": "ZTNA, modern VPN replacement",
+        "pricing": "From $5/user/month",
+        "strengths": ["Modern architecture", "Developer-friendly", "Zero trust native"],
+        "weaknesses": ["No white-label", "Limited customization", "Internal use only"],
+        "target": "Tech-forward companies, developers",
+        "competitive_positioning": "Great for internal IT - we help create products for customers"
+      },
+      {
+        "name": "GoodAccess",
+        "focus": "SMB business VPN",
+        "pricing": "Free tier available, paid from $7/user/month",
+        "features": ["Static IPs", "Zero Trust", "Split tunneling"],
+        "strengths": ["Free option", "Easy setup", "Inexpensive"],
+        "weaknesses": ["Smaller server network", "Limited customization", "Not white-label"],
+        "target": "Small businesses, budget-conscious"
+      },
+      {
+        "name": "Cloudflare Zero Trust",
+        "focus": "Zero Trust, enterprise security, DNS-level protection",
+        "pricing": "Free basic (WARP), enterprise pricing custom",
+        "strengths": ["Cloudflare network", "Massive scale", "Performance"],
+        "weaknesses": ["Not traditional VPN", "No white-label", "Different architecture"],
+        "target": "Enterprises, developers"
+      },
+      {
+        "name": "Zscaler",
+        "focus": "Enterprise cloud security, ZTNA",
+        "pricing": "Enterprise pricing (expensive)",
+        "strengths": ["Comprehensive security", "Enterprise scale"],
+        "weaknesses": ["Expensive", "Complex", "Not white-label", "Internal use"],
+        "target": "Large enterprises"
+      },
+      {
+        "name": "OpenVPN",
+        "focus": "Self-hosted VPN, open source",
+        "pricing": "Free tier (3 connections), paid plans",
+        "strengths": ["Open source", "Customizable", "Self-hosted"],
+        "weaknesses": ["Requires technical expertise", "No white-label support", "Maintenance burden"],
+        "target": "Technical teams, developers"
+      },
+      {
+        "name": "Symlex VPN",
+        "focus": "White-label VPN for startups",
+        "pricing": "Low startup cost (~$500)",
+        "strengths": ["Low entry cost", "White-label focus"],
+        "weaknesses": ["Newer player", "Less proven infrastructure", "Smaller network"],
+        "target": "Small VPN startups, entrepreneurs"
+      }
+    ],
+    "purewl_advantages": [
+      "Proven Scale: 6,500+ servers, 120M+ sessions in 2024",
+      "True White-Label: Complete brand control",
+      "17+ Years Experience: Industry pioneer since 2007",
+      "Compliance Certified: ISO 27001, 4x KPMG audits",
+      "Quantum-Resistant: First commercial VPN with quantum option",
+      "Comprehensive SDKs: All platforms, all protocols",
+      "Speed to Market: Weeks, not months",
+      "Full Ecosystem: VPN + Password Manager + Privacy tools",
+      "Dedicated Support: Partner success team, 24/7",
+      "Flexible Models: White-label, reseller, embedded, bundled"
+    ],
+    "indirect": [
+      {
+        "alternative": "Build In-House",
+        "why_purewl_wins": "Cost ($2M+), time (2+ years), ongoing maintenance, compliance burden"
+      },
+      {
+        "alternative": "Open-Source Self-hosted",
+        "why_purewl_wins": "No support, no scaling, compliance burden, technical expertise required"
+      },
+      {
+        "alternative": "Consumer VPN Reselling",
+        "why_purewl_wins": "No brand control, margin pressure, can't customize"
+      },
+      {
+        "alternative": "No VPN Offering",
+        "why_purewl_wins": "Lose competitive advantage, customer churn, miss revenue opportunity"
+      }
+    ]
+  },
+  "industry": {
+    "vpn_market": {
+      "size_2024": "$44-50 billion",
+      "size_2025": "$75-88 billion",
+      "projection_2030": "$137 billion+",
+      "cagr": "15-22%",
+      "cloud_vpn_2025": "$15.6 billion",
+      "cloud_vpn_2030": "$36 billion",
+      "cloud_vpn_cagr": "22.8%",
+      "enterprise_vpn_2024": "$48.5 billion",
+      "enterprise_vpn_2031": "$151 billion+",
+      "enterprise_vpn_cagr": "17.7%",
+      "managed_vpn_2024": "$27.8 billion",
+      "managed_vpn_2033": "$129 billion",
+      "managed_vpn_cagr": "18.6%"
+    },
+    "usage_statistics": {
+      "global_monthly_users": "1.8 billion",
+      "us_adult_usage": "32% (142M users)",
+      "enterprise_adoption": "40% of US companies",
+      "global_internet_users_vpn": "33%",
+      "apac_growth_2024": "+34M new users",
+      "organizations_using_vpn": "93%",
+      "highest_adoption_countries": ["Qatar (59%)", "UAE", "Singapore (49%)"],
+      "fortune_500_mandating_vpn": "62%"
+    },
+    "market_trends": {
+      "zero_trust_transition": "81% by 2026",
+      "vpn_replacement_plans": "65% within 1 year",
+      "ransomware_concern_via_vpn": "92%",
+      "vpn_as_attack_vector": "58% of ransomware incidents",
+      "cloud_native_preference": "70%",
+      "managed_services_preference": "52%",
+      "cloud_based_vpn_share": "69.7%"
+    },
+    "drivers": [
+      "Remote work permanence",
+      "Cybersecurity threats",
+      "Regulatory compliance (GDPR, NIS2, HIPAA)",
+      "Cloud migration",
+      "Privacy concerns",
+      "Data breach epidemic"
+    ],
+    "regional_share": {
+      "north_america": "53%",
+      "europe": "28%",
+      "asia_pacific": "23% (fastest growth)",
+      "middle_east_africa": "13%"
+    }
+  },
+  "cybersecurity": {
+    "market": {
+      "size_2024": "$173.5 billion",
+      "projection_2027": "$266.2 billion",
+      "cagr": "8.9%",
+      "vpn_network_security_segment": "$23 billion",
+      "spending_2024": "$87 billion",
+      "spending_2025": "~$100 billion (+12%)"
+    },
+    "threat_landscape": {
+      "ransomware_share": "72% of attacks",
+      "phishing_increase_since_genai": "1,200%",
+      "phishing_as_initial_vector": "16%",
+      "fbi_complaints_2023": "880,418",
+      "fbi_damages_2023": "$12.5 billion",
+      "average_breach_cost_2024": "$4.88 million",
+      "average_breach_cost_us": "$9.36 million",
+      "healthcare_breach_cost": "$10.93 million",
+      "supply_chain_attacks_increase": "33%",
+      "ddos_attacks_increase": "46%",
+      "iot_attacks_daily": "820,000",
+      "credential_theft_increase": "71% YoY",
+      "vulnerabilities_disclosed": "30,000+ (17% increase)",
+      "vulnerabilities_2025_expected": "33,000+"
+    },
+    "cybercrime_costs": {
+      "2024": "$9.5 trillion",
+      "2025": "$10.5 trillion",
+      "2027_projection": "$23 trillion"
+    },
+    "trends": [
+      "AI-powered threats",
+      "Identity-first security",
+      "Zero trust adoption",
+      "Crypto agility (post-quantum)",
+      "Cyber resilience focus",
+      "Skills gap widening (514,000+ openings)",
+      "Regulatory fragmentation",
+      "Supply chain security priority",
+      "Mobile security threats"
+    ],
+    "industry_priority": {
+      "healthcare": "Very High - HIPAA, $10.93M breach cost",
+      "financial_services": "Very High - Regulations, high-value targets",
+      "it_technology": "High - Remote teams, cloud",
+      "government": "High - National security, compliance",
+      "manufacturing": "Growing - OT/IT convergence",
+      "retail": "Growing - E-commerce, PCI compliance"
+    }
+  },
+  "gtm_framework": {
+    "definition": "Comprehensive action plan defining how to reach and engage customers, delivering unique value proposition",
+    "key_questions": ["WHO is the ideal target?", "HOW to best engage them?"],
+    "components": [
+      "Market Analysis (TAM/SAM/SOM)",
+      "Positioning & Messaging",
+      "GTM Motion Selection",
+      "Channel Strategy",
+      "Sales Process",
+      "Pricing Strategy",
+      "Customer Success"
+    ],
+    "motion_types": {
+      "sales_led": "High ACV deals >$100K (ISPs, Telcos)",
+      "partner_led": "Volume-based relationships (MSPs)",
+      "product_led_assist": "Self-serve discovery → sales (Tech companies)",
+      "abm": "Named enterprise targets",
+      "inbound": "Content-driven organic discovery"
+    },
+    "channel_selection": {
+      "high_acv": ["ABM", "Outbound", "Events"],
+      "mid_acv": ["LinkedIn Ads", "Content", "Webinars"],
+      "lower_acv": ["Inbound", "PLG", "Partner referrals"]
+    },
+    "market_sizing": {
+      "tam": "Global VPN market $44-50B",
+      "sam": "B2B white-label VPN ~$5-8B",
+      "som": "Initial focus N.America/Europe, 50-100 partnerships"
+    },
+    "key_differentiators": [
+      "Proven infrastructure (6,500+ servers)",
+      "Compliance ready (ISO 27001, KPMG)",
+      "Speed to market (weeks not years)",
+      "Full customization (true white-label)",
+      "Quantum-resistant option",
+      "Comprehensive support"
+    ]
+  },
+  "glossary": {
+    "acronyms": {
+      "ARPU": "Average Revenue Per User",
+      "ARR": "Annual Recurring Revenue",
+      "MRR": "Monthly Recurring Revenue",
+      "ACV": "Annual Contract Value",
+      "CAC": "Customer Acquisition Cost",
+      "LTV": "Customer Lifetime Value",
+      "CMPU": "Contribution Margin Per User",
+      "MQL": "Marketing Qualified Lead",
+      "SQL": "Sales Qualified Lead",
+      "GTM": "Go-To-Market",
+      "ICP": "Ideal Customer Profile",
+      "TAM": "Total Addressable Market",
+      "SAM": "Serviceable Available Market",
+      "SOM": "Serviceable Obtainable Market",
+      "PLG": "Product-Led Growth",
+      "ABM": "Account-Based Marketing",
+      "SASE": "Secure Access Service Edge",
+      "ZTNA": "Zero Trust Network Access",
+      "NGFW": "Next-Generation Firewall",
+      "MSP": "Managed Service Provider",
+      "MSSP": "Managed Security Service Provider",
+      "ISP": "Internet Service Provider",
+      "SaaS": "Software as a Service",
+      "SDK": "Software Development Kit",
+      "API": "Application Programming Interface",
+      "DDoS": "Distributed Denial of Service",
+      "ePHI": "Electronic Protected Health Information",
+      "HIPAA": "Health Insurance Portability and Accountability Act",
+      "GDPR": "General Data Protection Regulation",
+      "NIS2": "Network and Information Security Directive 2",
+      "SOC2": "Service Organization Control 2",
+      "PII": "Personally Identifiable Information"
+    },
+    "terms": {
+      "white_label": "Product rebranded by partner as their own",
+      "zero_trust": "Security model requiring strict verification - never trust, always verify",
+      "split_tunneling": "Routing some traffic outside VPN",
+      "obfuscation": "Hiding VPN traffic to bypass detection",
+      "quantum_resistant": "Encryption designed to withstand quantum computing attacks",
+      "kill_switch": "Feature that disconnects internet if VPN drops",
+      "dedicated_ip": "Static IP address assigned to single user",
+      "residential_ip": "IP from residential network rather than data center"
+    }
+  }
+}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { ConversationProvider } from "@/lib/contexts/ConversationContext";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PureWL Analytics Dashboard",
-  description: "Multi-source analytics dashboard for PureVPN WhiteLabel",
+  title: "Orion Analytics Dashboard",
+  description: "Multi-source analytics dashboard",
 };
 
 export default function RootLayout({
@@ -28,7 +30,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <SessionProvider>
+          <QueryProvider>
+            <ConversationProvider>
+              {children}
+            </ConversationProvider>
+          </QueryProvider>
+        </SessionProvider>
       </body>
     </html>
   );

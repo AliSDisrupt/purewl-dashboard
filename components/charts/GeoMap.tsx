@@ -18,76 +18,10 @@ interface GeoMapProps {
   data: GeoData[];
 }
 
-// Country code mapping for flag emojis - expanded list
+// Use the centralized flag utility from lib/countryFlags
+// This function is kept for backward compatibility but now uses the centralized utility
 const getCountryFlag = (country: string): string => {
-  const countryFlags: Record<string, string> = {
-    'United States': '🇺🇸',
-    'China': '🇨🇳',
-    'India': '🇮🇳',
-    'Philippines': '🇵🇭',
-    'Pakistan': '🇵🇰',
-    'United Kingdom': '🇬🇧',
-    'Italy': '🇮🇹',
-    'Singapore': '🇸🇬',
-    'Germany': '🇩🇪',
-    'France': '🇫🇷',
-    'Canada': '🇨🇦',
-    'Australia': '🇦🇺',
-    'Brazil': '🇧🇷',
-    'Japan': '🇯🇵',
-    'South Korea': '🇰🇷',
-    'Spain': '🇪🇸',
-    'Netherlands': '🇳🇱',
-    'Poland': '🇵🇱',
-    'Turkey': '🇹🇷',
-    'Mexico': '🇲🇽',
-    'Indonesia': '🇮🇩',
-    'Thailand': '🇹🇭',
-    'Vietnam': '🇻🇳',
-    'Malaysia': '🇲🇾',
-    'Bangladesh': '🇧🇩',
-    'Egypt': '🇪🇬',
-    'Saudi Arabia': '🇸🇦',
-    'United Arab Emirates': '🇦🇪',
-    'South Africa': '🇿🇦',
-    'Argentina': '🇦🇷',
-    'Chile': '🇨🇱',
-    'Colombia': '🇨🇴',
-    'Peru': '🇵🇪',
-    'Venezuela': '🇻🇪',
-    'Russia': '🇷🇺',
-    'Ukraine': '🇺🇦',
-    'Greece': '🇬🇷',
-    'Portugal': '🇵🇹',
-    'Belgium': '🇧🇪',
-    'Switzerland': '🇨🇭',
-    'Austria': '🇦🇹',
-    'Sweden': '🇸🇪',
-    'Norway': '🇳🇴',
-    'Denmark': '🇩🇰',
-    'Finland': '🇫🇮',
-    'Ireland': '🇮🇪',
-    'New Zealand': '🇳🇿',
-    'Israel': '🇮🇱',
-    'Nigeria': '🇳🇬',
-    'Kenya': '🇰🇪',
-    'Ghana': '🇬🇭',
-    'Morocco': '🇲🇦',
-    'Algeria': '🇩🇿',
-    'Tunisia': '🇹🇳',
-    'Romania': '🇷🇴',
-    'Czech Republic': '🇨🇿',
-    'Hungary': '🇭🇺',
-    'Bulgaria': '🇧🇬',
-    'Croatia': '🇭🇷',
-    'Serbia': '🇷🇸',
-    'Slovakia': '🇸🇰',
-    'Slovenia': '🇸🇮',
-    'Lithuania': '🇱🇹',
-    'Latvia': '🇱🇻',
-    'Estonia': '🇪🇪',
-  };
-  return countryFlags[country] || '🌍';
+  return getFlagFromCountryName(country);
 };
 
 // Get color intensity based on user count
@@ -142,7 +76,7 @@ export function GeoMap({ data }: GeoMapProps) {
               // Use flag from country code if available, otherwise from country name
               const flag = item.countryCode 
                 ? getFlagFromCode(item.countryCode) 
-                : getFlagFromCountryName(item.country) || getCountryFlag(item.country);
+                : getFlagFromCountryName(item.country);
               const percentage = (item.users / maxUsers) * 100;
               
               return (

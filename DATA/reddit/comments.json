@@ -1,0 +1,42 @@
+{
+  "comments": [
+    {
+      "id": "fygk4dy",
+      "body": "**TL|DR** \\- seven hong-kong based VPN services were/are using the same white-label VPN provider, and were keeping logs in clear text of user information, on internet-facing servers. \n\nUFO VPN, FAST VPN, Free VPN, Super VPN, Flash VPN, Secure VPN, and  Rabbit VPN",
+      "author": "ImaginaryCheetah",
+      "subreddit": "technology",
+      "score": 7256,
+      "postId": "htge8m",
+      "postTitle": "Seven 'no log' VPN providers accused of leaking – yup, you guessed it – 1.2TB of user logs onto the internet",
+      "url": "https://reddit.com/r/technology/comments/htge8m/seven_no_log_vpn_providers_accused_of_leaking_yup/fygk4dy/",
+      "createdAt": "2020-07-18T13:15:45.000Z",
+      "type": "comment"
+    },
+    {
+      "id": "fyh274c",
+      "body": "Six no-name, shady VPN providers are not trustworthy. OK..",
+      "author": "rabid-carpenter-8",
+      "subreddit": "technology",
+      "score": 831,
+      "postId": "htge8m",
+      "postTitle": "Seven 'no log' VPN providers accused of leaking – yup, you guessed it – 1.2TB of user logs onto the internet",
+      "url": "https://reddit.com/r/technology/comments/htge8m/seven_no_log_vpn_providers_accused_of_leaking_yup/fyh274c/",
+      "createdAt": "2020-07-18T16:21:30.000Z",
+      "type": "comment"
+    },
+    {
+      "id": "ccx15zc",
+      "body": "We need a reliable VPN provider outside of USA's and Europe's jurisdiction. Only trouble is verifying that the company does not in fact keep logs. ",
+      "author": "DreadedDreadnought",
+      "subreddit": "technology",
+      "score": 261,
+      "postId": "1oys7s",
+      "postTitle": "VPN Provider CryptoSeal Shuts Down After Lavabit Case Undermines Security - It may be forced to hand over its encryption keys to United States authorities. Shutting down, the company says, is the only solution to protect customer privacy.",
+      "url": "https://reddit.com/r/technology/comments/1oys7s/vpn_provider_cryptoseal_shuts_down_after_lavabit/ccx15zc/",
+      "createdAt": "2013-10-22T12:05:12.000Z",
+      "type": "comment"
+    }
+  ],
+  "lastUpdated": "2026-01-10T09:58:49.387Z",
+  "count": 3
+}

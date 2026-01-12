@@ -8,7 +8,8 @@
 
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 
-const propertyId = process.env.GA4_PROPERTY_ID || "383191966";
+// Hardcoded GA4 Property ID
+const propertyId = "383191966";
 
 // Hardcoded Google Analytics credentials
 const credentials = {

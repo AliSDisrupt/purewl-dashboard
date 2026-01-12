@@ -7,24 +7,30 @@ import { CheckCircle2, XCircle, Loader2, RefreshCw, ChevronDown, ChevronUp } fro
 import { Button } from "@/components/ui/button";
 
 interface ApiStatus {
+  claude?: { connected: boolean; error: string | null };
   linkedin: { connected: boolean; error: string | null };
   hubspot: { connected: boolean; error: string | null };
   ga4: { connected: boolean; error: string | null };
   reddit: { connected: boolean; error: string | null };
+  googleAds?: { connected: boolean; error: string | null };
+  redditAds?: { connected: boolean; error: string | null };
 }
 
-const apiLabels = {
+const apiLabels: Record<string, string> = {
+  claude: "Claude API",
   linkedin: "LinkedIn Ads",
   hubspot: "HubSpot CRM",
   ga4: "Google Analytics",
   reddit: "Reddit",
+  googleAds: "Google Ads",
+  redditAds: "Reddit Ads",
 };
 
 export function ApiStatus() {
   const [status, setStatus] = useState<ApiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true); // Start minimized by default
 
   const checkStatus = async () => {
     setLoading(true);

@@ -6,7 +6,8 @@
 
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 
-const propertyId = process.env.GA4_PROPERTY_ID || "383191966";
+// Hardcoded GA4 Property ID
+const propertyId = "383191966";
 
 // Hardcoded Google Analytics credentials
 const credentials = {
@@ -177,6 +178,209 @@ export async function fetchGA4SourceMedium(params: { startDate?: string; endDate
   } catch (error: any) {
     console.error("GA4 Source/Medium API Error:", error);
     throw new Error(`GA4 Source/Medium API Error: ${error.message}`);
+  }
+}
+
+/**
+ * Fetch GA4 data combining country and source/medium dimensions
+ * This allows answering questions like "what sources are bringing traffic from China"
+ * Has fallback to combine separate geography and source/medium queries if combined query fails
+ */
+export async function fetchGA4GeographySourceMedium(params: { 
+  startDate?: string; 
+  endDate?: string;
+  country?: string; // Optional: filter by specific country
+} = {}) {
+  if (!analyticsDataClient || !propertyId) {
+    throw new Error("GA4 credentials not configured");
+  }
+
+  const { startDate = "30daysAgo", endDate = "yesterday", country } = params;
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+
+  // Try method 1: Combined query with all dimensions
+  try {
+    const dimensions = [
+      { name: "country" },
+      { name: "sessionSource" },
+      { name: "sessionMedium" },
+    ];
+
+    // Build dimension filter if country is specified
+    // Use CONTAINS for more flexible matching (handles "China" vs "China (mainland)")
+    const dimensionFilter = country
+      ? {
+          filter: {
+            fieldName: "country",
+            stringFilter: {
+              matchType: "CONTAINS" as const,
+              value: country,
+              caseSensitive: false,
+            },
+          },
+        }
+      : undefined;
+
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: start, endDate: end }],
+      dimensions,
+      metrics: [
+        { name: "totalUsers" },
+        { name: "sessions" },
+        { name: "engagementRate" },
+      ],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      dimensionFilter,
+      limit: 100,
+    });
+
+    const geographySourceMedium = (response.rows || []).map((row) => ({
+      country: row.dimensionValues?.[0]?.value || "Unknown",
+      source: row.dimensionValues?.[1]?.value || "Unknown",
+      medium: row.dimensionValues?.[2]?.value || "Unknown",
+      users: parseInt(row.metricValues?.[0]?.value || "0"),
+      sessions: parseInt(row.metricValues?.[1]?.value || "0"),
+      engagementRate: parseFloat(row.metricValues?.[2]?.value || "0"),
+    }));
+
+    // If country filter was used and we got results, return them
+    if (country && geographySourceMedium.length > 0) {
+      return { geographySourceMedium };
+    }
+    // If no country filter, return all results
+    if (!country) {
+      return { geographySourceMedium };
+    }
+    // If country filter but no results, fall through to fallback
+  } catch (error: any) {
+    console.warn("GA4 Combined Geography/Source/Medium query failed, trying fallback:", error.message);
+    // Fall through to fallback method
+  }
+
+  // Fallback method: If country is specified, query with country filter and source/medium dimensions
+  // If no country, query all countries with source/medium (but limit to avoid too much data)
+  try {
+    console.log("Using fallback: Querying with country filter and source/medium dimensions...");
+    
+    if (country) {
+      // Method 2a: Query with country filter, source/medium dimensions
+      // First, get the exact country name from geography data
+      const { fetchGA4Geography } = await import("@/lib/mcp/ga4");
+      const geographyData = await fetchGA4Geography({ startDate, endDate });
+      const countries = geographyData.countries || [];
+      
+      const countryLower = country.toLowerCase();
+      const matchingCountry = countries.find((c: any) => 
+        c.country.toLowerCase().includes(countryLower) || 
+        c.country.toLowerCase() === countryLower
+      );
+      
+      if (matchingCountry) {
+        // Query with exact country name and source/medium dimensions
+        const [response] = await analyticsDataClient.runReport({
+          property: `properties/${propertyId}`,
+          dateRanges: [{ startDate: start, endDate: end }],
+          dimensions: [
+            { name: "sessionSource" },
+            { name: "sessionMedium" },
+          ],
+          metrics: [
+            { name: "totalUsers" },
+            { name: "sessions" },
+            { name: "engagementRate" },
+          ],
+          dimensionFilter: {
+            filter: {
+              fieldName: "country",
+              stringFilter: {
+                matchType: "EXACT",
+                value: matchingCountry.country,
+                caseSensitive: false,
+              },
+            },
+          },
+          orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+          limit: 100,
+        });
+
+        const geographySourceMedium = (response.rows || []).map((row) => ({
+          country: matchingCountry.country,
+          source: row.dimensionValues?.[0]?.value || "Unknown",
+          medium: row.dimensionValues?.[1]?.value || "Unknown",
+          users: parseInt(row.metricValues?.[0]?.value || "0"),
+          sessions: parseInt(row.metricValues?.[1]?.value || "0"),
+          engagementRate: parseFloat(row.metricValues?.[2]?.value || "0"),
+        }));
+
+        return { geographySourceMedium };
+      }
+    }
+    
+    // Method 2b: If no country filter or country not found, get top countries with their source/medium
+    // Query top 10 countries with source/medium breakdown
+    const { fetchGA4Geography } = await import("@/lib/mcp/ga4");
+    const geographyData = await fetchGA4Geography({ startDate, endDate });
+    const topCountries = (geographyData.countries || []).slice(0, 10);
+    
+    const allResults: any[] = [];
+    
+    // Query each top country separately
+    for (const countryData of topCountries) {
+      try {
+        const [response] = await analyticsDataClient.runReport({
+          property: `properties/${propertyId}`,
+          dateRanges: [{ startDate: start, endDate: end }],
+          dimensions: [
+            { name: "sessionSource" },
+            { name: "sessionMedium" },
+          ],
+          metrics: [
+            { name: "totalUsers" },
+            { name: "sessions" },
+            { name: "engagementRate" },
+          ],
+          dimensionFilter: {
+            filter: {
+              fieldName: "country",
+              stringFilter: {
+                matchType: "EXACT",
+                value: countryData.country,
+                caseSensitive: false,
+              },
+            },
+          },
+          orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+          limit: 20, // Top 20 sources per country
+        });
+
+        const countryResults = (response.rows || []).map((row) => ({
+          country: countryData.country,
+          source: row.dimensionValues?.[0]?.value || "Unknown",
+          medium: row.dimensionValues?.[1]?.value || "Unknown",
+          users: parseInt(row.metricValues?.[0]?.value || "0"),
+          sessions: parseInt(row.metricValues?.[1]?.value || "0"),
+          engagementRate: parseFloat(row.metricValues?.[2]?.value || "0"),
+        }));
+
+        allResults.push(...countryResults);
+      } catch (err) {
+        // Skip this country if query fails
+        console.warn(`Failed to fetch data for ${countryData.country}:`, err);
+        continue;
+      }
+    }
+    
+    // Sort by sessions descending
+    allResults.sort((a, b) => b.sessions - a.sessions);
+    
+    return { 
+      geographySourceMedium: allResults.slice(0, 100)
+    };
+  } catch (fallbackError: any) {
+    console.error("GA4 Geography/Source/Medium Fallback Error:", fallbackError);
+    throw new Error(`GA4 Geography/Source/Medium API Error: ${fallbackError.message}`);
   }
 }
 
@@ -398,6 +602,8 @@ export async function fetchGA4Content(params: { startDate?: string; endDate?: st
         { name: "totalUsers" },
         { name: "screenPageViews" },
         { name: "engagementRate" },
+        { name: "averageSessionDuration" },
+        { name: "bounceRate" },
         { name: "conversions" },
       ],
       orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
@@ -410,7 +616,9 @@ export async function fetchGA4Content(params: { startDate?: string; endDate?: st
       users: parseInt(row.metricValues?.[0]?.value || "0"),
       pageViews: parseInt(row.metricValues?.[1]?.value || "0"),
       engagementRate: parseFloat(row.metricValues?.[2]?.value || "0"),
-      conversions: parseFloat(row.metricValues?.[3]?.value || "0"),
+      avgEngagementTime: parseFloat(row.metricValues?.[3]?.value || "0"), // Average engagement time in seconds
+      bounceRate: parseFloat(row.metricValues?.[4]?.value || "0"), // Bounce rate as decimal (0-1)
+      conversions: parseFloat(row.metricValues?.[5]?.value || "0"),
     }));
 
     return { content };

@@ -1,0 +1,1219 @@
+{
+  "posts": [
+    {
+      "id": "1q1zssy",
+      "title": "Do I need to keep turning on/off my VPN on my Firestick when using/not using it?",
+      "author": "Mumford_and_Dragons",
+      "subreddit": "VPN",
+      "score": 1,
+      "commentCount": 2,
+      "url": "https://reddit.com/r/VPN/comments/1q1zssy/do_i_need_to_keep_turning_onoff_my_vpn_on_my/",
+      "createdAt": "2026-01-02T14:20:21.000Z",
+      "content": "I am trialing a VPN provider...actually my first ever VPN. On the Firestick 4k.\n\nI use it only when watching IPTV / Tivimate.  \nSo when I switch apps, or even turn off my TV, do I need to keep disconnecting from my VPN?\n\nThanks",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1q3yrpr",
+      "title": "Recent change, having a hard time connecting; why?",
+      "author": "Repulsive_Narwhal_10",
+      "subreddit": "VPN",
+      "score": 1,
+      "commentCount": 1,
+      "url": "https://reddit.com/r/VPN/comments/1q3yrpr/recent_change_having_a_hard_time_connecting_why/",
+      "createdAt": "2026-01-04T19:17:56.000Z",
+      "content": "I use a major and generally trusted VPN provider that I pay for.  I spend most of my time in the US.\n\nI like to use California as an exit point since they have a state level privacy law.\n\nAbout 4 months ago, it suddenly got a lot harder to connect to my VPN.  If I could connect to Cali, it took longer, sometimes it couldn't connect at all.  Connecting to other servers worked, but also took time when it didn't use to.\n\nMy computer OS and VPN software are up to date.  Is there some other reason why it would get harder to connect to a VPN?  What would cause delays like that?\n\nAgain, this is a prominent provider with thousands of servers, it seems unlikely they their service suddenly became unreliable.",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1q5ks5m",
+      "title": "Android / Google TV VPN speeds capped ~100 Mbps (TCL MQLED85K) – why?",
+      "author": "dkracket",
+      "subreddit": "VPN",
+      "score": 0,
+      "commentCount": 12,
+      "url": "https://reddit.com/r/VPN/comments/1q5ks5m/android_google_tv_vpn_speeds_capped_100_mbps_tcl/",
+      "createdAt": "2026-01-06T14:57:10.000Z",
+      "content": "I’m running into a consistent VPN speed limitation on my [TCL MQLED85K](https://www.tcl.com/se/sv/tvs/98mqled85k) **(Android / Google TV)** and trying to understand what’s causing it.\n\n**Setup:**\n\n* Internet: 1000/1000Mbps fiber\n* 2 VPNs tested (both paid versions)\n* Connection: USB 3.0 → 1 Gbps Ethernet adapter\n* TV OS: Android / Google TV v12\n* Router-level VPN tested as well (same result)\n\n**Observed behavior:**\n\n* **Without VPN:** \\~400–800 Mbps on the TV (confirmed via Ethernet)\n* **With VPN (TV app or router VPN):** \\~85–130 Mbps max\n* **MacBook Pro comparison:** On the same network, same VPN servers, my **MacBook Pro** can hit \\~850 Mbps over Wi-Fi with VPN enabled\n\nSo this isn’t an ISP issue, a router issue, or a VPN provider issue per se — it seems specific to **Android TV hardware / software**.\n\n**What I’ve ruled out:**\n\n* Ethernet adapter limitation (USB 3.0, confirmed higher speeds without VPN)\n* VPN server congestion (same servers are fast on macOS)\n* App-specific issue (same speed cap via router-level VPN)\n\n**Question:**  \nWhy can’t Android / Google TV devices achieve higher VPN throughput?\n\nIs this due to:\n\n* Weak CPU / lack of hardware crypto acceleration on Android TV SoCs?\n* Android VPN API limitations?\n* OpenVPN / WireGuard implementation on Android TV?\n* Something specific to Google TV kernel or drivers?\n\nIf anyone has **technical insight** (not just “TVs are weak”), I’d really appreciate it\n\nEspecially interested if this is a **known Android TV bottleneck** or if there’s any workaround.\n\nThanks.",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN API",
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1q42j3w",
+      "title": "How to avoid my restrictive network?",
+      "author": "Emotional-Emu7916",
+      "subreddit": "VPN",
+      "score": 0,
+      "commentCount": 13,
+      "url": "https://reddit.com/r/VPN/comments/1q42j3w/how_to_avoid_my_restrictive_network/",
+      "createdAt": "2026-01-04T21:42:36.000Z",
+      "content": "I live in a school, which has a school network. You log in using your credentials, then you download a certificate, and only then can you use the network. However, if you login and use a VPN, you can use the network (it is also faster like this).  Obviously, the school banned the use of a VPN, and checks for the use of them, which is why I'm wondering what is the best way to get around it, as I do not want to keep using a well-known vpn provider? ",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "htge8m",
+      "title": "Seven 'no log' VPN providers accused of leaking – yup, you guessed it – 1.2TB of user logs onto the internet",
+      "author": "ImaginaryCheetah",
+      "subreddit": "technology",
+      "score": 43405,
+      "commentCount": 2014,
+      "url": "https://reddit.com/r/technology/comments/htge8m/seven_no_log_vpn_providers_accused_of_leaking_yup/",
+      "createdAt": "2020-07-18T13:12:30.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1oys7s",
+      "title": "VPN Provider CryptoSeal Shuts Down After Lavabit Case Undermines Security - It may be forced to hand over its encryption keys to United States authorities. Shutting down, the company says, is the only solution to protect customer privacy.",
+      "author": "ani625",
+      "subreddit": "technology",
+      "score": 3208,
+      "commentCount": 793,
+      "url": "https://reddit.com/r/technology/comments/1oys7s/vpn_provider_cryptoseal_shuts_down_after_lavabit/",
+      "createdAt": "2013-10-22T08:45:12.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "65cz5c",
+      "title": "VPN Traffic, use spikes in wake of death of user privacy rules: Several VPN providers have seen a more than 50% spike in downloads since the repeal of the Broadband Consumer Privacy Rules.",
+      "author": "maxwellhill",
+      "subreddit": "technology",
+      "score": 2918,
+      "commentCount": 224,
+      "url": "https://reddit.com/r/technology/comments/65cz5c/vpn_traffic_use_spikes_in_wake_of_death_of_user/",
+      "createdAt": "2017-04-14T14:55:49.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1hko5q",
+      "title": "Mastercard and Visa Start Banning VPN Providers",
+      "author": "TheGift1973",
+      "subreddit": "technology",
+      "score": 1829,
+      "commentCount": 377,
+      "url": "https://reddit.com/r/technology/comments/1hko5q/mastercard_and_visa_start_banning_vpn_providers/",
+      "createdAt": "2013-07-03T16:10:52.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1kl5a9r",
+      "title": "The new owners of VPN provider VPNSecure have drawn ire after canceling lifetime subscriptions. The owners told customers that they didn’t know about the lifetime subscriptions when they bought VPNSecure, and they cannot honor the purchases.",
+      "author": "a_Ninja_b0y",
+      "subreddit": "technology",
+      "score": 1591,
+      "commentCount": 175,
+      "url": "https://reddit.com/r/technology/comments/1kl5a9r/the_new_owners_of_vpn_provider_vpnsecure_have/",
+      "createdAt": "2025-05-12T21:57:51.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1koj4gc",
+      "title": "Major VPN Providers Ordered to Block Pirate Sports Streaming Sites",
+      "author": "moeka_8962",
+      "subreddit": "technology",
+      "score": 966,
+      "commentCount": 146,
+      "url": "https://reddit.com/r/technology/comments/1koj4gc/major_vpn_providers_ordered_to_block_pirate/",
+      "createdAt": "2025-05-17T03:08:13.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "989mpd",
+      "title": "/r/privacy is toxic. Let's fix that, RANT",
+      "author": "3kz94NZZu2cBUTZw3aM2",
+      "subreddit": "privacy",
+      "score": 922,
+      "commentCount": 347,
+      "url": "https://reddit.com/r/privacy/comments/989mpd/rprivacy_is_toxic_lets_fix_that_rant/",
+      "createdAt": "2018-08-18T06:20:46.000Z",
+      "content": "Hi everyone. I've been on this subreddit for a month or so now. I was already very extremely security conscious before and this subreddit helped me get started on my privacy journey, plus my own reading and expertise. I want to thank all the community's work and mods for their hard work.\n\nThat being said, I'm noticing a trend in this subreddit. People often look down on others who aren't \"as private\" as others.  More often than not, involves something along the lines of \"Oh you use Winblows 10? You must not care about your privacy.\" or something dumb like that. Hey jackass, just because someone still has to use Windows doesn't mean they aren't trying. Maybe they have a Windows exclusive program that doesn't work in WINE. Maybe they need MS Office in their life because Google Docs or LibreOffice's formatting isn't good enough. This subreddit should be the learning tool it was for me and a resource for the \"uninitiated.\"\n\nWe are better than this. If the new people visit this sub, see all this volatile superiority. they won't want to be private. They're going to view the users in this sub as raving tinfoil-hat crazies who foam at the mouth over the word \"Google.\" Do you use a pure libre system like Trisquel or Pure OS? Did you use a land trust to buy your house? I use an iPhone because I don't have time to keep up with MicroG updates and stuff. I still use Macs and Office 365 for my job. We all can't be you elitists pushing this crap down our throat. I'll bet that these people don't even know how to root and install a custom ROM in Android. That's great and all, but not all of us have the time to do it. \n\nSecond, I'm noticing the general distrust before asking questions. \"Mozilla removes Web Security.\" It was a proprietary plugin, why is it their fault that they endorsed and not knowing about the malicious traffic sending? Sure, Mozilla did terrible things in the past with Brenden Eich, the Mr. Robot AR extension, and the introduction of Pocket API, but this was an honest mistake they are handling very well. Remember last month with ProtonVPN/Mail and the debacle with Tesonet? Those were rabblerousers trying to badmouth them so badly Andy Yen was forced to issue a statement because of erroneous information. Put yourself in the shoes of these companies before making this kind of judgement. Would you have made the same decisions in the stead of Mozilla Corp and Proton Technologies AG? \n\nThird, I want to promote more technical literacy. More people do not know how to use technology today than the people who do know how to use technology. That being said, I cannot for any good reason recommend Master Password and LessPass from Privacytools.io or their sub. They don't have a secure hash algorithm because they attempt to make a \"password\" (or the ending master password hash) pronounceable. The best passwords are those big blobs of random gobbly gook or passphrases like \"horse battery staple correct.\" We desperately need good research, and I wish I could direct some place for it, but it's no one easy place for it. We can only conquer this if we all keep each other informed. The Google Location thing is another example. It's terrible, sure, but this has been going on since Google Maps existed. Only now people lose their minds over it. How about Cambridge Analytica? That was back in 2015 and people only started get angry because the NY Times did a thing, but when the Guardian did in 2015, nobody listened to them. Just be aware and do thorough research. I don't want to bash anybody on this sub, because many of you do a great job at this, but I want to call out those guys who sling toxicity or meme around. Keep this as professional as possible. Newcomers want help and advice and we want them on our side. We can't accomplish that with by insulting them for using Dashlane.\n\n*rant over* Have a nice day.",
+      "type": "post"
+    },
+    {
+      "id": "pm65xl",
+      "title": "Google handed user data to Hong Kong authorities despite pledge after security law was enacted",
+      "author": "Acrzyguy",
+      "subreddit": "technology",
+      "score": 793,
+      "commentCount": 28,
+      "url": "https://reddit.com/r/technology/comments/pm65xl/google_handed_user_data_to_hong_kong_authorities/",
+      "createdAt": "2021-09-11T12:00:11.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "vglum",
+      "title": "PayPal bans BitTorrent-friendly VPN provider TorGuard; as a result, thousands of dollars belonging to the company have been frozen; \"They canceled hundreds of automatic payments and froze thousands in our account\"",
+      "author": "mepper",
+      "subreddit": "technology",
+      "score": 692,
+      "commentCount": 177,
+      "url": "https://reddit.com/r/technology/comments/vglum/paypal_bans_bittorrentfriendly_vpn_provider/",
+      "createdAt": "2012-06-23T00:00:33.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "i3tz4l",
+      "title": "Hacker leaks passwords for 900+ enterprise VPN servers",
+      "author": "Corsterix",
+      "subreddit": "technology",
+      "score": 652,
+      "commentCount": 51,
+      "url": "https://reddit.com/r/technology/comments/i3tz4l/hacker_leaks_passwords_for_900_enterprise_vpn/",
+      "createdAt": "2020-08-04T23:07:45.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "758t2m",
+      "title": "FBI reveals using PureVPN’s “non-existent” logs to track down an Internet stalker",
+      "author": "Portis403",
+      "subreddit": "technology",
+      "score": 619,
+      "commentCount": 76,
+      "url": "https://reddit.com/r/technology/comments/758t2m/fbi_reveals_using_purevpns_nonexistent_logs_to/",
+      "createdAt": "2017-10-09T12:43:48.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "74xd8i",
+      "title": "Pure VPN lies about keeping logs.",
+      "author": "Lightor36",
+      "subreddit": "VPN",
+      "score": 322,
+      "commentCount": 55,
+      "url": "https://reddit.com/r/VPN/comments/74xd8i/pure_vpn_lies_about_keeping_logs/",
+      "createdAt": "2017-10-07T20:45:47.000Z",
+      "content": "Just a quick warning to everyone.  PureVPN claims on their site that they keep no logs of your activity but in a recent case the FBI requested and got logs of activity from one of their users.  Source - https://www.bleepingcomputer.com/news/security/cyberstalking-suspect-arrested-after-vpn-providers-shared-logs-with-the-fbi/\n\nTL;DR - Don't use PureVPN",
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "1ugyu9",
+      "title": "Evidence my ISP is tracking their customers and selling the data.",
+      "author": "Nimbs",
+      "subreddit": "privacy",
+      "score": 285,
+      "commentCount": 28,
+      "url": "https://reddit.com/r/privacy/comments/1ugyu9/evidence_my_isp_is_tracking_their_customers_and/",
+      "createdAt": "2014-01-05T17:59:00.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "anoufj",
+      "title": "Cisco Firepower - what to expect",
+      "author": "average_networkguy",
+      "subreddit": "networking",
+      "score": 194,
+      "commentCount": 107,
+      "url": "https://reddit.com/r/networking/comments/anoufj/cisco_firepower_what_to_expect/",
+      "createdAt": "2019-02-06T08:48:39.000Z",
+      "content": "It's been a while  i started to think about to share my 2 years experience with technology but i was not quite convinced or in other words - i felt so disappointed even start to think about doing so because of all the issue with the technology itself.\n\nSo you can ask - why now?Well, couple of months ago i found \"rant\" article with a follow up ...\n\n(available here: [https://www.reddit.com/r/networking/comments/9363af/cisco\\_firepower\\_rant/](https://www.reddit.com/r/networking/comments/9363af/cisco_firepower_rant/) and here: [https://www.reddit.com/r/networking/comments/9vynr9/cisco\\_firepower\\_rant\\_ii/](https://www.reddit.com/r/networking/comments/9vynr9/cisco_firepower_rant_ii/))\n\n... and i knew i had to add my \"2 cents\" since we are seeing lot of similarities (and not only that)\n\nOne funny thing - when first \"FP rant\" was released, one of the TACs contacted me directly asking if that's me :)\n\n&amp;#x200B;\n\nWell, let's start\n\nTo introduce myself, i'm network engineer currently working mostly with FP technology (FMC, FTD, FXOS etc.). Experienced with other NGFW/traditional enterprise vendors and products such as:\n\nCheckpoint - both Splat/Gaia sensors, Provider-1, Security management\n\nFortiNet - FortiGate sensors, FortiAnalyzer\n\nJuniper - Netscreen sensors, NSM\n\nIn our case, we are talking about scalable dynamic data center / telco environment with huge amount of the changes within the platform itself.\n\n&amp;#x200B;\n\nWhat are we using\n\nFMC4k appliances in HA for central management a database, some FP4k &amp; FP9k appliances in logical FTD-HA as well as some 5512 ASA firewalls.\n\nNo virtual devices in place (not that's making any difference)\n\nWe started with 6.1.x version and now we are having three different environments running 6.2.3.x, 6.3.x and some others.\n\nHonestly, it does not make that much of a difference speaking of SW version since there's minimal progress overall and it's all because of the - pardon my French - most idiotic FW design i ever seen in my life!!!\n\n&amp;#x200B;\n\n# DESIGN, DESIGN, DESIGN!!!\n\nThis is a root cause of all evil and because of the design decisions made here, i was able to successfully develop a    tourette syndrome after all those years working with the product.\n\nI'm not quite sure what decisions were made during development, but if you think that using legacy ASA code along with FTD services without re-design is way to go, i can assure you that it's not .\n\nThis product has to be redesigned,  otherwise i see no option how this product can be even close to enterprise NGFW solutions of other vendors.\n\nWell, to rephrase - you can try, but we already know the results, and man ... what a disaster it is\n\n&amp;#x200B;\n\nFor sensor,  you have so cold LINA engine which is nothing else but legacy ASA code (ACL filter) with magical FTD services on top of it and rabbitmq messaging between those. Cooked as unified FTD image.\n\nJust imagine it as VM running on top of hypervisor provided by FXOS.\n\nSpeaking of VM on FXOS, new 6.3.0 version is finally allowing to run multiple FTD instances. You can share resources, interfaces and so on. Even routing between instances is possible.\n\nI haven't had time to test this fully yet, but again - marketing slide is one thing, real experience is something different. From design perspective, each and every FTD is consuming 2 CPU resource for management plane. Those cannot be shared. Imagine running 12 FTD instances on top of FXOS. This is resulting in 24 CPU cores utilization only for management plane. Not possible to allocate those for data plane or share among instances. What a waste.\n\n&amp;#x200B;\n\nUsability is just a pain as well - you have different set of commands on each layer, some of those are not even ported correctly or not showing same results!\n\nBasic troubleshooting commands such as \"capture\" are not the same on both LINA/FTD.\n\nIt's even worse on latest 6.3.0 version if compared to  6.2.3.x\n\nForget also about \"grep\" feature for \"show route\" in 6.3.0 FTD, it's gone. Why? Don't ask me ...\n\nSure, you can still \"workaround\" some of these by switching between layers to get some results. You just need to develop a huge sense of humor and same level of understanding and forgiveness (luckily, i learned that already as a married man)\n\nThen you have OPS perspective. Since beginning, we are unable to handover this technology to operation. This is causing overhead for me as network engineer and for my employer as well (believe me, i have better things to do than creating cases and trying to figure out how to solve and address daily issues)\n\n&amp;#x200B;\n\nFMC is not any better. First surprise is slowness. Second surprise is efficiency.\n\nIt run 2 fragile databases and we were able to corrupt both by non-graceful shutdown.\n\nAmount of limitations is also alarming, it's not allowing you to route management using anything else but default route for IPv6, traffic logs can be shown but it's nightmare to export them (forget about more than 400k lines). Deployment times are joke (regardless what change is performed, you are wasting time cause FMC has to download whole FTD config and deploy changes back + validate on FTD/ASA).\n\nMore in section below\n\n# LIFE WITH FIREPOWER - EXPECTATIONS vs REALITY\n\nIt's quite challenging. As mentioned above, we consider design as main issue and almost every issue is caused by that fact.\n\n&amp;#x200B;\n\nFTD/FMC\n\nWhen we first started, i couldn't understand how there can be a product on the market with no backup/restore functionality. Honestly, i still don't understand.\n\nWhen reported, it has been even marked as \"feature request\" and not a bug. Yes, you read that correctly. To have backup/restore possibility for NGFW enterprise product, you need to file a feature request yourself. At the end, we manage to have it re-categorize as a bug but it caused a lot of pain. And sure, because of the design (sftunnel FMC to FTD) it's not even possible to restore if the device is removed from FMC. Forget it, it's gone. No ETA for fix! (6.4 affected as well)\n\nSure, you can use API's for that and we are doing so, but until 6.2.3.x those were useless! It's getting better tho.\n\nBut still, if we want to create our own backup/restore using APIs, due to our policy and design construct, it's taking ages (hours) to finish device configuration (FTD-HA - interface/zone/routing perspective)\n\nEven, worth to mention - try to keep FTD and FMC version to be the same. We have experienced some APIs inconsistency in versions are not the same (you won't find this in guideline).\n\nSpeaking of FMC, this whole \"FTD to FMC\" procedure is 100% brainless. You need to remove FTD from FMC because of some issues? Sure, you can do so, but FMC will not preserve any configuration related to HA (forget about monitoring interfaces, secondary IPs and so), any routing/routing related configuration or bond of logical zones with interfaces. If your policy package is constructed in such way (as zone based FW) you will experience an outage - you have no chance to interrupt this action and FMC will just push configuration \"as is\".\n\nFunny is that for version 6.2.0.x this has not been even mentioned in the guideline. We performed re-registration of FTD due to some issues and we caused an outage. Assigned TAC found reference since bug was in database already. I still remember - this \"routing information removal\" bug was having priority 6 - enhancement that time! (maybe it still has same prio, haven't checked that for long time).\n\nAnother critical bug affecting FMC-HA deployment resulted in deletion of \"random\" ACL lines from the devices to which configuration was deployed. It literally removed couple of lines causing an outage.\n\nIn 2018/2019 you would expect full IPv6 support as well. Reality is bit different. Version 6.3.0 is the first release supporting object search for IPv6 in FMC. Until now, FMC was unable to parse/handle \":\" and there were no results. You cannot even tract objects within policy package (\"where used\" is not there yet).\n\nBecause of this and all other limitations of FMC, we are running 3rd party database with some excel sheets to backup and to search efficiently. I'm not even mentioning amount of the cases raised for FMC for past 2 years for all the limitations and missing features of the product.\n\nFMC is unable to do the delta comparison, dry run, lock the policy, revert saved changes, search efficiently, track objects, create reports for audit purposes (due to known limitations of the whole engine, there's 400 000 line limit hardcoded for traffic log/intrusion log report)\n\nAnd it is slow. Sometimes you have to withdraw changes you made to policy package cause it's saving it for 5+ minutes and it' easier for you to start over.\n\nAnd if you want to laugh a lot, try to implement static IPv6 route. You simply cannot! Why? Apparently, there's a good explanation for that but we have not received it. Maybe they did not see use case for that :)\n\nSame applies for capture feature on FTD, prior to version 6.2.3.x you could not specify IPv6 address to the filter. As a workaround, you have to capture whole interface (with no port type filter, otherwise you will get IPv4 only) and grep or use 3rd party software to work with.\n\n&amp;#x200B;\n\nFlexconfig feature to substitute missing or not implemented ASA-like commands is still in diapers. Prior to version 6.2.3 this even resulted in unsuccessful rollback in case you inserted set of commands with typos or with commands that were not taken by FTD fot whatever reason. Your configuration got wiped afterwards and FTD just crashed and went to the default state. Considering time of the deployment (8 mins for standard config and 19 for snort enabled platform) you can easily do the math. This has improved in 6.2.3 version but it's still fragile.\n\nWe experienced same for NAT.\n\nBasically, if you are able to implement a change in FMC which is in direct conflict with FTD, FMC will try to deploy it, no matter what. This is resulting in rollback (and you should start praying to have a successful one).\n\n&amp;#x200B;\n\nPolicy package construct is also weird. FTD is using same construct as for ASA. If you are creating a rule which consists of 1 source IP, 1 destination IP and 1 port, you are ending up nicely with 1 ACL rule. This rule is then redistributed to FMC.\n\nModern NGFW rule-base construct is fully aware of nested groups, nested objects and zone. Because of this simple combinatoric, rule expansion is actually rising \"to infinity and beyond\". In our case, we are facing situation using NGFW zone based firewall without zones because of this limitation (or call it a design). And for sure, this is well described in the guideline so we just have to keep our heads down and work with it somehow. When same configuration was deployed to other vendor SOHO box that's using object based construct, it went through successfully without any expansion issues. Sure, competitors has some limitations as well, but in this case our ACL construct consumed all memory available and crashed.\n\n&amp;#x200B;\n\nI almost forgot, if you are using the product, do me a favor. Try to ping any routed unreachable host with ping count of 2000 as an example or execute a trace route towards that IP address. Share the results :)\n\n&amp;#x200B;\n\n# SNORT ALMIGHTY\n\nFor Cisco, to buy Sourcefire was definitely a right move, as IPS/IDS this device works well for the current and former Sourcefire customers.\n\nWhile trying to develop a strategy, we wanted to run some IDS-like solution first to see how many false positives are we getting and what's the impact on system resources. What we did was the scan of the platform using built-in Nmap solution, comparison with our 3rd party scanner and creating some host profiles.\n\nFirst, Nmap installed on FMC is version 6.01 from 2012 is outdated (you can even easily check vulnerabilities for such version). Seems vendor is OK with it since this is a version installed on 6.3.0 version\n\nSecond, network discovery profiles are missing for whole variety of enterprise OS versions. Latest VBD database is also outdated. Recommendations are then not accurate and when we tried to feed FMC using tailored script and changed the value for OS, recommendations were still the same. Why would you even use recommendations if you cannot rely on it? How many false positives could we expect then?\n\nAnother open topic is a granularity of intrusion policies, or in other words - how many policies should/could we implement. Sure, there's no specific answer to that and it all just depends. Out of the record, customer are usually using single digit number of policies (at least per rumors we've heard)\n\n&amp;#x200B;\n\nI recommend you to check CCO live slides if you have an access to, there are full of recommendations, best practices and so on. Unfortunately, this is not giving us the answers for Nmap &amp; discovery profile issues we are having.\n\n&amp;#x200B;\n\n# UPGRADE, TEST, REPEAT\n\nLike every other vendor, Cisco is providing major/minor/patches releases on some agreed basis. This is nice. Theoretically speaking of course.If i would get a penny for every promise regarding stability, usability etc. i could quit my job, move to some paradise island and drink mojitos all day long.\n\nWe are taking every single possibility to move this product further, we have two testing platforms for releases that are installed before released to our production environment and i'm getting tired of it.\n\nMost of critical topics (and man, we have some!) were supposed to be targeted on version 6.2.3. Cisco committed to deliver stability. Stability that should help us to at least get rid of all inconsistencies while deploying or changing configuration. Amount of the TAC cases raised right after the upgrade is in direct conflict with this statement. Nothing has changed!\n\nAnd version 6.3.0 is not any magical as well. They added backup/restore for FTD which is quite limited, in case your device is removed from FMC, you cannot restore it anyhow. End of story.\n\nWe don't mind the upgrades, we are even happy to see that there's a time line for major/minor releases in place and if the patch is necessary to be provided, it is provided mostly ad-hoc.\n\nUnfortunately, if the design will not change we can do upgrades indefinitely. It simply doesn't work for us.\n\n&amp;#x200B;\n\nLong story short: working with this technology in dynamic environment is resulting in huge amount of cases, bugs, troubleshooting requests with no real progress. This is not something i made up, this is pure engineer/end user experience.\n\nI personally feel like a beta tester of the product\n\n&amp;#x200B;\n\n# WHAT ABOUT VENDOR?\n\nTAC experience is great, these folks are doing their best to help us and address all issues we are having with the product. Advanced FP team is trying to solve or at least advise how to avoid such issues for the future.\n\nOn the other hand, the BU is for us nothing but a black box. We have very limited visibility once bugs/feature requests are raised.\n\nI'm not in the position to judge, but if i'm waiting almost 2 years for critical design related bugs to be addressed, there has to be something wrong. Not even mentioning all feature requests we raised. You can try to guess what's the progress there ...\n\n&amp;#x200B;\n\nI really want to be surprised but i have already lost most of the patience.\n\n&amp;#x200B;\n\n# CONCLUSION\n\nIf you are asking who should go and buy this product, it's hard to say.\n\nIf you are in strong partnership with Cisco or if you are just replacing old ASA firewalls with new Firepowers, it might go bit better for you than for us. If your are not doing lot of intrusive/design or conceptual changes, you might even like the product. It is well suited for \"set and forget\" deployments or i see nice implementation for voice&amp;video environments where only Cisco technology is used.\n\nOn the other hand, if you do not requite centralized management, i would stick with ASA. Maybe CDO (Cisco Defense Orchestrator) might be an answer for you, but we did not test it since our deployment requires \"on-prem\" solution and CDO is unable to provide that.\n\nI believe that Cisco is pushing here, APIs are also improved and on version 6.3 it seems to be more or less stable.\n\n&amp;#x200B;\n\nIf your environment is dynamic, and/or you have no preferred NGFW vendor for now and Firepower was in your scope as well, my recommendation is to avoid it. It's not worth at the moment and i believe that it will not be worth the money until it's completely redesigned to at least get close to other vendors.\n\n&amp;#x200B;\n\nTL;DR: I can only say the same as user laclobunu 6 months ago. Don't buy it, it's not worth your time, energy, mental health and money.\n\n&amp;#x200B;",
+      "type": "post"
+    },
+    {
+      "id": "75dq6n",
+      "title": "PureVPN’s ‘non-existent’ logs used to track, arrest alleged internet stalker",
+      "author": "mixplate",
+      "subreddit": "technology",
+      "score": 163,
+      "commentCount": 21,
+      "url": "https://reddit.com/r/technology/comments/75dq6n/purevpns_nonexistent_logs_used_to_track_arrest/",
+      "createdAt": "2017-10-10T01:20:37.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "i4lakt",
+      "title": "Pulse VPN Passwords Leaked",
+      "author": "Packetization",
+      "subreddit": "networking",
+      "score": 159,
+      "commentCount": 52,
+      "url": "https://reddit.com/r/networking/comments/i4lakt/pulse_vpn_passwords_leaked/",
+      "createdAt": "2020-08-06T04:41:34.000Z",
+      "content": "Hopefully all of you are patched up and unaffected\n\n\n\nhttps://www.zdnet.com/article/hacker-leaks-passwords-for-900-enterprise-vpn-servers/\n\nEdit:\n\nRemoved the list of affected endpoints at mods request. You'll need to figure it out on your own guys",
+      "type": "post"
+    },
+    {
+      "id": "7d8nnv",
+      "title": "PureVPN: A bundle of WTF.",
+      "author": "touyajp",
+      "subreddit": "VPN",
+      "score": 153,
+      "commentCount": 33,
+      "url": "https://reddit.com/r/VPN/comments/7d8nnv/purevpn_a_bundle_of_wtf/",
+      "createdAt": "2017-11-16T00:40:40.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "44ds14",
+      "title": "PayPal blocks VPN provider’s payments over copyright concerns",
+      "author": "TheLantean",
+      "subreddit": "privacy",
+      "score": 139,
+      "commentCount": 30,
+      "url": "https://reddit.com/r/privacy/comments/44ds14/paypal_blocks_vpn_providers_payments_over/",
+      "createdAt": "2016-02-06T00:30:37.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "3ralne",
+      "title": "AT&amp;T hasn't repaired T1 in 55 hours; Have no ETA to fix. Is there anything I can do?",
+      "author": "ISBUchild",
+      "subreddit": "networking",
+      "score": 128,
+      "commentCount": 80,
+      "url": "https://reddit.com/r/networking/comments/3ralne/att_hasnt_repaired_t1_in_55_hours_have_no_eta_to/",
+      "createdAt": "2015-11-03T01:49:32.000Z",
+      "content": "**Update: Service was restored overnight. Hopefully my constant calls trying to escalate the issue helped.**\n\nI'm \"the IT guy\", not a networking specialist, but hopefully someone has been in this situation.\n\nOur branch offices send their voice traffic to a telco-owned Cisco 1900 with a CSU/DSU add-in card. As I understand, this goes to a sort of managed VPN service which allows it to communicate with the main phone system in another office. This link went dead around midday Saturday, coincident with some inclement weather. The only diagnostic information I know of comes from the automated ticket log:\n\n    TRANSPORT DIAGNOSE: THE TRANSPORT FACILITY IS CURRENTLY IN FAILED STATE.\n\nAnd then the ticket got assigned to somebody else:\n\n    An Access supplier problem was detected. This ticket has been referred to the Access Supplier for repair.\n\nA phrase which doesn't exist in Google, but I presume refers to the contracted manager or owner of the circuit. There are no updates since.\n\nHours of phone calls to AT&amp;T have bounced between many people in two repair departments, the consensus of which is that \"it's not our ticket/circuit\" and \"the last update was that the ticket was assigned for dispatch\". No further information is provided, save for one person who was able to tell me there was an alarm condition and it was a central office issue.\n\nHaving no management access to the Cisco myself, all I can verify on my end is that:\n\n- I have no CSU/DSU link status lights\n\n- I have a yellow alarm status light\n\n- The link lights turn green when I connect a loopback cable, suggesting the premises equipment works.\n\nI have gained no more information about what the problem is, but have learned that our one issue is referred to by three different ticket numbers amongst AT&amp;T's different support facilities, each of which is equally lacking in updates. I've emailed the reseller who sold our service to see if she knows anybody we can talk to, but her competence is questionable, and her response time worse. Our business can't be without phones for so long. If anyone has any suggestions, please let me know.",
+      "type": "post",
+      "matchedKeywords": [
+        "managed VPN service"
+      ]
+    },
+    {
+      "id": "1oys56",
+      "title": "VPN Provider CryptoSeal Shuts Down After Lavabit Case Undermines Security - It may be forced to hand over its encryption keys to United States authorities. Shutting down, the company says, is the only solution to protect customer privacy.",
+      "author": "ani625",
+      "subreddit": "privacy",
+      "score": 108,
+      "commentCount": 5,
+      "url": "https://reddit.com/r/privacy/comments/1oys56/vpn_provider_cryptoseal_shuts_down_after_lavabit/",
+      "createdAt": "2013-10-22T08:43:08.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "74zem5",
+      "title": "Cyberstalking Suspect Arrested After VPN Providers Shared Logs With the FBI",
+      "author": "LizMcIntyre",
+      "subreddit": "privacy",
+      "score": 101,
+      "commentCount": 46,
+      "url": "https://reddit.com/r/privacy/comments/74zem5/cyberstalking_suspect_arrested_after_vpn/",
+      "createdAt": "2017-10-08T03:08:30.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "84ag00",
+      "title": "Several privacy-busting bugs found in Hotspot Shield, Zenmate and PureVPN",
+      "author": "mansomer",
+      "subreddit": "VPN",
+      "score": 95,
+      "commentCount": 14,
+      "url": "https://reddit.com/r/VPN/comments/84ag00/several_privacybusting_bugs_found_in_hotspot/",
+      "createdAt": "2018-03-14T03:53:19.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "3rnrii",
+      "title": "Most major VPN providers invading privacy of own customers right on their own websites",
+      "author": "o2pb",
+      "subreddit": "privacy",
+      "score": 90,
+      "commentCount": 46,
+      "url": "https://reddit.com/r/privacy/comments/3rnrii/most_major_vpn_providers_invading_privacy_of_own/",
+      "createdAt": "2015-11-05T18:33:37.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "2l4rh4",
+      "title": "Looking for first enterprise firewall",
+      "author": "Wlraider70",
+      "subreddit": "networking",
+      "score": 86,
+      "commentCount": 100,
+      "url": "https://reddit.com/r/networking/comments/2l4rh4/looking_for_first_enterprise_firewall/",
+      "createdAt": "2014-11-03T04:56:07.000Z",
+      "content": "Hi all,\n\nI'm getting ready to upgrade to my first enterprise firewall. The network has gotten too big for the home gear.\n\nI'm looking for cheap, I'd prefer it if it didn't have licenses and recurring fees, is this possible.\n\nI'd love to add VPN to that too and take the configs off my server.\nI have about 10pcs, 10 VoIP phones, 3 AP, and3 servers. I set it all up. \n\nI saw that ebay was filled with these netgear FVS318g for practically free, is there something wrong with them? It seemed like an easy place to start.\n\nAny information or links would be most helpful. Thanks\n\n\n\n\nEdit: THANKS for all the info.\n",
+      "type": "post"
+    },
+    {
+      "id": "2f38mh",
+      "title": "How can I trust a vpn provider?",
+      "author": "privatepeet",
+      "subreddit": "privacy",
+      "score": 75,
+      "commentCount": 63,
+      "url": "https://reddit.com/r/privacy/comments/2f38mh/how_can_i_trust_a_vpn_provider/",
+      "createdAt": "2014-08-31T15:56:56.000Z",
+      "content": "How can I trust a vpn provider like Tunnel Bear?  How do I know they don't log my data?  How do I know they're not run by a government?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "bztyzs",
+      "title": "Google Says It Won't Kill Ad Blockers. Ad Blockers Disagree",
+      "author": "False1512",
+      "subreddit": "technology",
+      "score": 70,
+      "commentCount": 7,
+      "url": "https://reddit.com/r/technology/comments/bztyzs/google_says_it_wont_kill_ad_blockers_ad_blockers/",
+      "createdAt": "2019-06-12T17:21:06.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "74zect",
+      "title": "Cyberstalking Suspect Arrested After VPN Providers (including PureVPN) Shared Logs With the FBI",
+      "author": "LizMcIntyre",
+      "subreddit": "technology",
+      "score": 60,
+      "commentCount": 10,
+      "url": "https://reddit.com/r/technology/comments/74zect/cyberstalking_suspect_arrested_after_vpn/",
+      "createdAt": "2017-10-08T03:07:00.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "k6pys9",
+      "title": "Google Fiber rolls out insanely fast 2Gbps service in two lucky US cities",
+      "author": "Philo1927",
+      "subreddit": "technology",
+      "score": 52,
+      "commentCount": 39,
+      "url": "https://reddit.com/r/technology/comments/k6pys9/google_fiber_rolls_out_insanely_fast_2gbps/",
+      "createdAt": "2020-12-04T17:59:51.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "17drvyx",
+      "title": "Introducing IPv6 Into a Brownfield Enterprise Network; Where to Start?",
+      "author": "SevaraB",
+      "subreddit": "networking",
+      "score": 42,
+      "commentCount": 29,
+      "url": "https://reddit.com/r/networking/comments/17drvyx/introducing_ipv6_into_a_brownfield_enterprise/",
+      "createdAt": "2023-10-22T12:13:02.000Z",
+      "content": "I’m working in an environment with about a half dozen smaller data centers, 20 campus networks, a couple hundred branch offices, and a ton of full remote workers. Despite this, we’re still all in on IPv4. Even our public web domain is pure IPv4, with the remote workers reliant on VPN tunnel exclusion routes and WAF rules for limiting it to private access on the public domain. \n\nEven our *cloud* computing is IPv4, which has led to fabulous wastes of engineering resources like implementing explicit NOERROR responses to AAAA lookups so that IaaS resources outside of our control in Azure or AWS will fall back to IPv4 name resolution. \n\nWhere this all falls down is we’ve brought in data scientists fresh from college or poached from other F500 companies who see this sprawling estate, see cloud compute availability, and use the network as if we were a hyperscaler. We’re already allocated *most* of the 10.0.0.0/8 block for clients and servers, and maybe a third of 172.16.0.0/12 for DCI and DMZ. I see this as unsustainable madness, and I want to pitch that it’s time to get over our phobia of IPv6. \n\nThat begs the question I’m sure some people in the fed space have been dealing with this past year- where to even start?\n\nClient access nets are going to have to stay at least dual-stack for backwards compatibility with legacy services still running on our network. That makes transit links poor candidates, because if we cut them over completely, we’re going to need to spend engineering resources on tunneling IPv4 traffic. \n\nThe interesting thought I had is management networks seem like the low-hanging fruit; the infra is relatively up-to-date to satisfy audit requirements, and they’re mostly used by fellow engineers that can be taught to rely on DNS instead of memorizing addresses and could wrap their heads around using a DNS zone’s namespace to locate resources instead of an IP address space… thoughts?",
+      "type": "post"
+    },
+    {
+      "id": "s7ms27",
+      "title": "Have you successfully broken up silos within your network support team?",
+      "author": "WearyIntention",
+      "subreddit": "networking",
+      "score": 41,
+      "commentCount": 41,
+      "url": "https://reddit.com/r/networking/comments/s7ms27/have_you_successfully_broken_up_silos_within_your/",
+      "createdAt": "2022-01-19T10:00:39.000Z",
+      "content": "Hi all,\n\nTL;DR - I want to **crush** silos in my network support team but not sure of how this can be achieved successfully **in the long-run**\n\nI'm a network engineer part of a network services support team for an enterprise MSP. We are a purely a networks team and don't support any of the server infrastructure. We cover switch/route, WAN, VPN, firewalls (primary and edge), loadbalancers, wireless &amp; DCs.\n\nI'm not sure how common our issue is but for years our team has functioned quite well even though at some point in the past it 'just fell' in to a bunch of silos. Each stream has at least one subject matter expert overseeing design/architecture and the mid &amp; junior engineers deal with the day-to-day troubleshoot. The issue here is that it's always the same techs on the same streams i.e. tickets will always be assigned to you because they know you're the guy who looks after L2/L3 switch issues day-to-day. Customers have also cottoned on to that so will always hit up the same techs knowing they're looking after their particular technology.\n\nIt's a pretty busy team so not usually much chance for you to sit and dive in to another stream, some streams also have much better internal documentation than others. Also I'd want this to be more than skimming the easy stuff within each stream, ideally we'd get in to the weeds and have to deal with some of the more complex incidents/requests to actually learn stuff.\n\nI'd like to make suggestions to management about how we might be able to finally get over the line with breaking up the silos ('*SILO CRUSHING' anyone?)*. In my head I'm thinking of a scenario along the lines of a monthly rotating roster where you are posted to a different stream each time. At first you might only rotate junior/mid engineers to allow escalation and knowledge share from seniors, but they would also be expected to skill up cross-stream and rotate in at some point.\n\nWould love to hear anecdotes from anyone who's been in the scenario before and managed to successfully break up the silos. Just to note, I'm not looking to quit I just think getting the whole team more technical exposure across the board stands to benefit everyone. If/when subject matter experts leave you might avoid a knowledge vacuum occurring, or so is the hope!\n\n\\# EDIT #\n\nWow! Did not expect to get that level of response so thanks very much for the different perspectives, it gives me a lot to think about! To try and address some common themes and comments :\n\n\\- The use of '*silo crushing'* was very tongue-in-cheek, I'm not a 'manager in hiding' I just like to play buzzword bingo. I don't care much for the latest trendy management phrases, give it to me straight. The hope of course is still to expand the skillsets throughout the team.\n\n\\- I agree with the comments around documentation being one of the key factors. It's a key issue whether in silos or not in my opinion, this is certainly an area that I am pushing to improve. As mentioned in the original thread, some of our streams have *much* better documentation than others.\n\n\\- The team as a whole have solid route/switch fundamentals. What tends to happen is techs will show interest/competency in one of the streams and end up being pigeon-holed in to it. I'm a mid-level within the team, I have a fair chunk of wireless and some firewall experience but I want to get more exposure to the WAN/DC elements. With the juniors there is a general sentiment of frustration with lack of opportunities to at least dip their toe in different streams, they are being put on the same sorts of tickets and project work as always. Leaning in to the management aspects here which is also an issue at an individual level and I'm not trying to address management shortfalls.\n\n\\- We have been burned before with single points of failures leaving, taking significant knowledge and experience with them. Sure we managed to get someone else to skill up to cover but it was not a quick process. Again there's elements of management to addressing SPoF but I'm seeing it from the cascading effect it had on all techs where shuffles happened, mids have to take more stuff on (opportunity) but juniors now have even less quick access to mids/seniors because we're all tied up (cost).",
+      "type": "post"
+    },
+    {
+      "id": "52654i",
+      "title": "Security flaw in PureVPN? *Calling all PureVPN users*",
+      "author": "Gyrta",
+      "subreddit": "VPN",
+      "score": 26,
+      "commentCount": 46,
+      "url": "https://reddit.com/r/VPN/comments/52654i/security_flaw_in_purevpn_calling_all_purevpn_users/",
+      "createdAt": "2016-09-11T00:52:42.000Z",
+      "content": "**Edit: It seems that there is a big security flaw in PureVPNs setup. Please read the comments below for more information. I do not recommend PureVPN. If you *must* use it, use a great software firewall. To adress the security flaw, PureVPN requires you to buy an paid add-on. The security flaw is probably intended to sell the add-on.**\n\nHi, since installing a firewall on my mac (LittleSnitch) I've found some strange incoming connections when using PureVPN. I'm mostly using AirVPN, but for streaming sport I use PureVPN.\n\n\nHere is a screenshot of my firewall software:\nhttp://imgur.com/a/TM6XS\n\n\nI'm connecting with openvpn, but this applies to pptp etc. too. When connected I'm getting incoming connections to port 22 (SSH). My firewall disables the connection, but I'm lucky using a firewall I guess. I've had incoming connections to SMB before when trying pptp.\n\n\nMore info: \n\n* This happens **only** when using PureVPN\n\n* I'm not using a dedicated IP-adress.\n\n* My VPN does not have a dedicated IP-adress\n\n* My computer is only accessible within LAN (no port forwarding).\n\n* This has happened on the network of my university too, **when** using PureVPN.\n\n\nPureVPN is selling an add-on \"NAT Firewall\" (That's what they call it) on their homepage. This is to add security against hackers. If there is a security flaw, could it be intentional to sell their firewall add-on?\n\nCan other users please verify this?",
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "4yvjwc",
+      "title": "Enterprise VPN Permissions Model",
+      "author": "bearcatjoe",
+      "subreddit": "networking",
+      "score": 26,
+      "commentCount": 9,
+      "url": "https://reddit.com/r/networking/comments/4yvjwc/enterprise_vpn_permissions_model/",
+      "createdAt": "2016-08-21T16:05:57.000Z",
+      "content": "How are those of you in medium-large organization (1500+ employees) managing your VPN access rules?\n\nWe started down the path of using AD groups to granularly provide access allowed or disallowed by the VPN concentrator itself.  However, this has resulted in a lot of complexity and it's difficult to understand who has access to what.\n\nI wonder if a more scalable approach would be to only do very simple permissions on the VPN box and rely on firewalls to handle the access control?  I think we may end up with the same problem.\n\nWhat have you found successful?",
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "1k0715",
+      "title": "Safe VPN providers considering what happened to Lavabit",
+      "author": "KarmaStick",
+      "subreddit": "privacy",
+      "score": 26,
+      "commentCount": 15,
+      "url": "https://reddit.com/r/privacy/comments/1k0715/safe_vpn_providers_considering_what_happened_to/",
+      "createdAt": "2013-08-09T03:50:13.000Z",
+      "content": "After reading the letter posted by Lavabit owner Ladar Levison, it sounds like any company with U.S. ties can be forced to give up information. As far as VPN providers who would be the best provider that has no ties to the U.S.? ",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "us6u65",
+      "title": "Standard Public IP for worldwide employees",
+      "author": "6565tttt",
+      "subreddit": "networking",
+      "score": 25,
+      "commentCount": 60,
+      "url": "https://reddit.com/r/networking/comments/us6u65/standard_public_ip_for_worldwide_employees/",
+      "createdAt": "2022-05-18T06:49:45.000Z",
+      "content": "Is there any way that my employees all around the world can have a common public IP for their outgoing requests?\n\n1- VPN with a single gateway - seems to do it, but significant loss of internet speed when someone from Australia jumps on the VPN. When I asked my VPN provider, they are saying it's theoretically not possible without a significant loss. My employees on 100 MBPS lines are dropping to 7-8 Mbps and the latency is just too high for ppl in new Zealand. \n\n2-Proxy servers - I have explored this option, but they seem to be significantly expensive for higher bandwidth usage. I am not sure of latency issues similar to my VPN situation as I haven't tried this hands-on. \n\n&amp;#x200B;\n\nIs there any way to achieve my requirement with minimal sacrifice of speed/latency or is my ask pushing on theoretical limits?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "5gk12j",
+      "title": "Interesting writeup about ivacy and purevpn",
+      "author": "evankins",
+      "subreddit": "VPN",
+      "score": 22,
+      "commentCount": 10,
+      "url": "https://reddit.com/r/VPN/comments/5gk12j/interesting_writeup_about_ivacy_and_purevpn/",
+      "createdAt": "2016-12-05T04:47:54.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "cko1cl",
+      "title": "Do you think it’s important to use a VPN for business purposes?",
+      "author": "Fickle_Animal",
+      "subreddit": "VPN",
+      "score": 21,
+      "commentCount": 19,
+      "url": "https://reddit.com/r/VPN/comments/cko1cl/do_you_think_its_important_to_use_a_vpn_for/",
+      "createdAt": "2019-08-01T12:57:36.000Z",
+      "content": "I was searching for this information before opening my business to make sure if I need it or not. If you think that such service is essential, do you know any good VPNs which would have some special offers for businesses or smth like that?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN for business"
+      ]
+    },
+    {
+      "id": "c73ho9",
+      "title": "How much would it cost to create a city-wide VPN service? Has it been tried?",
+      "author": "TheConquestOfThreads",
+      "subreddit": "VPN",
+      "score": 21,
+      "commentCount": 13,
+      "url": "https://reddit.com/r/VPN/comments/c73ho9/how_much_would_it_cost_to_create_a_citywide_vpn/",
+      "createdAt": "2019-06-29T19:29:11.000Z",
+      "content": "For some background, I'm from an area where poor people and minorities are *viciously* targeted by the police and other government agencies. I don't know of any cases in my area where police departments have successfully subpoenaed an arrestee's ISP yet, but I can't imagine it's too far off.\n\nIn order to cut such a scenario off at the pass, I was wondering if it would be possible to create or contract from a VPN service for an entire city. In the US, this solves not only the problem of local officials being able to subpoena ISPs, but also state and federal entities not being able to issue subpoenas.\n\nHopefully, the program would be publicly funded, with wealthier people paying more to offset the cost for those who are less well-off, or paid for through some kind of local tax.\n\nI know there are already some solutions for this problem, like using Tor or passing laws to limit local subpoena powers, but Tor isn't always the easiest thing to use and limiting laws could be passed in conjunction with funding for a public VPN.\n\nDoes anyone know of such a publicly-funded program being proposed or implemented? How much does it cost or how much would you estimate such a program to cost?",
+      "type": "post"
+    },
+    {
+      "id": "xof233",
+      "title": "Pure type 5 eVPN routes with FRR",
+      "author": "amarao_san",
+      "subreddit": "networking",
+      "score": 20,
+      "commentCount": 8,
+      "url": "https://reddit.com/r/networking/comments/xof233/pure_type_5_evpn_routes_with_frr/",
+      "createdAt": "2022-09-26T10:06:13.000Z",
+      "content": "I'm trying to make FRR (Linux) to use pure type 5 routes in eVPN. I was able to make it work with L2 (vxlans in a bridges), but I'm interested in a pure L3, and I have trouble to find any guides or docs.\n\nCan someone give me a direction or snippet from config for FRR?",
+      "type": "post"
+    },
+    {
+      "id": "ijqz01",
+      "title": "What is your reasoning for paying for a vpn?",
+      "author": "Kinger420",
+      "subreddit": "VPN",
+      "score": 18,
+      "commentCount": 46,
+      "url": "https://reddit.com/r/VPN/comments/ijqz01/what_is_your_reasoning_for_paying_for_a_vpn/",
+      "createdAt": "2020-08-31T03:50:19.000Z",
+      "content": "I don't understand vpn's too well, but I know a lot of people use them so I was wondering what compelled you to pay for a vpn service and what you use it for. Sorry if this is a dumb question just uneducated on this and pretty curious.",
+      "type": "post"
+    },
+    {
+      "id": "5jr73y",
+      "title": "SOHO routers in enterprise environments?",
+      "author": "Dodger_Rabb1t",
+      "subreddit": "networking",
+      "score": 18,
+      "commentCount": 15,
+      "url": "https://reddit.com/r/networking/comments/5jr73y/soho_routers_in_enterprise_environments/",
+      "createdAt": "2016-12-22T15:41:56.000Z",
+      "content": "I got dispatched to bypass a toasted server with a SOHO router due to site down.\n\nThat site is dealt with but if I have to do it again, how do I pick a baller SOHO? Wireless is irrelevant since that's handled by other hardware.",
+      "type": "post"
+    },
+    {
+      "id": "778zch",
+      "title": "PureVPN Explains How it Helped the FBI Catch a Cyberstalker",
+      "author": "trai_dep",
+      "subreddit": "privacy",
+      "score": 17,
+      "commentCount": 16,
+      "url": "https://reddit.com/r/privacy/comments/778zch/purevpn_explains_how_it_helped_the_fbi_catch_a/",
+      "createdAt": "2017-10-18T19:28:00.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "1ekicv9",
+      "title": "Updating GeoIP Databases Issue",
+      "author": "Possible_Parfait7253",
+      "subreddit": "networking",
+      "score": 16,
+      "commentCount": 5,
+      "url": "https://reddit.com/r/networking/comments/1ekicv9/updating_geoip_databases_issue/",
+      "createdAt": "2024-08-05T08:07:51.000Z",
+      "content": "Hey everyone,\n\nI work for a small VPN provider, and we’ve recently leased a few /24 subnets. We’ve set them up so that they show specific locations, and the servers are physically in those locations. We made sure to update our information with all the major GeoIP databases, and they seem to have the right info.\n\nHowever, even though the databases show the correct locations, when we use these IPs to browse the internet, websites still display random and incorrect locations. This is really frustrating because it makes these IPs unusable.\n\nWe’ve checked that the major GeoIP databases like MaxMind, DB-IP, IPInfo, IPHub, and IP2Location have the correct data, and we’ve waited about five months for everything to update across the web, but still no luck.\n\nI'm wondering if we might be missing something obvious in the process or if there are specific services we should focus on to fix these location mismatches. Has anyone else had this problem, and how did you solve it? Could there be something on our side that we haven’t considered?\n\nThanks in advance for any help!",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1ntl5d",
+      "title": "PureVPN just got seized and shut down?",
+      "author": "DavasiaN",
+      "subreddit": "VPN",
+      "score": 15,
+      "commentCount": 20,
+      "url": "https://reddit.com/r/VPN/comments/1ntl5d/purevpn_just_got_seized_and_shut_down/",
+      "createdAt": "2013-10-06T02:52:01.000Z",
+      "content": "I just received this email from uzair.gadit@purevpn.com: http://imgur.com/Who6Rer\n\n&gt;Dear customer,\n\n&gt;I'm sorry to inform you that due to an incident we had to close your account permanently. We are no longer able to run an anonymization service due to legal issues we are facing.\n\n&gt;We had to handover all customer’s information to the authorities unfortunately. They might contact you if they need any details about the case they are working on. The following information was handed over: your name, billing address and phone number provided during purchase and any documents we had on file (for example scan of your ID or driver’s license if you have provided these to our billing department).\n\n&gt;We are also sorry we are not able to refund you, however if you wish your money back, please open a dispute on PayPal or file a chargeback with your credit card company. This is the only way we can refund you as our bank account is frozen during this investigation. We recommend you to do this as soon as possible as we can't guarantee all customers will get their money back.\n\n&gt;We apologize once more this had to happen.\n\n&gt;Yours sincerely,\n&gt;Uzair Gadit\n&gt;PureVPN founder\n\nNot sure of the validity of this email, as I am still able to connect and use the VPN. Perhaps their email was compromised?",
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "kt1mc",
+      "title": "What is the best country to buy a VPN service from? Does anyone use PRQ in Sweden?",
+      "author": "sioexmhvmoi",
+      "subreddit": "privacy",
+      "score": 14,
+      "commentCount": 6,
+      "url": "https://reddit.com/r/privacy/comments/kt1mc/what_is_the_best_country_to_buy_a_vpn_service/",
+      "createdAt": "2011-09-27T15:57:39.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "qdop7i",
+      "title": "Cloud-based VPNs recommendations?",
+      "author": "gtixpress",
+      "subreddit": "networking",
+      "score": 14,
+      "commentCount": 49,
+      "url": "https://reddit.com/r/networking/comments/qdop7i/cloudbased_vpns_recommendations/",
+      "createdAt": "2021-10-22T19:46:18.000Z",
+      "content": "Looking for some input on cloud-based VPNs.  I'm working with a healthcare-related entity that is looking for a cloud-based VPN.  It will be used to provide access to a web-based SaaS.  The VPN is needed to give all users a static IP to come from since the web app uses a IP whitelist to access it.  The VPN client also needs to support split-tunneling so local network devices/resources can be accessed, if needed.  Would prefer the split-tunneling to make use of FQDNs for tunneling rather than just IPs.  Total user count will be about 50 users.  The company is cloud-based, so there is no on-prem equipment and the users are spread out working from either home or shared office space.\n\n&amp;#x200B;\n\nSo far I've looked at:\n\nPalo Alto Prisma Access - Would fit, but requires a minimum of 200 user licenses. $$$\n\nPalo Alto VM-series firewall in Azure -  No idea what cost would be since I don't have a frame of reference on what Azure costs would be.\n\nNordVPN - Doesn't support split-tunneling per their representative\n\nZScaler - pending a call with a sales guy\n\nPerimeter81 - Never heard of these guys, but was refered to by NordVPN\n\n&amp;#x200B;\n\nAre there any other good VPN providers out there?\n\nEdit:  Would prefer stuff based on Azure if it's a solution that needs to be hosted.  Just because the company uses Azure/O365 and it would be nice to contain everything there.",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "i4bysa",
+      "title": "Hacker leaks passwords for 900+ enterprise VPN servers | ZDNet",
+      "author": "sybersonic",
+      "subreddit": "technology",
+      "score": 13,
+      "commentCount": 1,
+      "url": "https://reddit.com/r/technology/comments/i4bysa/hacker_leaks_passwords_for_900_enterprise_vpn/",
+      "createdAt": "2020-08-05T19:27:11.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "1j4g5st",
+      "title": "Brave - the lesser evil of browsers? Is it REALLY that bad, or that good?",
+      "author": "Leniwcowaty",
+      "subreddit": "privacy",
+      "score": 11,
+      "commentCount": 0,
+      "url": "https://reddit.com/r/privacy/comments/1j4g5st/brave_the_lesser_evil_of_browsers_is_it_really/",
+      "createdAt": "2025-03-05T22:34:03.000Z",
+      "content": "**Preamble**\n\nWith the current Firefox debacle, a lot of people (myself included) is quite reluctant to use Firefox. I mean - Gecko is OBJECTIVELY worse than Chromium, it's years behind in terms of compatibility, functionality, performance, features. And there's no denying that. Me, being a Firefox user for years was VERY aware of that. I used Firefox, cuz I trusted them and their privacy policy, that they will respect my rights.\n\nSo now, when this trust is gone, and their privacy policy is in best case misleading and poorly written and in worst case just as bad as Chrome or Edge, the only advantage of Firefox is gone. For me at least.\n\nSo Chromium. It has currently close to 85% of desktop market share, it's bad, it's Google, it absolutely sucks with Manifest V3. I know all of that. But damn... It's so much further than Gecko when it comes to... just being a modern browser engine. \n\nAnd with the privacy-respecting trust gone from Firefox, there's no real insentive to use an objectively worse engine. Sorry, but that's the truth, at least for me. Maybe this will be a KICK for Mozilla to do better, bring Gecko into modern times. Or maybe not.\n\n**Main topic**\n\nSo here comes the debate - the most privacy-respecting Chromium-based browser, that also doesn't comprimise user convinience and experience. From what I have read, in terms of pure \"data sent\", **Brave** is actually the least data-hoarding browser there is. Based on a [research](https://www.scss.tcd.ie/Doug.Leith/pubs/browser_privacy.pdf), done in 2020, Brave actually doesn't send much data at all, except for locally-encrypted sync file. That's pretty privacy-respecting, if you ask me.\n\nBut yes, I know. It has A LOT of crap. And I want to separate that (or maybe I shouldn't?). Wallet, Rewards, News, VPN, Leo, all that garbage. Maybe some people use that, I don't care. I exclude that, I disable all of this stuff on the first setup, and never turn it on. I don't care about crypto, VPN, AI Assistant. I want to evaluate Brave ONLY as a browser. \n\nI've seen breakdowns of all shady business done by Brave, that u/lo________________ol created (I highly respect that work, bro). But from what I understand - essentially all of these were connected to all this additional stuff, like Rewards, Wallet or VPN. Am I wrong, or just missing something? So yes, replacing real ads with Brave ads just to get more money and throw a little coin to the user is scummy, but once again - it's opt-out, you can disable it. Same with Crypto scamming, same with VPN.\n\n**To the point**\n\nIs Brave really \"the evil guy\", is it \"still evil but less than the others\", or just \"a company that cares about privacy AND wants to profit from their products\"? Is Brave Browser the best privacy-respecting browser, that just happens to have a lot of additional bullshit, that shouldn't be there and takes advantage of user?\n\nI encourage you to discuss it. And please do not hate - I am genuinely curious and want to basically understand, what's going on.",
+      "type": "post"
+    },
+    {
+      "id": "1iw5yfm",
+      "title": "VPN Giants STILL Peddling 'Unblock Streaming'—Are They Cheating Us with Blockable Data Center IP?",
+      "author": "josephwang123",
+      "subreddit": "VPN",
+      "score": 11,
+      "commentCount": 15,
+      "url": "https://reddit.com/r/VPN/comments/1iw5yfm/vpn_giants_still_peddling_unblock_streamingare/",
+      "createdAt": "2025-02-23T08:55:48.000Z",
+      "content": "I'm seriously baffled by how major VPN providers continue to hype up their cross-region streaming services. With streaming platforms now smarter at detecting **data center IPs**—which are notoriously easy to **flag** and **block**—why are these companies still marketing themselves as the ultimate solution for bypassing geo-restrictions?\n\nFor those in the know, here are some ways to determine if an IP is from a data center:\n\n* **WHOIS Lookup:** Check the registration details.\n* **IP Block &amp; ASN Analysis:** Use databases like RIPE or ARIN.\n* **Specialized Tools/APIs:** Try services such as IP2Location or IP2Proxy.\n* **Reverse DNS Lookup:** Look for telltale signs in the hostname (e.g., “Hosting” or “Data Center”).\n\nWith these methods, it’s clear that data center IPs are not as stealthy as they claim to be.\n\nSo, what’s the real story? Are these VPN giants secretly mixing in **residential** or **hybrid IPs**, or is it all just clever marketing fluff? Has anyone here run their own tests or discovered a workaround that lets data center IPs slip past streaming services' detection?\n\nI’d love to hear your thoughts and experiences on this. **Let's discuss!**",
+      "type": "post",
+      "matchedKeywords": [
+        "unblock streaming"
+      ]
+    },
+    {
+      "id": "djrbbm",
+      "title": "Netflix to crack down on users sharing passwords with friends and family",
+      "author": "Normiesreeee69",
+      "subreddit": "technology",
+      "score": 11,
+      "commentCount": 26,
+      "url": "https://reddit.com/r/technology/comments/djrbbm/netflix_to_crack_down_on_users_sharing_passwords/",
+      "createdAt": "2019-10-18T18:04:59.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "kufmli",
+      "title": "Looking for some advice on how to be more privacy conscious",
+      "author": "BloodStalker52",
+      "subreddit": "privacy",
+      "score": 10,
+      "commentCount": 8,
+      "url": "https://reddit.com/r/privacy/comments/kufmli/looking_for_some_advice_on_how_to_be_more_privacy/",
+      "createdAt": "2021-01-10T14:44:35.000Z",
+      "content": " \n\nHello all!\n\nI'm trying to get back some of my privacy online after being careless with it over the years.\n\nI've  already done some research and changed a number of things, but I'm  looking to see if I can get any advice on some questions I have that I'm  finding hard to find answers for.\n\nI'll start with what I have changed already.\n\nNow using a vpn on my pc and phone\n\nChanged to firefox and added all the recommended add-ons - ublock, https everywhere, etc\n\nUsing duckduckgo as a search engine\n\nDownloaded signal and nextcloud\n\nQuestion time now;\n\nI  have just made a new email on protonmail which I plan to move all my  important accounts to. I am wanting to make a second email for the less  important accounts would you recommend another protonmail account or use  something different? I've noticed to log into two proton accounts on  their app on the phone you need to pay.\n\nI  have recently built a new pc and I put windows on it. I am not opposed  to wiping it and starting again with linux if it isn't too much of a  pain? I mostly use it for gaming and browsing the net.\n\nI  have a new samsung fold 2 phone. I'd like to avoid using google as is  reasonably practicable without rooting and stuff. Any advice on what I  should do on this front? I've turned off as much location and syncing  data I can find but should I delete my profile and make a new one purely  to use for my phone?\n\nSocial media  - Sadly everyone I know still uses them so my question is; What can I  do to help gain some privacy back on it? I don't care for fb but  I'd still want to use the messenger as all my friends use it. Same with all the other major social media etc. Would it be best if I delete the  accounts and start anew with less information on it or will I be okay  having my setting set to strict and removing information I don't want on  it such as phone numbers etc?\n\nBasically,  I know companies will always gather data and information on me  regardless. I'd just like to be able to reduce/remove as much as I can  without becoming too extreme with it all and make up for past mistakes  of maybe sharing too much information when I was younger.\n\nThank you for any advice or help, it is very much appreciated!",
+      "type": "post"
+    },
+    {
+      "id": "bciah9",
+      "title": "Homeland Security warns of security flaws in enterprise VPN apps",
+      "author": "leonx81",
+      "subreddit": "technology",
+      "score": 10,
+      "commentCount": 0,
+      "url": "https://reddit.com/r/technology/comments/bciah9/homeland_security_warns_of_security_flaws_in/",
+      "createdAt": "2019-04-12T20:17:24.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "1hrkbeu",
+      "title": "My experience with Aura",
+      "author": "RaiderNightt",
+      "subreddit": "privacy",
+      "score": 10,
+      "commentCount": 12,
+      "url": "https://reddit.com/r/privacy/comments/1hrkbeu/my_experience_with_aura/",
+      "createdAt": "2025-01-02T03:18:45.000Z",
+      "content": "Where do I start? Well, first off, and easily the most annoying, is the data remover (the whole reason I got the app). It told me that there were over 30 websites that had some of my information, but then I saw a message saying that action was needed to complete your removal requests. I clicked the option that says \"see details,\" and it brings up a box that tells me to provide the information needed for removal requests... however, it doesn't tell me what information I needed to update. I clicked save, and nothing happened. I went on a 45-minute session trying to figure out what it wanted me to update, and I updated everything that could be updated, but it still gave me the same message with no info on what I need to update. Secondly, the app and the features inside it. I installed it onto my PC to test what features it has, the antivirus, VPN, etc. The VPN is VERY slow; once it's on, it takes what feels like an eternity to load anything in a web browser. I changed the location to the fastest option with no difference. Finally, the fact that I can't delete my account or any of the data on it (Ironic, ik). I tried looking through their resources and looking it up on Google, but I can't seem to find an answer. My experience has been very unpleasant, to say the least, and it's a huge time waster, and I can't help but feel like I was robbed of $15. Has anyone else had experiences similar to this with Aura?\n\nEdit: I found the data removal feature on the mobile app. It's dumb that you need the app to do that, but whatever.",
+      "type": "post"
+    },
+    {
+      "id": "1mxla99",
+      "title": "What happens to VPN providers which vpns get involved in criminal activities?",
+      "author": "Just-A-Snowfox",
+      "subreddit": "VPN",
+      "score": 10,
+      "commentCount": 9,
+      "url": "https://reddit.com/r/VPN/comments/1mxla99/what_happens_to_vpn_providers_which_vpns_get/",
+      "createdAt": "2025-08-22T23:01:58.000Z",
+      "content": "Im curio.\n\n  \nLets say (example): Someone does illegal stuff over a vpn (no-logs). What happens to the vpn then?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "dw6gs0",
+      "title": "Looking for peering and transit examples for VPN providers",
+      "author": "Netthrow19",
+      "subreddit": "networking",
+      "score": 10,
+      "commentCount": 11,
+      "url": "https://reddit.com/r/networking/comments/dw6gs0/looking_for_peering_and_transit_examples_for_vpn/",
+      "createdAt": "2019-11-14T08:13:05.000Z",
+      "content": "Hi all!\n\nI've just accepted a job with a relatively small consumer VPN provider. Although I'm not in their networking/IT department, I do want to wrap my head around some of the issues and grow into that space.\n\n1) I've read about peering and meet-me rooms in DCs. However, everything I can find communicates these topics in the context of ISPs and large network-heavy organizations such cloudflare and Netflix so I'm having a hard time wrapping my head around practical applications for VPN providers. Does anyone have an example or resources where I can learn more in this context? For example, would a VPN provider who's customers stream a lot of Netflix benefit, through a reduction of public transfer costs as charged by their DC provider, from joining a meet-me room where Netflix also resides? Also is this the same or similar to Netflix's openconnect program?\n\n2) During the interview process they mentioned transit costs as one of their KPIs and said this was measured in $/ Gbps (IIRC). I'm having a hard time wrapping my head around how this could be measured practically. Again, all I find are examples that are hard for me to translate to the VPN provider context eg articles about recent events related to cloudflare and Netflix transit costs. How might a VPN provider measure transit costs in $/Gbps? As I understand it, data center providers generally charge a flat rate $/GB/month based on 95th percentile rate that month.\n\nLooking forward to diving in so thanks everyone for your ideas and suggestions!\n\nCheers",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "c6ruo",
+      "title": "Let's get this fixed- for months google hasn't assigned anyone to integrate a pure ipsec vpn config into android, visit their link and star it in the upper left hand corner to get this ball going",
+      "author": "darcet",
+      "subreddit": "technology",
+      "score": 9,
+      "commentCount": 6,
+      "url": "https://reddit.com/r/technology/comments/c6ruo/lets_get_this_fixed_for_months_google_hasnt/",
+      "createdAt": "2010-05-21T18:02:53.000Z",
+      "content": null,
+      "type": "post"
+    },
+    {
+      "id": "2y53xx",
+      "title": "Best VPN for Businesses?",
+      "author": "onlineads",
+      "subreddit": "VPN",
+      "score": 9,
+      "commentCount": 12,
+      "url": "https://reddit.com/r/VPN/comments/2y53xx/best_vpn_for_businesses/",
+      "createdAt": "2015-03-06T15:20:35.000Z",
+      "content": "I would actually like the ability to log, but not a requirement. \n\nLooking for something 3-10 users. ",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN for business"
+      ]
+    },
+    {
+      "id": "1jalpmx",
+      "title": "Is it a good idea to have different firewall vendors or just stick with one?",
+      "author": "MeasurementLoud906",
+      "subreddit": "networking",
+      "score": 7,
+      "commentCount": 48,
+      "url": "https://reddit.com/r/networking/comments/1jalpmx/is_it_a_good_idea_to_have_different_firewall/",
+      "createdAt": "2025-03-13T20:21:43.000Z",
+      "content": "Hello, i got approved 5 firewalls for my branch offices to enhance our security. We currently have two tz series Sonicwalls on our main hub and biggest branch that I have configured. I have learned a lot and feel very comfortable with them. I wanted to see if it's a good idea to purchase from different vendors  (Palo Alto, checkpoint, etc) purely so I get exposure to these new systems. \n\nWe are a small company with few requirements, I mostly just need to implement failover VPN tunnels to my HQ for resource access. and setting up various subnets for soho networks. \n\n ",
+      "type": "post"
+    },
+    {
+      "id": "1ftgpg5",
+      "title": "ZTNA vs VPN over 'deny all' firewall",
+      "author": "Useful-Purchase2281",
+      "subreddit": "networking",
+      "score": 7,
+      "commentCount": 37,
+      "url": "https://reddit.com/r/networking/comments/1ftgpg5/ztna_vs_vpn_over_deny_all_firewall/",
+      "createdAt": "2024-10-01T05:29:29.000Z",
+      "content": "I’ve been scrolling through debates of ZTNA vs VPN and most people and all vendors claim ZTNA is the superior way to access resources remotely.\n\n \n\nI understand ZTNA in an ideal setup only allows users to access the applications they need. No one gets any access to anything unless it’s explicitly defined, hence ‘zero trust’.\n\n\n\nMy question is, aren’t most enterprise VPN solutions able to provide the same mode of access?\n\n \n\nFor example, I can set up a remote access VPN server on a Cisco/Palo Alto/Sonicwall firewall and define a VPN subnet for all users to reach to. Then I can configure firewall rules to precisely provide access to the applications the users need based on user identity and destination applications. This way, even though the users reach the remote network using VPN, they won’t have access to anything unless the firewall rule explicitly allows it, hence ‘zero trust’ as well?\n\n \n\nIf the argument is users will have unlimited access to the VPN subnet because the nature of IP routing, what if I configure the VPN DHCP server so that every user is given a /31 IP address so that they can only talk to the gateway (which is the firewall in this scenario) and not the other users?\n\n \n\nPlease share your thoughts on this topic. Why isn’t a firewall with implicit ‘deny all’ rules not considered as a zero trust solution?",
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "jzh0d",
+      "title": "Advice on vpn provider (openwrt compatibility)",
+      "author": "alkalinelito",
+      "subreddit": "networking",
+      "score": 7,
+      "commentCount": 11,
+      "url": "https://reddit.com/r/networking/comments/jzh0d/advice_on_vpn_provider_openwrt_compatibility/",
+      "createdAt": "2011-08-30T21:33:16.000Z",
+      "content": "The purpose of all this is to access netflix (not available on my country)\nI use OpenWRT, and what i want to do is to setup the vpnclient on it, so **only** requests to netflix a forwarded to the vpn tunnel.\n\nI have no idea what vpn provider to choose that supports openwrt/openvpn as client, cheap is a plus!, also i don't need great speeds 3mb is enough.\n\n",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "61qgey",
+      "title": "Vpn setup question.",
+      "author": "Tang87",
+      "subreddit": "VPN",
+      "score": 5,
+      "commentCount": 1,
+      "url": "https://reddit.com/r/VPN/comments/61qgey/vpn_setup_question/",
+      "createdAt": "2017-03-27T05:52:14.000Z",
+      "content": "Ok guys I was looking into a vpn for isp traffic obscuring. I have an Asus rt-n66r. I tried to set up the vpn client but its terrible for my speeds since (I'm assuming) the router doesn't have the hardware for the encryption overhead. I may be wrong. I have a server that's more than robust that I was looking to possibly use. I was looking at using modem to server to router type of setup maybe to just make all traffic through the vpn. Or. I was looking to maybe just hook up a second router with 2 networks in my house with 1 for vpn one for gaming etc. ",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN for ISP"
+      ]
+    },
+    {
+      "id": "9paaoe",
+      "title": "Alternative IPSec VPN service in AWS",
+      "author": "JabbingGesture",
+      "subreddit": "networking",
+      "score": 5,
+      "commentCount": 5,
+      "url": "https://reddit.com/r/networking/comments/9paaoe/alternative_ipsec_vpn_service_in_aws/",
+      "createdAt": "2018-10-18T15:29:15.000Z",
+      "content": "Hello,\n\nI was wanting to use the AWS managed VPN service to interconnect our partners/providers to our VPC resources through IPSec tunnels, but there are some annoying limitations:\n\n\\- AWS VPN is a *responder only* VPN\n\n\\- AWS VPN doesn't support IKEv2\n\n\\- AWS VPN cannot establish outbound NAT rules, as requested per some partners\n\n&amp;#x200B;\n\nDo you have good experience with custom made IPSec VPN service that, in addition to the above prerequisites :\n\n\\- is easy to operate (for ex. creation of new tunnels via web interface)\n\n\\- can be used in a multiAZ deployment, possibly clustering options\n\n\\- is fairly cheap :)\n\n&amp;#x200B;\n\nThanks for your feedback :)",
+      "type": "post",
+      "matchedKeywords": [
+        "managed VPN service"
+      ]
+    },
+    {
+      "id": "1n3ravb",
+      "title": "Questions about a free VPN provider which seems to good to be true",
+      "author": "CriticalCobraz",
+      "subreddit": "VPN",
+      "score": 5,
+      "commentCount": 21,
+      "url": "https://reddit.com/r/VPN/comments/1n3ravb/questions_about_a_free_vpn_provider_which_seems/",
+      "createdAt": "2025-08-30T03:21:28.000Z",
+      "content": "I've been looking into VPNs and came across a free version. Their website  claims to offer:\n\n* Lifetime free VPN, not a trial\n* 8 free server locations\n* No registration, no sign up required\n* Unlimited data\n* No ads or trackers\n* Zero logs\n* Unlimited data\n* Split Tunneling\n\n which seems almost too good to be true for a free service.\n\nI wanted to ask if anyone here uses or has used the  free VPN and could share their experience.\n\nMy main questions are:\n\n1. Is the \"unlimited data\" claim true? Or are there hidden caps or significant speed throttling that make it unusable after a certain point?\n2. How trustworthy and secure is the service? I'm always a bit wary of \"free\" services and want to know if they have a good reputation for privacy and security. Can I use Banking Apps while having the VPN activated? Does Split Tunneling actually turns off the VPN so I can use Banking Apps without worry?\n3. What are the main downsides or limitations? Since it's a free version, I'm sure there are trade-offs. What's the catch? Are the speeds noticeably slow, or are there limitations on server locations, features, etc.?\n\n",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1ov9hz8",
+      "title": "VPN Provider, or fully owned VPC (aka hetzner) with wireguard for whole-lan VPN?",
+      "author": "sboger",
+      "subreddit": "VPN",
+      "score": 5,
+      "commentCount": 6,
+      "url": "https://reddit.com/r/VPN/comments/1ov9hz8/vpn_provider_or_fully_owned_vpc_aka_hetzner_with/",
+      "createdAt": "2025-11-12T16:16:50.000Z",
+      "content": "I'm considering moving to a 24/7 fulltime VPN for my (home) LAN. I've used several different VPN Providers over the years for docker specific media installations.\n\nMy occasional use on the desktop shows many VPN Providers are blocked by websites, or require more involved captchas. I started considering if a VPC would be a better experience for a whole-lan VPN.\n\nDoes anyone have experience with whole-lan VPN's and specifically with a VPC for use as an endpoint? Note, I'm a linux engineer, so I've got the how's covered. I'm interested if the experience of using a VPC is better than a Provider.\n\n",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1izd26e",
+      "title": "Cisco SDWAN stability between China office and other countries",
+      "author": "Wladimir_w_EU",
+      "subreddit": "networking",
+      "score": 4,
+      "commentCount": 25,
+      "url": "https://reddit.com/r/networking/comments/1izd26e/cisco_sdwan_stability_between_china_office_and/",
+      "createdAt": "2025-02-27T10:51:17.000Z",
+      "content": "Hey there!  \nI\\`m preparing for a Cisco SDWAN rollout in a global company, with \\~50 big offices around the globe and not yet sure what to do in regards to WAN links in our CN office. Currently using MPLS between CN office and our Hong Kong office and sending most of VPN/Internet traffic this way, as HK is not yet filtered by government firewall. CN office has currently a single MPLS and a single Internet.  \n1. When going with SDWAN, do I need to keep this MPLS circuit running, or can I expect SDWAN fabric to \"fix\" this issue and rely on a pure Internet in CN office? I can also get another Internet circuit there, it\\`s still way cheaper than MPLS.  \n2. What is your experience with Cisco SDWAN in China?",
+      "type": "post"
+    },
+    {
+      "id": "1oz352g",
+      "title": "Wondering how I got a target ad on my roommate's Netflix",
+      "author": "AristidLindenmayer",
+      "subreddit": "privacy",
+      "score": 3,
+      "commentCount": 6,
+      "url": "https://reddit.com/r/privacy/comments/1oz352g/wondering_how_i_got_a_target_ad_on_my_roommates/",
+      "createdAt": "2025-11-17T01:22:09.000Z",
+      "content": "So I have all of my Google account tracking turned off, no cookies allowed and no tracking on Firefox, and Perplexity allegedly doesn’t sell data. This morning I was searching for information about this disease for the first time ever via google search and perplexity (both on my iPhone), and then tonight while watching Netflix on my roommate’s account I got an ad for a medication for this disease. I’ve never searched the disease before, never spoken to anyone about it, it’s not communicable, and it’s a relatively rare disease that I’ve never seen ads for before. Do we think it’s purely coincidental? Probabilistic? or tracking? Because I really don’t want my medical searches being used for ads and I thought I was being smart about my data privacy choices. I guess I should use duck duck go, but if I turn off search history tracking how would google keep track? is it just at the IP level? do ISPs share traffic data with advertisers? I’m so confused\n\n  \nEdit to add: I also have ublock origin and https everywhere installed. I was not on a VPN. I was on the same internet when googling in the morning as I was when watching Netflix, but not on the same device (smart TV)",
+      "type": "post"
+    },
+    {
+      "id": "st4kgi",
+      "title": "VPN for business",
+      "author": "jdstew218",
+      "subreddit": "VPN",
+      "score": 3,
+      "commentCount": 5,
+      "url": "https://reddit.com/r/VPN/comments/st4kgi/vpn_for_business/",
+      "createdAt": "2022-02-15T14:47:48.000Z",
+      "content": "Does a VPN protect user data if they are working from home? Does it provide any encryption or security if remote users are simply connecting to work sites? Does it protect any data in transit?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN for business"
+      ]
+    },
+    {
+      "id": "lx5gmy",
+      "title": "VPN Appliance with Azure AD Authentication and MFA Support",
+      "author": "sheeponmeth_",
+      "subreddit": "networking",
+      "score": 3,
+      "commentCount": 13,
+      "url": "https://reddit.com/r/networking/comments/lx5gmy/vpn_appliance_with_azure_ad_authentication_and/",
+      "createdAt": "2021-03-03T21:59:06.000Z",
+      "content": "Hi everyone,\n\nI'm trying to research some enterprise VPN products that allow for direct authentication against Azure AD (without RADIUS), but my Google searches are turning up more about VPN for Azure resources.\n\nDoes anyone know of such products?",
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "1mlhhq5",
+      "title": "Will the police constantly come to my door because I am a VPN provider?",
+      "author": "secyberscom",
+      "subreddit": "VPN",
+      "score": 3,
+      "commentCount": 12,
+      "url": "https://reddit.com/r/VPN/comments/1mlhhq5/will_the_police_constantly_come_to_my_door/",
+      "createdAt": "2025-08-09T05:22:50.000Z",
+      "content": "Hi everyone. I'm a new VPN provider. I'm writing this post to address some concerns. \n\nI've read on the forum that VPN providers often have legal issues. \n\nWhy do these problems occur? We don't keep any logs; there's no registration.\n\nIs it really possible that the police could constantly come to my door? Should I be worried about this? \n\nWhat other problems could arise?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1d4x32g",
+      "title": "Opinions on VPN vs. RD Gateway",
+      "author": "Techguy1986",
+      "subreddit": "networking",
+      "score": 3,
+      "commentCount": 6,
+      "url": "https://reddit.com/r/networking/comments/1d4x32g/opinions_on_vpn_vs_rd_gateway/",
+      "createdAt": "2024-05-31T14:33:51.000Z",
+      "content": "Good morning,\n\nMy coworker and I are debating a heated topic. We have a client that currently uses 3 virtuals for their Remote Desktop setup. RD Gateway is on one VM, the terminal server is on another, and their file server is on the third. They were impacted by the VMWare buyout as the VMs are on the free ESXI license. The initial thought is to export VMs and convert them to Hyper-V. Well, the RD Gateway VM isn't launching properly in Hyper-V and we are looking at redoing the whole shebang. Our debate is whether to continue using an RD Gateway for users to have direct access or use the VPN provided by her Unifi system. Current speeds are 1Gbps/50Mbps. The client has 3-4 users at most that will possibly be on concurrently. He feels that the VPN will significantly impact the users experience. I feel that the VPN is the more viable and secure option, and with so little number of users on the VPN, they won't see a performance hit. Which would you use if you had to set it up in your environment?",
+      "type": "post"
+    },
+    {
+      "id": "10vomdr",
+      "title": "Question about always-on Enterprise VPN options",
+      "author": "GeneralUserA",
+      "subreddit": "VPN",
+      "score": 2,
+      "commentCount": 3,
+      "url": "https://reddit.com/r/VPN/comments/10vomdr/question_about_alwayson_enterprise_vpn_options/",
+      "createdAt": "2023-02-07T01:32:29.000Z",
+      "content": "Hello,\n\nI am interested in finding out about what the options are for an always-on VPN solution that can be deployed in an enterprise where we have no hosted apps or servers.  Basically, my use case is that I am interested in deploying the a vpn client to user machines (probably via Endpoint Manager), and having the VPN service being enabled in an \"always on\" state (*with the exception of while in the corporate office ideally)*, having cloud enterprise management functionality in place so stuff like preferred endpoints or client settings can be controlled, but that's about it.  If there is more functionality great, if I have to pay for a more robust solution than is required for my use case that may be viable too but basically **I just won't be deploying any VPN server infrastructure on site since we don't have anything on site for users to need to connect to** \\- we are just trying to solve the problem of encrypting all traffic for remote users and people not in the office.\n\nI have tried searching for the right combination of keywords for this kind of thing but all I am getting is residential/consumer-level products and not something that is appropriate for an enterprise solution, so if anyone knows of a product that is cloud-based but enterprise-user targeted, I would really appreciate it. \n\nThanks.",
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "1oyfesi",
+      "title": "What security benefits does a VPN provide to everyday internet users?",
+      "author": "FaygMunford41",
+      "subreddit": "VPN",
+      "score": 2,
+      "commentCount": 3,
+      "url": "https://reddit.com/r/VPN/comments/1oyfesi/what_security_benefits_does_a_vpn_provide_to/",
+      "createdAt": "2025-11-16T07:21:29.000Z",
+      "content": "what security benefits does a vpn provide to everyday internet users? i am not trying to hide anything wild, i just want to know if it actually protects me on public wifi or from my isp poking around. if anyone here uses one every day, how much does it really help and what should i expect in normal day to day use?",
+      "type": "post"
+    },
+    {
+      "id": "3u16tn",
+      "title": "Did anyone manage to contact PureVPN ?",
+      "author": "Koolkoala8",
+      "subreddit": "VPN",
+      "score": 1,
+      "commentCount": 14,
+      "url": "https://reddit.com/r/VPN/comments/3u16tn/did_anyone_manage_to_contact_purevpn/",
+      "createdAt": "2015-11-24T03:38:52.000Z",
+      "content": "I went with PureVPN. I am not satisfied with their service. Their 24/7 live chat support does not work : enquiry is always offline, and i can't get to support. Whenever I try to start the chat, it just shows \"connection is lost\". \nI emailed them, and no one replies. \n",
+      "type": "post",
+      "matchedKeywords": [
+        "PureVPN"
+      ]
+    },
+    {
+      "id": "z9rwla",
+      "title": "Does Zero Trust replace VPN?",
+      "author": "AerialSnack",
+      "subreddit": "networking",
+      "score": 1,
+      "commentCount": 34,
+      "url": "https://reddit.com/r/networking/comments/z9rwla/does_zero_trust_replace_vpn/",
+      "createdAt": "2022-12-01T16:15:56.000Z",
+      "content": "So, taking a cursory glance at Zero Trust as a replacement for our current VPN setup. I get the security aspect and how it does more to authenticate users and devices than just saying \"Oh you're on the domain? You're good.\" However, it seems to be purely security. I don't see how it actually connects you to the network? It looks more like something you would use in tandem with a VPN, but everyone talks about it as a one or the other type of thing.",
+      "type": "post"
+    },
+    {
+      "id": "138n6be",
+      "title": "Vpn not unblocking streaming services on mobile?",
+      "author": "ChoptimusCrime",
+      "subreddit": "VPN",
+      "score": 1,
+      "commentCount": 1,
+      "url": "https://reddit.com/r/VPN/comments/138n6be/vpn_not_unblocking_streaming_services_on_mobile/",
+      "createdAt": "2023-05-05T13:59:18.000Z",
+      "content": "I've recently bought a VPN subscription to be able to access more content as movies I want to see don't come out on streaming till months later in my country. Works fine on laptops but I've noticed that when using it on my phone or other mobile devices that streaming services are able to detect the VPN and thus i'm unable to watch on my phone. Anyone know how to fix this issue?",
+      "type": "post"
+    },
+    {
+      "id": "vqo7yp",
+      "title": "Does anyone know why one VPN works and the other doesn't?",
+      "author": "GTRacer1972",
+      "subreddit": "VPN",
+      "score": 1,
+      "commentCount": 1,
+      "url": "https://reddit.com/r/VPN/comments/vqo7yp/does_anyone_know_why_one_vpn_works_and_the_other/",
+      "createdAt": "2022-07-03T18:48:46.000Z",
+      "content": "Using the on I pay for, trying every single setting, I cannot get [THIS](https://pimpandhost.com/image/192664031) page to load. Using my antivirus VPN it worked fine and I tested my IP to make sure it was actually working and it is. I recall when I had a different VPN if a site blocked VPNs there were ways around it, like using the static IP method, tunneling, etc, but none of that works right with my current one. My former was rated to be at the top or close to it with my new one in the same general pole position amongst VPNs. Should i go back to the former one? I switched because the new one charges like a third of the price.",
+      "type": "post",
+      "matchedKeywords": [
+        "antivirus VPN"
+      ]
+    },
+    {
+      "id": "1pkt8mp",
+      "title": "A VPN provider ignored my support tickets for 46 days, even top VPN editor said he had the same exp.",
+      "author": "PopGroundbreaking899",
+      "subreddit": "VPN",
+      "score": 1,
+      "commentCount": 2,
+      "url": "https://reddit.com/r/VPN/comments/1pkt8mp/a_vpn_provider_ignored_my_support_tickets_for_46/",
+      "createdAt": "2025-12-12T14:28:08.000Z",
+      "content": "Here’s a situation I think is worth sharing, because the sequence of events was unusual and raises bigger questions about how some companies handle support and feedback.\n\nThe timeline is straightforward:\n\nOct 20: I opened a support ticket regarding a small affiliate-related issue.\n\nOct 27: Follow-up.\n\nNov 3: Another ticket requesting escalation.\n\nNov 11: Final ticket.\n\n\nAcross all four tickets: no replies, no updates, not even an automated confirmation.\nA total of 46 days with zero communication.\n\nTo understand whether others were experiencing something similar, I posted on Reddit asking if anyone else had encountered support delays with this provider.\n\nThat post received around 6,000 views.\n\nOne user replied saying they’d been waiting over a year for a payout and that posts discussing it kept disappearing.\nA short time later, their comment was gone — and then my post disappeared as well.\n\nShortly after that, I received the provider’s first email in 46 days.\nIt wasn’t a response to any ticket.\nIt wasn’t an explanation for the silence.\n\nIt was a message terminating my affiliate account for unspecified “violations.”\nNo examples were given.\nNo prior warnings.\nNo details at all.\nMy account login was blocked immediately afterward.\n\nI had already saved all four ticket PDFs and the termination email.\n\nTo get some perspective, I reached out to a journalist at TorrentFreak, since they cover a lot of VPN-related issues.\nHis response was unexpected but telling: he said he’d experienced the same lack of support from this provider, and had actually removed them from their VPN overview because of it.\n\nThat made it clear this might not be an isolated case.\n\nI’m posting this to document what happened and to understand whether others have experienced similar support patterns with VPN services. I’m also happy to share the evidence privately with moderators or journalists if needed.",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1h92tt2",
+      "title": "Would using an EU/GDPR node for a VPN provide any privacy benefits or slow down rampant data collection?",
+      "author": "BennificentKen",
+      "subreddit": "privacy",
+      "score": 1,
+      "commentCount": 0,
+      "url": "https://reddit.com/r/privacy/comments/1h92tt2/would_using_an_eugdpr_node_for_a_vpn_provide_any/",
+      "createdAt": "2024-12-07T21:33:25.000Z",
+      "content": "Title. Just an idea.",
+      "type": "post"
+    },
+    {
+      "id": "ibakwp",
+      "title": "Looking for Windows 7 alternative (Linus Distro?) for Privacy AND Gaming",
+      "author": "OrbiBorbi",
+      "subreddit": "privacy",
+      "score": 0,
+      "commentCount": 10,
+      "url": "https://reddit.com/r/privacy/comments/ibakwp/looking_for_windows_7_alternative_linus_distro/",
+      "createdAt": "2020-08-17T08:58:01.000Z",
+      "content": "Hello together,\n\nI am planning on upgrading my PC and have a few open questions to consider which i cannot find answered although they might be quite obvious for beginners.\n\nSo I do not care much about anonymity, privacy though is important, I’d like to have a choice.\n\nI use Graphene OS, basically no social media, although I have a “workpersona” with linked in.\n\nRight now I use windows 7 and I love it. I use the enterprise version, tried to delete or block all telemetry and so on, nextdns, vpn, building compartments.... The stuff a normi can do, focus is privacy, so vpn eg is only used to bypass regional blocks. No google, FOSS everywhere but some adobetools.\n\nNow I do not want to install windows 10, not only do I not like the spying part, the UI is shit.\n\nNow to my question:\n\nWHICH LINUX DISTRO WOULD YOU RECOMMEND FOR PRIVACY AND GAMING TO BEGINNERS?\n\nThere are a billion Distros, I’d like one where I do not have to use the shell too much in the beginning so I can ease in. Right now I am trying out Linux Mint Cinnamon and I like it, learning curve seems quicker than windows 10 where I find nothing.\n\nThe thing is, not only do I work with the system, from time to time I like to play games. Not necessarily the newest ones, e.g. right now I am playing through the Halo Master Chief Collection.\n\nThe Privacy part should ideally be already integrated to a certain point like with Graphene OS, which is awesome btw, but I’d also to play the games.\n\nThe system I am planning to buy right now looks like this. I heard that some systems work better with linux than others, like MSI motherboard and so on.\n\n· AMD RYZEN 3700X ​\n\n· MSI B450 TOMAHAWK MAX ​\n\n· GEFORCE RTX 2080 SUPER ​\n\n· BE QUIET! STRAIGHT POWER 11 550W ​\n\n· CRUCIAL BALLISTIX SPORT LT 32 GB DDR4-3200 ​\n\n· CRUCIAL MX500 1TB, SATA ​\n\n· BEQUIET PURE BASE 600\n\nAny questions? Any recommendations?\n\nAlternative would be to dual boot windows 7 without telemetry and Linux with the same main data storage hard drive.",
+      "type": "post"
+    },
+    {
+      "id": "3l786i",
+      "title": "Apple iOS 9's Security &amp; Privacy Features: 6-digit PIN, native 2FA, MAC randomization, VPN API, LibreSSL, HSTS for apps, Certificate Transparency, and more",
+      "author": "johnmountain",
+      "subreddit": "technology",
+      "score": 0,
+      "commentCount": 0,
+      "url": "https://reddit.com/r/technology/comments/3l786i/apple_ios_9s_security_privacy_features_6digit_pin/",
+      "createdAt": "2015-09-16T18:11:58.000Z",
+      "content": null,
+      "type": "post",
+      "matchedKeywords": [
+        "VPN API"
+      ]
+    },
+    {
+      "id": "ye5gq3",
+      "title": "Troubleshooting Enterprise VPN",
+      "author": "OwnFollowing8527",
+      "subreddit": "networking",
+      "score": 0,
+      "commentCount": 5,
+      "url": "https://reddit.com/r/networking/comments/ye5gq3/troubleshooting_enterprise_vpn/",
+      "createdAt": "2022-10-26T18:39:38.000Z",
+      "content": "What are some steps or tools to troubleshooting a Cisco corporate environment VPN? I have access to Cisco DNA, SolarWinds and ISE. I just started this job as a network admin and seems to me that users are complaining about file transfers being slower than normal for a variety of applications within the past few months. I read about different versions of Cisco AnyConnect causing issues and updated a user to have the most current recommended version with no success. We currently aren’t configured for split-tunneling. This is scheduled to be configured in the future. It seems we are getting a high amount of dropped packets but I am really trying to find a tool to find out what limiting the VPN connection/speed. \n\nThank you,",
+      "type": "post",
+      "matchedKeywords": [
+        "enterprise VPN"
+      ]
+    },
+    {
+      "id": "1n0q0fs",
+      "title": "Best legit residential VPN provider?",
+      "author": "Quenelle44",
+      "subreddit": "VPN",
+      "score": 0,
+      "commentCount": 38,
+      "url": "https://reddit.com/r/VPN/comments/1n0q0fs/best_legit_residential_vpn_provider/",
+      "createdAt": "2025-08-26T16:08:44.000Z",
+      "content": "I’m looking for a residential VPN with a static IP (ideally WireGuard). The issue is when I search around there are tons of providers and honestly a lot of them look shady or unreliable.\nI don’t want a regular datacenter IP that gets flagged as a VPN, I need something truly residential and trusted.\nSo what’s the best legit residential VPN provider out there right now? Anyone here using one long-term with good results?",
+      "type": "post",
+      "matchedKeywords": [
+        "VPN provider"
+      ]
+    },
+    {
+      "id": "1i26gx",
+      "title": "Does my VPN provide anonymity versus the apparently ubiquitous NSA logging?",
+      "author": "motsanciens",
+      "subreddit": "networking",
+      "score": 0,
+      "commentCount": 5,
+      "url": "https://reddit.com/r/networking/comments/1i26gx/does_my_vpn_provide_anonymity_versus_the/",
+      "createdAt": "2013-07-11T04:31:33.000Z",
+      "content": "My PIA account gives me a warm fuzzy when I'm grabbing torrents, but I'm doubtful it escapes the overarching snooping of the feds.",
+      "type": "post"
+    },
+    {
+      "id": "1q5qixk",
+      "title": "Is there a good private browser with no integrated AI that you can't completely disable.",
+      "author": "Brilliant_Case4930",
+      "subreddit": "privacy",
+      "score": 37,
+      "commentCount": 35,
+      "url": "https://reddit.com/r/privacy/comments/1q5qixk/is_there_a_good_private_browser_with_no/",
+      "createdAt": "2026-01-06T18:24:54.000Z",
+      "content": "I was using Brave but I don't trust AI and you can't turn their AI off on mobile and that's what I use. So I'm wondering if there's a good private browser for a smartphone better than Brave without AI that I can't disable.",
+      "type": "post"
+    }
+  ],
+  "lastUpdated": "2026-01-10T09:59:42.319Z",
+  "count": 87
+}

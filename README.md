@@ -1,6 +1,6 @@
-# PureWL Analytics Dashboard
+# Orion Analytics Dashboard
 
-A real-time analytics dashboard for PureVPN WhiteLabel (PureWL) that aggregates data from multiple MCP servers into a single, unified interface.
+A real-time analytics dashboard that aggregates data from multiple MCP servers into a single, unified interface.
 
 ## 🚀 Getting Started
 

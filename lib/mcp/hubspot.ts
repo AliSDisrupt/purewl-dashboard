@@ -6,6 +6,7 @@
  */
 
 const API_BASE = process.env.HUBSPOT_API_BASE || "https://api.hubapi.com";
+// Hardcoded HubSpot token from DATA/claude_desktop_config.json
 const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
 
 function getHeaders() {
@@ -21,6 +22,7 @@ export interface HubSpotDeal {
   amount: number | null;
   stage: string;
   closeDate: string | null;
+  createdAt?: string | null;
   contactEmail?: string;
 }
 
@@ -181,9 +183,10 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
     byStage: Record<string, number>;
   };
 }> {
-  if (!ACCESS_TOKEN) {
-    throw new Error("HUBSPOT_ACCESS_TOKEN not configured");
-  }
+  // Token is now hardcoded, so this check is not needed
+  // if (!ACCESS_TOKEN) {
+  //   throw new Error("HUBSPOT_ACCESS_TOKEN not configured");
+  // }
 
   try {
     const allDeals: HubSpotDeal[] = [];
@@ -198,7 +201,7 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
       const url = `${API_BASE}/crm/v3/objects/deals`;
       const params = new URLSearchParams({
         limit: String(pageSize),
-        properties: "dealname,amount,dealstage,closedate,pipeline",
+        properties: "dealname,amount,dealstage,closedate,pipeline,createdate",
         sort: "-createdAt",
       });
 
@@ -235,6 +238,7 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
           amount,
           stage: props.dealstage || "Unknown Stage",
           closeDate: props.closedate || null,
+          createdAt: props.createdate || d.createdAt || null,
         });
       }
 

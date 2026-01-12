@@ -7,7 +7,8 @@
 
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
 
-const propertyId = process.env.GA4_PROPERTY_ID || "383191966";
+// Hardcoded GA4 Property ID
+const propertyId = "383191966";
 
 // Hardcoded Google Analytics credentials
 const credentials = {
@@ -94,8 +95,13 @@ function parseDate(dateStr: string): string {
  * Fetch GA4 overview data
  */
 export async function fetchGA4Overview(params: GA4QueryParams = {}): Promise<GA4Response> {
+  // Credentials are hardcoded, so this check is not needed
+  // if (!analyticsDataClient || !propertyId) {
+  //   throw new Error("GA4 credentials not configured. Set GOOGLE_APPLICATION_CREDENTIALS and GA4_PROPERTY_ID");
+  // }
+  
   if (!analyticsDataClient || !propertyId) {
-    throw new Error("GA4 credentials not configured. Set GOOGLE_APPLICATION_CREDENTIALS and GA4_PROPERTY_ID");
+    throw new Error("GA4 client initialization failed");
   }
 
   const { startDate = "7daysAgo", endDate = "yesterday" } = params;
@@ -260,21 +266,26 @@ export async function fetchGA4TopPages(params: GA4QueryParams = {}) {
     const [response] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate: start, endDate: end }],
-      dimensions: [{ name: "pagePath" }],
+      dimensions: [{ name: "pagePath" }, { name: "pageTitle" }],
       metrics: [
         { name: "totalUsers" },
         { name: "screenPageViews" },
         { name: "engagementRate" },
+        { name: "averageSessionDuration" },
+        { name: "bounceRate" },
       ],
       orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
-      limit: 15,
+      limit: 100, // Increased to 100 to capture more blog posts for Content ROI
     });
 
     const pages = (response.rows || []).map((row) => ({
       path: row.dimensionValues?.[0]?.value || "Unknown",
+      title: row.dimensionValues?.[1]?.value || row.dimensionValues?.[0]?.value || "Unknown",
       users: parseInt(row.metricValues?.[0]?.value || "0"),
       pageViews: parseInt(row.metricValues?.[1]?.value || "0"),
       engagementRate: parseFloat(row.metricValues?.[2]?.value || "0"),
+      avgEngagementTime: parseFloat(row.metricValues?.[3]?.value || "0"), // Average engagement time in seconds
+      bounceRate: parseFloat(row.metricValues?.[4]?.value || "0"), // Bounce rate as decimal (0-1)
     }));
 
     return { pages };
