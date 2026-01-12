@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 // Use environment variable or fallback to the provided admin key
 // The admin key is required for usage report API - regular API key won't work
+// Only check at runtime, not during build time
 function getAnthropicAdminKey(): string {
   // First try environment variable
   const envKey = process.env.ANTHROPIC_ADMIN_KEY;
@@ -11,15 +12,6 @@ function getAnthropicAdminKey(): string {
   
   // No fallback - require environment variable
   throw new Error("ANTHROPIC_ADMIN_KEY environment variable is required");
-}
-
-const ANTHROPIC_ADMIN_KEY = getAnthropicAdminKey();
-
-// Log which key is being used (first 20 chars for debugging)
-if (ANTHROPIC_ADMIN_KEY && ANTHROPIC_ADMIN_KEY.startsWith('sk-ant-admin')) {
-  console.log(`[Anthropic Usage API] Using admin key: ${ANTHROPIC_ADMIN_KEY.substring(0, 20)}...`);
-} else {
-  console.error("[Anthropic Usage API] ANTHROPIC_ADMIN_KEY is invalid. Usage tracking will not work.");
 }
 
 interface AnthropicUsageData {
@@ -117,6 +109,12 @@ async function fetchCostReport(startingAt: string, endingAt: string) {
 
 export async function GET(request: Request) {
   try {
+    // Check for admin key at runtime (not build time)
+    const adminKey = getAnthropicAdminKey();
+    if (adminKey && adminKey.startsWith('sk-ant-admin')) {
+      console.log(`[Anthropic Usage API] Using admin key: ${adminKey.substring(0, 20)}...`);
+    }
+
     const { searchParams } = new URL(request.url);
     const daysBack = parseInt(searchParams.get('days') || '7');
     // Granularity options: '1d' (daily), '1h' (hourly), '1m' (minute)
