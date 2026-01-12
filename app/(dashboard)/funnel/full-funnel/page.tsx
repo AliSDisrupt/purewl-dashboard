@@ -727,7 +727,7 @@ export default function FullFunnelPage() {
                     <div className="text-right">Deal Count</div>
                     <div className="text-right">Total Value</div>
                   </div>
-                  {Object.entries(
+                  {(Object.entries(
                     deals.reduce((acc: any, deal: any) => {
                       const stage = deal.stage || "Unknown";
                       if (!acc[stage]) {
@@ -737,9 +737,11 @@ export default function FullFunnelPage() {
                       acc[stage].value += deal.amount || 0;
                       return acc;
                     }, {} as Record<string, { count: number; value: number }>)
-                  )
-                    .sort(([, a], [, b]) => b.value - a.value)
-                    .map(([stage, data]: [string, any]) => (
+                  ) as [string, { count: number; value: number }][])
+                    .sort((a, b) => {
+                      return b[1].value - a[1].value;
+                    })
+                    .map(([stage, data]) => (
                       <div key={stage} className="grid grid-cols-3 gap-4 text-sm">
                         <div>{stage}</div>
                         <div className="text-right">{data.count}</div>

@@ -357,7 +357,7 @@ export async function dataAggregator(
           if (posts && Array.isArray(posts)) {
             data.reddit = {
               totalPosts: posts.length,
-              totalComments: posts.reduce((sum, post) => sum + (post.numComments || 0), 0),
+              totalComments: posts.reduce((sum, post) => sum + (post.commentCount || 0), 0),
               totalScore: posts.reduce((sum, post) => sum + (post.score || 0), 0),
               avgScore: posts.length > 0 
                 ? posts.reduce((sum, post) => sum + (post.score || 0), 0) / posts.length 
@@ -366,9 +366,9 @@ export async function dataAggregator(
                 title: post.title,
                 subreddit: post.subreddit,
                 score: post.score,
-                numComments: post.numComments,
+                numComments: post.commentCount || 0,
                 url: post.url,
-                createdUtc: post.createdUtc,
+                createdUtc: post.createdAt || new Date().toISOString(),
                 matchedKeywords: post.matchedKeywords || [],
               })),
             };

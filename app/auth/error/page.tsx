@@ -4,8 +4,9 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -31,7 +32,7 @@ export default function AuthErrorPage() {
         backgroundImage: `url('https://assets.science.nasa.gov/content/dam/science/missions/hubble/nebulae/emission/STScI-01EVT1JXFVNW9X54XA378CCK1P.png/jcr:content/renditions/1024x361.png')`,
       }}
     >
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
       
       <div className="relative z-10 text-center space-y-6 px-4 max-w-md">
         <div className="flex justify-center">
@@ -48,5 +49,22 @@ export default function AuthErrorPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-cover bg-center bg-no-repeat relative"
+        style={{ backgroundImage: `url('https://assets.science.nasa.gov/content/dam/science/missions/hubble/nebulae/emission/STScI-01EVT1JXFVNW9X54XA378CCK1P.png/jcr:content/renditions/1024x361.png')` }}>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+        <div className="relative z-10 text-center space-y-6 px-4 max-w-md">
+          <div className="flex justify-center"><AlertCircle className="h-16 w-16 text-red-400" /></div>
+          <h1 className="text-3xl font-bold text-white">Loading...</h1>
+        </div>
+      </div>
+    }>
+      <AuthErrorContent />
+    </Suspense>
   );
 }

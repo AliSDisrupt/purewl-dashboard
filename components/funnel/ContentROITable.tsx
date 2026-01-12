@@ -24,7 +24,7 @@ type SortColumn = "uniqueVisitors" | "pageViews";
 type SortDirection = "asc" | "desc";
 
 export function ContentROITable({ data, isLoading }: ContentROITableProps) {
-  const [sortColumn, setSortColumn] = useState<SortColumn>("leadsGenerated");
+  const [sortColumn, setSortColumn] = useState<SortColumn>("uniqueVisitors");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   const handleSort = (column: SortColumn) => {

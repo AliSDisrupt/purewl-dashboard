@@ -46,7 +46,7 @@ export async function insightGenerator(
 ): Promise<InsightGeneratorOutput> {
   const benchmarks = knowledgeBase.orion.benchmarks;
   const historical = knowledgeBase.orion.historical_metrics.baseline;
-  const criticalIssues = knowledgeBase.orion.critical_issues;
+  const criticalIssues = (knowledgeBase.orion as any).critical_issues || [];
 
   const systemPrompt = `You are the Insight Generator Agent for Orion Reports.
 
@@ -58,13 +58,13 @@ Context:
 - Current situation: Growth stage, focusing on top-of-funnel optimization
 
 Benchmarks (targets):
-- Visitor-to-contact: ${benchmarks?.visitor_to_contact || 0.03} (3%)
-- CTR target: ${benchmarks?.ctr_target || 0.01} (1.0%)
-- CAC: $${(benchmarks?.cac || 0).toLocaleString()}
-- LTV: $${(benchmarks?.ltv || 0).toLocaleString()}
-- Engagement rate target: ${((benchmarks?.engagement_rate_target || 0.70) * 100).toFixed(0)}%
-- Bounce rate target: ${((benchmarks?.bounce_rate_target || 0.40) * 100).toFixed(0)}%
-- Pages per session target: ${benchmarks?.pages_per_session_target || 3.0}
+- Visitor-to-contact: ${benchmarks?.ga4?.visitor_to_contact || 0.03} (3%)
+- CTR target: ${benchmarks?.linkedin?.target_ctr || 0.01} (1.0%)
+- CAC: $${(benchmarks?.business?.cac || 0).toLocaleString()}
+- LTV: $${(benchmarks?.business?.ltv || 0).toLocaleString()}
+- Engagement rate target: ${((benchmarks?.ga4?.engagement_rate || 0.70) * 100).toFixed(0)}%
+- Bounce rate target: ${((benchmarks?.ga4?.bounce_rate || 0.40) * 100).toFixed(0)}%
+- Pages per session target: ${benchmarks?.ga4?.pages_per_session || 3.0}
 
 Historical Baseline:
 - Users: ${(historical?.users || 0).toLocaleString()}
