@@ -12,12 +12,44 @@ const ADMIN_CREDENTIALS = {
   password: "DisruptPartnerships2026!",
 };
 
+// Helper function to strip quotes from env vars (Railway sometimes adds quotes)
+function getEnvVar(key: string): string | undefined {
+  const value = process.env[key];
+  if (!value) return undefined;
+  // Remove surrounding quotes if present
+  return value.replace(/^["']|["']$/g, '');
+}
+
+// Validate required environment variables
+const nextAuthSecret = getEnvVar("NEXTAUTH_SECRET");
+if (!nextAuthSecret) {
+  throw new Error("NEXTAUTH_SECRET is required. Please set it in your environment variables.");
+}
+
+const nextAuthUrl = getEnvVar("NEXTAUTH_URL");
+if (!nextAuthUrl) {
+  console.warn("⚠️ NEXTAUTH_URL is not set. This may cause issues in production.");
+}
+
+// Validate Google OAuth credentials
+const googleClientId = getEnvVar("GOOGLE_CLIENT_ID");
+const googleClientSecret = getEnvVar("GOOGLE_CLIENT_SECRET");
+
+if (!googleClientId || !googleClientSecret) {
+  console.warn("⚠️ Google OAuth credentials are missing. Google sign-in will not be available.");
+}
+
 export const authConfig: NextAuthConfig = {
+  trustHost: true, // Required for Railway/production deployments
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    // Google Provider (only if credentials are available)
+    ...(googleClientId && googleClientSecret ? [
+      GoogleProvider({
+        clientId: googleClientId,
+        clientSecret: googleClientSecret,
+      })
+    ] : []),
+    // Credentials Provider (always available)
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -95,12 +127,12 @@ export const authConfig: NextAuthConfig = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" || nextAuthUrl?.startsWith("https://"),
         maxAge: 30 * 24 * 60 * 60, // 30 days
       },
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: nextAuthSecret,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

@@ -4,6 +4,16 @@ import { NextResponse } from "next/server";
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   
+  // Debug logging for Railway (can be removed after confirming it works)
+  if (process.env.NODE_ENV === "production") {
+    console.log("Middleware check:", {
+      pathname,
+      hasAuth: !!req.auth,
+      url: req.url,
+      origin: req.headers.get("origin"),
+    });
+  }
+  
   // Allow access to auth pages and API routes
   if (
     pathname.startsWith("/auth") ||
