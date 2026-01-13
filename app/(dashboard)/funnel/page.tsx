@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ConversionFunnelChart } from "@/components/funnel/ConversionFunnelChart";
 import { ContentROITable } from "@/components/funnel/ContentROITable";
 import { AccountWatch } from "@/components/funnel/AccountWatch";
+import { LeadSourcesTable } from "@/components/funnel/LeadSourcesTable";
 import { DateRangePicker } from "@/components/dashboard/DateRangePicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -81,6 +82,14 @@ async function fetchGA4Technology(startDate: string, endDate: string) {
 async function fetchHubSpotDeals() {
   const res = await fetch(`/api/hubspot/deals`);
   if (!res.ok) throw new Error("Failed to fetch HubSpot deals");
+  return res.json();
+}
+
+async function fetchLeadSources(startDate: string, endDate: string) {
+  const res = await fetch(
+    `/api/funnel/lead-sources?startDate=${startDate}&endDate=${endDate}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch lead sources");
   return res.json();
 }
 
@@ -220,6 +229,14 @@ export default function FunnelPage() {
   const { data: hubspotDeals, isLoading: dealsLoading, isFetching: dealsFetching } = useQuery({
     queryKey: ["hubspot-deals"],
     queryFn: () => fetchHubSpotDeals(),
+    refetchInterval: 300000,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
+  });
+
+  const { data: leadSourcesData, isLoading: leadSourcesLoading, isFetching: leadSourcesFetching } = useQuery({
+    queryKey: ["lead-sources", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchLeadSources(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
     staleTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
@@ -371,7 +388,7 @@ export default function FunnelPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold">Full Funnel Analysis</h1>
-            {(isFetching || contentROIFetching || ga4OverviewFetching || sourceMediumFetching || geographyFetching || technologyFetching || dealsFetching) && (
+            {(isFetching || contentROIFetching || ga4OverviewFetching || sourceMediumFetching || geographyFetching || technologyFetching || dealsFetching || leadSourcesFetching) && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-xs">Updating...</span>
@@ -554,6 +571,21 @@ export default function FunnelPage() {
           />
         </motion.div>
       )}
+
+      {/* Lead Sources Table - First touchpoints where leads were generated */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+      >
+        <LeadSourcesTable
+          leadSources={leadSourcesData?.leadSources || []}
+          sourceBreakdown={leadSourcesData?.sourceBreakdown || []}
+          topLandingPages={leadSourcesData?.topLandingPages || []}
+          summary={leadSourcesData?.summary || { totalLeads: 0, uniqueSources: 0, uniquePages: 0 }}
+          isLoading={leadSourcesLoading}
+        />
+      </motion.div>
 
       {/* Detailed Analysis Tabs */}
       <Tabs defaultValue="traffic" className="w-full">

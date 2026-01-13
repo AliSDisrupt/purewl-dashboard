@@ -925,3 +925,144 @@ export async function fetchGA4Realtime() {
     );
   }
 }
+
+export interface LeadSourceData {
+  landingPage: string;
+  source: string;
+  medium: string;
+  eventCount: number;
+  users: number;
+  sessions: number;
+}
+
+/**
+ * Fetch Lead Sources - Landing pages and traffic sources where leads were generated
+ * This combines Lead_Generated_All_Sites events with landing page and source/medium attribution
+ */
+export async function fetchGA4LeadSources(params: { startDate?: string; endDate?: string } = {}) {
+  if (!analyticsDataClient || !propertyId) {
+    throw new Error("GA4 credentials not configured");
+  }
+
+  const { startDate = "30daysAgo", endDate = "yesterday" } = params;
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+
+  try {
+    // Fetch landing pages where lead events occurred with source/medium attribution
+    const [response] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: start, endDate: end }],
+      dimensions: [
+        { name: "landingPagePlusQueryString" },
+        { name: "sessionSource" },
+        { name: "sessionMedium" },
+      ],
+      metrics: [
+        { name: "eventCount" },
+        { name: "totalUsers" },
+        { name: "sessions" },
+      ],
+      dimensionFilter: {
+        filter: {
+          fieldName: "eventName",
+          stringFilter: {
+            matchType: "EXACT",
+            value: "Lead_Generated_All_Sites",
+          },
+        },
+      },
+      orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+      limit: 100,
+    });
+
+    const leadSources: LeadSourceData[] = (response.rows || []).map((row) => ({
+      landingPage: row.dimensionValues?.[0]?.value || "Unknown",
+      source: row.dimensionValues?.[1]?.value || "(direct)",
+      medium: row.dimensionValues?.[2]?.value || "(none)",
+      eventCount: parseInt(row.metricValues?.[0]?.value || "0"),
+      users: parseInt(row.metricValues?.[1]?.value || "0"),
+      sessions: parseInt(row.metricValues?.[2]?.value || "0"),
+    }));
+
+    // Also fetch aggregated source/medium for leads (first touch attribution)
+    const [sourceAggResponse] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: start, endDate: end }],
+      dimensions: [
+        { name: "sessionSource" },
+        { name: "sessionMedium" },
+      ],
+      metrics: [
+        { name: "eventCount" },
+        { name: "totalUsers" },
+        { name: "sessions" },
+      ],
+      dimensionFilter: {
+        filter: {
+          fieldName: "eventName",
+          stringFilter: {
+            matchType: "EXACT",
+            value: "Lead_Generated_All_Sites",
+          },
+        },
+      },
+      orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+      limit: 20,
+    });
+
+    const sourceBreakdown = (sourceAggResponse.rows || []).map((row) => ({
+      source: row.dimensionValues?.[0]?.value || "(direct)",
+      medium: row.dimensionValues?.[1]?.value || "(none)",
+      leads: parseInt(row.metricValues?.[0]?.value || "0"),
+      users: parseInt(row.metricValues?.[1]?.value || "0"),
+    }));
+
+    // Fetch top landing pages for leads (without source breakdown)
+    const [pageAggResponse] = await analyticsDataClient.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: start, endDate: end }],
+      dimensions: [
+        { name: "landingPagePlusQueryString" },
+      ],
+      metrics: [
+        { name: "eventCount" },
+        { name: "totalUsers" },
+      ],
+      dimensionFilter: {
+        filter: {
+          fieldName: "eventName",
+          stringFilter: {
+            matchType: "EXACT",
+            value: "Lead_Generated_All_Sites",
+          },
+        },
+      },
+      orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+      limit: 20,
+    });
+
+    const topLandingPages = (pageAggResponse.rows || []).map((row) => ({
+      page: row.dimensionValues?.[0]?.value || "Unknown",
+      leads: parseInt(row.metricValues?.[0]?.value || "0"),
+      users: parseInt(row.metricValues?.[1]?.value || "0"),
+    }));
+
+    // Calculate totals
+    const totalLeads = leadSources.reduce((sum, s) => sum + s.eventCount, 0);
+
+    return {
+      leadSources,
+      sourceBreakdown,
+      topLandingPages,
+      summary: {
+        totalLeads,
+        uniqueSources: new Set(leadSources.map(s => `${s.source}/${s.medium}`)).size,
+        uniquePages: new Set(leadSources.map(s => s.landingPage)).size,
+      },
+    };
+  } catch (error: any) {
+    console.error("GA4 Lead Sources API Error:", error);
+    throw new Error(`GA4 Lead Sources API Error: ${error.message}`);
+  }
+}
