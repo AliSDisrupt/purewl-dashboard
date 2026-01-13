@@ -18,6 +18,7 @@ interface FunnelStage {
   percentage: number;
   color: string;
   breakdown?: Record<string, number>;
+  source?: "GA4" | "HubSpot";
 }
 
 interface ConversionFunnelChartProps {
@@ -256,11 +257,22 @@ export function ConversionFunnelChart({
         
         .stage-source {
           font-size: 11px;
-          color: #52525B;
-          background: rgba(255, 255, 255, 0.05);
           padding: 3px 8px;
           border-radius: 4px;
           font-family: 'JetBrains Mono', monospace;
+          font-weight: 500;
+        }
+        
+        .stage-source-ga4 {
+          color: #60A5FA;
+          background: rgba(96, 165, 250, 0.15);
+          border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+        
+        .stage-source-hubspot {
+          color: #FF7A59;
+          background: rgba(255, 122, 89, 0.15);
+          border: 1px solid rgba(255, 122, 89, 0.2);
         }
         
         .bar-container {
@@ -434,7 +446,9 @@ export function ConversionFunnelChart({
                     <div className="stage-header">
                       <span className="stage-icon">{color.icon}</span>
                       <span className="stage-label">{stage.name}</span>
-                      <span className="stage-source">GA4</span>
+                      <span className={`stage-source ${stage.source === 'HubSpot' ? 'stage-source-hubspot' : 'stage-source-ga4'}`}>
+                        {stage.source || 'GA4'}
+                      </span>
                     </div>
                     
                     <div className="bar-container">

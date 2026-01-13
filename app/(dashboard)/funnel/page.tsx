@@ -554,6 +554,7 @@ export default function FunnelPage() {
                 percentage: 100,
                 color: "#3b82f6",
                 breakdown: funnel.level1.breakdown || {},
+                source: "GA4",
               },
               {
                 number: 2,
@@ -562,6 +563,7 @@ export default function FunnelPage() {
                 percentage: conversionRates?.sessionToLead || 0,
                 color: "#a855f7",
                 breakdown: funnel.level2.breakdown || {},
+                source: "GA4",
               },
               {
                 number: 3,
@@ -570,6 +572,7 @@ export default function FunnelPage() {
                 percentage: conversionRates?.leadToDeal || 0,
                 color: "#14b8a6",
                 breakdown: funnel.level3.breakdown || {},
+                source: "HubSpot",
               },
               {
                 number: 4,
@@ -578,6 +581,7 @@ export default function FunnelPage() {
                 percentage: conversionRates?.dealToClose || 0,
                 color: "#f59e0b",
                 breakdown: funnel.level4.breakdown || {},
+                source: "HubSpot",
               },
             ]}
             dateRange={{
