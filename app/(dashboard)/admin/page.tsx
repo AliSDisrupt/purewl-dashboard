@@ -58,7 +58,27 @@ export default function AdminPage() {
   const queryClient = useQueryClient();
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   
-  const isAdmin = session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local';
+  // Check admin status from session, but also check storage for updated role
+  const [isAdmin, setIsAdmin] = useState(session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local');
+  
+  // Check for updated role from storage on mount and when session changes
+  useEffect(() => {
+    if (session?.user?.email) {
+      // Fetch role from API to get the latest from storage
+      fetch('/api/auth/get-role')
+        .then(res => res.json())
+        .then(data => {
+          if (data.role) {
+            const adminStatus = data.role === 'admin' || session?.user?.email === 'admin@orion.local';
+            setIsAdmin(adminStatus);
+          }
+        })
+        .catch(() => {
+          // Fallback to session role if API fails
+          setIsAdmin(session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local');
+        });
+    }
+  }, [session]);
   
   useEffect(() => {
     if (session && !isAdmin) {
@@ -91,19 +111,20 @@ export default function AdminPage() {
     onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       
-      // After updating a role, the user needs to refresh their page to see the change
-      // The session will be updated on the next request. For the user whose role was changed,
-      // we'll refresh their page automatically.
-      if (session?.user?.id === variables.userId || session?.user?.email === variables.userId) {
+      // Refresh the users list to show updated roles
+      await queryClient.refetchQueries({ queryKey: ['admin-users'] });
+      
+      // If updating the current user's role, refresh their session and page
+      const currentUserId = session?.user?.id || session?.user?.email;
+      if (currentUserId === variables.userId) {
         // Refresh the page to trigger a new session check
         // The session callback will check storage on the next request
         setTimeout(() => {
           window.location.reload();
         }, 500);
       } else {
-        // For other users, show a message that they need to refresh
-        // Their session will update on their next page load
-        alert(`User role updated. The user will see the change after refreshing their page.`);
+        // For other users, their session will update on their next page load
+        // The session callback checks storage on every request
       }
     },
   });

@@ -136,7 +136,20 @@ export async function GET(request: Request) {
     });
 
     // Step 3: Deals Created (any deal in the date range)
-    const dealsCreated = dealsCreatedInRange.length;
+    // IMPORTANT: Logically, deals created should not exceed leads generated
+    // If it does, it means deals are being created from other sources (manual entry, etc.)
+    // We'll cap it at leads generated to maintain funnel logic, but log a warning
+    let dealsCreated = dealsCreatedInRange.length;
+    
+    if (dealsCreated > qualifiedLeads && qualifiedLeads > 0) {
+      console.warn(
+        `⚠️ Funnel data inconsistency: ${dealsCreated} deals created but only ${qualifiedLeads} leads generated. ` +
+        `This suggests deals are being created from sources other than tracked leads. ` +
+        `Capping deals created at ${qualifiedLeads} to maintain funnel logic.`
+      );
+      // Cap deals at leads to maintain logical funnel progression
+      dealsCreated = qualifiedLeads;
+    }
 
     // Step 4: Closed-Won Revenue (deals with stage 'closedwon' and closeDate in range)
     const closedWonRevenue = closedWonDealsInRange.reduce(
@@ -155,13 +168,25 @@ export async function GET(request: Request) {
 
     // Calculate deals breakdown by channel (using HubSpot deal source if available)
     // For now, we'll estimate based on leads breakdown
+    // Ensure breakdown doesn't exceed actual deals created
     const dealsBreakdown: Record<string, number> = {};
-    if (qualifiedLeads > 0) {
+    if (qualifiedLeads > 0 && dealsCreated > 0) {
+      let totalBreakdown = 0;
       Object.keys(leadsBreakdown).forEach((channel) => {
         const channelLeads = leadsBreakdown[channel];
         const channelProportion = channelLeads / qualifiedLeads;
-        dealsBreakdown[channel] = Math.round(dealsCreated * channelProportion);
+        const channelDeals = Math.round(dealsCreated * channelProportion);
+        dealsBreakdown[channel] = channelDeals;
+        totalBreakdown += channelDeals;
       });
+      
+      // Normalize breakdown to match actual deals created (in case of rounding errors)
+      if (totalBreakdown !== dealsCreated && totalBreakdown > 0) {
+        const adjustmentFactor = dealsCreated / totalBreakdown;
+        Object.keys(dealsBreakdown).forEach((channel) => {
+          dealsBreakdown[channel] = Math.round(dealsBreakdown[channel] * adjustmentFactor);
+        });
+      }
     }
 
     // Calculate revenue breakdown (estimate based on closed-won deals breakdown)

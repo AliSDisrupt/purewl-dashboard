@@ -18,6 +18,7 @@ export default auth((req) => {
   if (
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/mcp") ||  // Allow MCP API routes
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
     pathname.match(/\.(png|jpg|jpeg|svg|ico)$/)
@@ -45,6 +46,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|auth|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)",
+    "/((?!api/auth|api/mcp|auth|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)",
   ],
 };

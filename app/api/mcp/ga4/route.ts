@@ -31,9 +31,23 @@ export async function POST(request: Request) {
 
     switch (tool) {
       case "get_ga4_overview": {
-        const { startDate = "7daysAgo", endDate = "yesterday" } = parameters;
-        const overview = await fetchGA4Overview({ startDate, endDate });
-        return NextResponse.json({ result: overview });
+        try {
+          const { startDate = "7daysAgo", endDate = "yesterday" } = parameters;
+          const overview = await fetchGA4Overview({ startDate, endDate });
+          return NextResponse.json({ result: overview });
+        } catch (error: any) {
+          console.error("Error in get_ga4_overview:", error);
+          const errorMessage = error.message || "Failed to fetch GA4 overview data";
+          // Check if it's a date format error
+          const isDateError = errorMessage.toLowerCase().includes("date") || errorMessage.toLowerCase().includes("format");
+          return NextResponse.json({ 
+            error: errorMessage,
+            details: error.stack || String(error),
+            suggestion: isDateError 
+              ? "Try using date formats like '2024-01-10', '7daysAgo', '30daysAgo', or 'yesterday'. Natural language dates are supported but may need conversion."
+              : "Check if GA4 credentials are configured and the property ID is correct"
+          }, { status: 500 });
+        }
       }
 
       case "get_ga4_campaigns": {
@@ -61,9 +75,22 @@ export async function POST(request: Request) {
       }
 
       case "get_ga4_top_pages": {
-        const { startDate = "30daysAgo", endDate = "yesterday" } = parameters;
-        const pages = await fetchGA4TopPages({ startDate, endDate });
-        return NextResponse.json({ result: pages });
+        try {
+          const { startDate = "30daysAgo", endDate = "yesterday" } = parameters;
+          const pages = await fetchGA4TopPages({ startDate, endDate });
+          return NextResponse.json({ result: pages });
+        } catch (error: any) {
+          console.error("Error in get_ga4_top_pages:", error);
+          const errorMessage = error.message || "Failed to fetch GA4 top pages data";
+          const isDateError = errorMessage.toLowerCase().includes("date") || errorMessage.toLowerCase().includes("format");
+          return NextResponse.json({ 
+            error: errorMessage,
+            details: error.stack || String(error),
+            suggestion: isDateError 
+              ? "Try using date formats like '2024-01-10', '7daysAgo', '30daysAgo', or 'yesterday'"
+              : "Check if GA4 credentials are configured and the property ID is correct"
+          }, { status: 500 });
+        }
       }
 
       case "get_ga4_acquisition": {
@@ -73,9 +100,22 @@ export async function POST(request: Request) {
       }
 
       case "get_ga4_content": {
-        const { startDate = "30daysAgo", endDate = "yesterday" } = parameters;
-        const content = await fetchGA4Content({ startDate, endDate });
-        return NextResponse.json({ result: content });
+        try {
+          const { startDate = "30daysAgo", endDate = "yesterday" } = parameters;
+          const content = await fetchGA4Content({ startDate, endDate });
+          return NextResponse.json({ result: content });
+        } catch (error: any) {
+          console.error("Error in get_ga4_content:", error);
+          const errorMessage = error.message || "Failed to fetch GA4 content data";
+          const isDateError = errorMessage.toLowerCase().includes("date") || errorMessage.toLowerCase().includes("format");
+          return NextResponse.json({ 
+            error: errorMessage,
+            details: error.stack || String(error),
+            suggestion: isDateError 
+              ? "Try using date formats like '2024-01-10', '7daysAgo', '30daysAgo', or 'yesterday'"
+              : "Check if GA4 credentials are configured and the property ID is correct"
+          }, { status: 500 });
+        }
       }
 
       case "get_ga4_conversion_paths": {
@@ -103,8 +143,18 @@ export async function POST(request: Request) {
       }
 
       case "get_ga4_realtime": {
-        const realtime = await fetchGA4Realtime();
-        return NextResponse.json({ result: realtime });
+        try {
+          const realtime = await fetchGA4Realtime();
+          return NextResponse.json({ result: realtime });
+        } catch (error: any) {
+          console.error("Error in get_ga4_realtime:", error);
+          // Return error with helpful message and suggestion to use overview instead
+          return NextResponse.json({ 
+            error: error.message || "Failed to fetch GA4 realtime data",
+            suggestion: "The Realtime API may not be available. Try using get_ga4_overview instead for recent traffic statistics.",
+            fallback: "Use get_ga4_overview for traffic data if realtime is unavailable"
+          }, { status: 500 });
+        }
       }
 
       case "get_ga4_retention": {
@@ -160,8 +210,12 @@ export async function POST(request: Request) {
     }
   } catch (error: any) {
     console.error("GA4 MCP Bridge Error:", error);
+    console.error("Error stack:", error?.stack);
     return NextResponse.json(
-      { error: error.message || "Failed to execute GA4 tool" },
+      { 
+        error: error?.message || "Failed to execute GA4 tool",
+        details: error?.stack || String(error)
+      },
       { status: 500 }
     );
   }

@@ -31,30 +31,58 @@ try {
   analyticsDataClient = new BetaAnalyticsDataClient({
     credentials: credentials,
   });
+  console.log("✅ GA4 campaigns client initialized successfully");
 } catch (error) {
-  console.error("Failed to initialize GA4 client:", error);
+  console.error("❌ Failed to initialize GA4 campaigns client:", error);
+  console.error("Error details:", error instanceof Error ? error.stack : String(error));
 }
 
 function parseDate(dateStr: string): string {
+  // Handle ISO date format (YYYY-MM-DD)
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     return dateStr;
   }
+  
   if (dateStr === "yesterday") {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     return yesterday.toISOString().split("T")[0];
   }
+  
   if (dateStr === "today") {
     const today = new Date();
     return today.toISOString().split("T")[0];
   }
+  
   if (dateStr.endsWith("daysAgo")) {
     const days = parseInt(dateStr);
     const date = new Date();
     date.setDate(date.getDate() - days);
     return date.toISOString().split("T")[0];
   }
-  return dateStr;
+
+  // Handle natural language dates like "January 10, 2026" or "Jan 10 2026"
+  try {
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      // Check if date is in the future (more than 1 day ahead)
+      const now = new Date();
+      const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      if (parsed > oneDayFromNow) {
+        throw new Error(`Date "${dateStr}" is in the future. GA4 data is only available for past dates.`);
+      }
+      return parsed.toISOString().split("T")[0];
+    }
+  } catch (error: any) {
+    // If parsing fails, throw a helpful error
+    if (error.message && error.message.includes("future")) {
+      throw error; // Re-throw future date errors
+    }
+    throw new Error(`Invalid date format: "${dateStr}". Please use formats like "2024-01-10", "7daysAgo", "yesterday", or "January 10, 2024".`);
+  }
+  
+  // If we get here, the date format is not recognized
+  throw new Error(`Unrecognized date format: "${dateStr}". Please use formats like "2024-01-10", "7daysAgo", "yesterday", or "January 10, 2024".`);
 }
 
 export interface CampaignData {
@@ -886,14 +914,14 @@ export async function fetchGA4Realtime() {
     return realtime;
   } catch (error: any) {
     // Real-time API might not be available or might have permission issues
-    // Return empty data structure instead of throwing error
-    console.warn("GA4 Realtime API Error (returning empty data):", error.message);
-    return {
-      totalActiveUsers: 0,
-      totalPageViews: 0,
-      byCountry: [],
-      byDevice: [],
-      topPages: [],
-    };
+    // Throw error with helpful message so Atlas knows what went wrong
+    console.error("GA4 Realtime API Error:", error);
+    const errorMessage = error.message || String(error);
+    throw new Error(
+      `GA4 Realtime API failed: ${errorMessage}. ` +
+      `This could be due to: 1) Realtime API not enabled for this property, ` +
+      `2) Insufficient permissions, 3) API quota exceeded, or 4) Network issues. ` +
+      `Try using get_ga4_overview instead for recent traffic data.`
+    );
   }
 }

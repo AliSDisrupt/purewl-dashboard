@@ -32,8 +32,10 @@ try {
   analyticsDataClient = new BetaAnalyticsDataClient({
     credentials: credentials,
   });
+  console.log("✅ GA4 client initialized successfully");
 } catch (error) {
-  console.error("Failed to initialize GA4 client:", error);
+  console.error("❌ Failed to initialize GA4 client:", error);
+  console.error("Error details:", error instanceof Error ? error.stack : String(error));
 }
 
 export interface GA4QueryParams {
@@ -62,7 +64,7 @@ export interface GA4Response {
 }
 
 /**
- * Convert date string like "7daysAgo" or "2024-01-15" to actual date
+ * Convert date string like "7daysAgo" or "2024-01-15" or "January 10, 2026" to actual date
  */
 function parseDate(dateStr: string): string {
   // Handle ISO date format (YYYY-MM-DD)
@@ -87,8 +89,29 @@ function parseDate(dateStr: string): string {
     date.setDate(date.getDate() - days);
     return date.toISOString().split("T")[0];
   }
+
+  // Handle natural language dates like "January 10, 2026" or "Jan 10 2026"
+  try {
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      // Check if date is in the future (more than 1 day ahead)
+      const now = new Date();
+      const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      if (parsed > oneDayFromNow) {
+        throw new Error(`Date "${dateStr}" is in the future. GA4 data is only available for past dates.`);
+      }
+      return parsed.toISOString().split("T")[0];
+    }
+  } catch (error: any) {
+    // If parsing fails, throw a helpful error
+    if (error.message && error.message.includes("future")) {
+      throw error; // Re-throw future date errors
+    }
+    throw new Error(`Invalid date format: "${dateStr}". Please use formats like "2024-01-10", "7daysAgo", "yesterday", or "January 10, 2024".`);
+  }
   
-  return dateStr;
+  // If we get here, the date format is not recognized
+  throw new Error(`Unrecognized date format: "${dateStr}". Please use formats like "2024-01-10", "7daysAgo", "yesterday", or "January 10, 2024".`);
 }
 
 /**

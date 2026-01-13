@@ -102,9 +102,8 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        // Use token role for now. Role updates from storage will be reflected
-        // on the next page load/request when the session is refreshed.
-        // Users should refresh their page after role changes to see the update immediately.
+        // Use token role - client-side components will check storage via API
+        // This avoids Edge Runtime issues while still allowing role updates
         session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
       }
       return session;

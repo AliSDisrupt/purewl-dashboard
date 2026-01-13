@@ -297,13 +297,13 @@ export const mcpTools = [
   // GA4 Tools
   {
     name: "get_ga4_overview",
-    description: "Get Google Analytics 4 overview data (users, sessions, page views, engagement metrics).",
+    description: "Get Google Analytics 4 overview data (users, sessions, page views, engagement metrics, bounce rate, average session duration). This is the PRIMARY tool for traffic statistics. Use this for general traffic data. For real-time data (active users right now), use get_ga4_realtime, but if that fails, this tool provides recent traffic statistics.",
     input_schema: {
       type: "object" as const,
       properties: {
         startDate: {
           type: "string",
-          description: "Start date (e.g., '7daysAgo', '30daysAgo', or '2024-01-01')",
+          description: "Start date (e.g., '7daysAgo', '30daysAgo', 'today', or '2024-01-01')",
           default: "7daysAgo"
         },
         endDate: {

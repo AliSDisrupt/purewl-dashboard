@@ -54,7 +54,27 @@ export function Sidebar() {
     return false;
   });
   
-  const isAdmin = session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local';
+  // Check admin status from session, but also check storage for updated role
+  const [isAdmin, setIsAdmin] = useState(session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local');
+  
+  // Check for updated role from storage on mount and when session changes
+  useEffect(() => {
+    if (session?.user?.email) {
+      // Fetch role from API to get the latest from storage
+      fetch('/api/auth/get-role')
+        .then(res => res.json())
+        .then(data => {
+          if (data.role) {
+            const adminStatus = data.role === 'admin' || session?.user?.email === 'admin@orion.local';
+            setIsAdmin(adminStatus);
+          }
+        })
+        .catch(() => {
+          // Fallback to session role if API fails
+          setIsAdmin(session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local');
+        });
+    }
+  }, [session]);
 
   useEffect(() => {
     setPathname(pathnameFromHook || "");
