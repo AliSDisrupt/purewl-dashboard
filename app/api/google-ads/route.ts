@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { trackRequest } from "@/lib/usage-tracker";
+import { fetchGoogleAdsFromGA4 } from "@/lib/mcp/ga4-google-ads";
 
 const DEVELOPER_TOKEN = process.env.GOOGLE_ADS_DEVELOPER_TOKEN || "zH1MEYol-aW8zN34amgT3g";
 const CUSTOMER_ID = process.env.GOOGLE_ADS_CUSTOMER_ID || "840-576-7621";
@@ -9,6 +10,8 @@ const CLIENT_SECRET = process.env.GOOGLE_ADS_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.GOOGLE_ADS_REFRESH_TOKEN;
 // Optional: Direct access token (for testing, expires in ~1 hour)
 const ACCESS_TOKEN = process.env.GOOGLE_ADS_ACCESS_TOKEN;
+// Use GA4 as fallback if direct API fails
+const USE_GA4_FALLBACK = process.env.GOOGLE_ADS_USE_GA4_FALLBACK !== "false";
 
 /**
  * Get OAuth access token
@@ -76,30 +79,76 @@ export async function GET(request: Request) {
 
     // Try to get access token (if OAuth is configured)
     let accessToken: string | null = null;
+    let oauthFailed = false;
     
     // First, try using direct access token if provided (for testing)
     if (ACCESS_TOKEN) {
       accessToken = ACCESS_TOKEN;
       console.log("Using provided access token");
-    } else {
-      // Otherwise, try to refresh token
+    } else if (CLIENT_ID && CLIENT_SECRET && REFRESH_TOKEN) {
+      // Otherwise, try to refresh token if credentials are configured
       try {
         accessToken = await getAccessToken();
+        console.log("✅ OAuth access token obtained successfully");
       } catch (error: any) {
-        // If OAuth refresh fails, return a helpful error
+        console.log("⚠️ OAuth token refresh failed, will try GA4 fallback:", error.message);
+        oauthFailed = true;
+        // Don't return error yet - try GA4 fallback first
+      }
+    } else {
+      // No OAuth credentials configured - skip to GA4 fallback
+      console.log("⚠️ Google Ads OAuth credentials not configured, using GA4 fallback");
+      oauthFailed = true;
+    }
+    
+    // If OAuth failed or not configured, try GA4 fallback immediately
+    if (oauthFailed && USE_GA4_FALLBACK) {
+      console.log("🔄 Using GA4 fallback for Google Ads data...");
+      try {
+        const ga4Data = await fetchGoogleAdsFromGA4({
+          startDate,
+          endDate,
+        });
+        console.log("✅ GA4 fallback succeeded, returning data");
+        return NextResponse.json({
+          ...ga4Data,
+          source: "ga4",
+          note: "Data fetched from GA4 (Google Ads API OAuth not configured or failed)",
+        });
+      } catch (ga4Error: any) {
+        console.error("❌ GA4 fallback also failed:", ga4Error.message);
+        console.error("GA4 Error details:", ga4Error);
+        // Return error but with helpful message
         return NextResponse.json(
           {
-            error: "Google Ads OAuth authentication failed",
-            message: error.message,
+            error: "Failed to fetch Google Ads data",
+            message: "Both Google Ads API and GA4 fallback failed",
+            details: ga4Error.message,
             instructions:
-              "Failed to refresh OAuth token. Please check: " +
-              "1. GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET, and GOOGLE_ADS_REFRESH_TOKEN in .env.local " +
-              "2. The OAuth app is configured correctly in Google Cloud Console " +
-              "3. The refresh token is valid and not expired",
+              "To enable Google Ads API: " +
+              "1. Create OAuth 2.0 credentials in Google Cloud Console " +
+              "2. Add the service account to your Google Ads account " +
+              "3. Add GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET, and GOOGLE_ADS_REFRESH_TOKEN to .env.local",
           },
-          { status: 401 }
+          { status: 500 }
         );
       }
+    }
+    
+    // If we still don't have an access token at this point, return error
+    if (!accessToken) {
+      return NextResponse.json(
+        {
+          error: "Google Ads OAuth authentication failed",
+          message: "Access token could not be obtained",
+          instructions:
+            "Failed to refresh OAuth token. Please check: " +
+            "1. GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET, and GOOGLE_ADS_REFRESH_TOKEN in .env.local " +
+            "2. The OAuth app is configured correctly in Google Cloud Console " +
+            "3. The refresh token is valid and not expired",
+        },
+        { status: 401 }
+      );
     }
 
     // Build the Google Ads API query
@@ -126,14 +175,21 @@ export async function GET(request: Request) {
     const loginCustomerIdFormatted = LOGIN_CUSTOMER_ID.replace(/-/g, "");
     const apiUrl = `https://googleads.googleapis.com/v16/customers/${customerIdFormatted}/googleAds:search`;
 
+    // Build headers - login-customer-id is required for manager accounts
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      "developer-token": DEVELOPER_TOKEN,
+      "Content-Type": "application/json",
+    };
+    
+    // Only add login-customer-id if it's different from customer ID (manager account)
+    if (loginCustomerIdFormatted && loginCustomerIdFormatted !== customerIdFormatted) {
+      headers["login-customer-id"] = loginCustomerIdFormatted;
+    }
+
     const response = await fetch(apiUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "developer-token": DEVELOPER_TOKEN,
-        "Content-Type": "application/json",
-        "login-customer-id": loginCustomerIdFormatted, // Required for manager accounts
-      },
+      headers,
       body: JSON.stringify({
         query: query.trim(),
       }),
@@ -142,6 +198,33 @@ export async function GET(request: Request) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Google Ads API Error:", errorText);
+      
+      // If API fails (404, 401, 403, etc.) and GA4 fallback is enabled, try fetching from GA4
+      if (USE_GA4_FALLBACK) {
+        console.log(`Google Ads API returned ${response.status}, falling back to GA4...`);
+        try {
+          const ga4Data = await fetchGoogleAdsFromGA4({
+            startDate,
+            endDate,
+          });
+          return NextResponse.json({
+            ...ga4Data,
+            source: "ga4",
+            note: `Data fetched from GA4 (Google Ads API returned ${response.status})`,
+          });
+        } catch (ga4Error: any) {
+          console.error("GA4 fallback also failed:", ga4Error);
+          return NextResponse.json(
+            {
+              error: "Failed to fetch Google Ads data",
+              details: errorText,
+              ga4FallbackError: ga4Error.message,
+            },
+            { status: response.status }
+          );
+        }
+      }
+      
       return NextResponse.json(
         {
           error: "Failed to fetch Google Ads data",
@@ -231,6 +314,36 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error("Google Ads API Error:", error);
+    
+    // If direct API fails and GA4 fallback is enabled, try GA4
+    if (USE_GA4_FALLBACK) {
+      console.log("Google Ads API failed, trying GA4 fallback...");
+      try {
+        const { searchParams } = new URL(request.url);
+        const startDate = searchParams.get("startDate") || "30daysAgo";
+        const endDate = searchParams.get("endDate") || "yesterday";
+        
+        const ga4Data = await fetchGoogleAdsFromGA4({
+          startDate,
+          endDate,
+        });
+        return NextResponse.json({
+          ...ga4Data,
+          source: "ga4",
+          note: "Data fetched from GA4 (Google Ads API unavailable)",
+        });
+      } catch (ga4Error: any) {
+        console.error("GA4 fallback also failed:", ga4Error);
+        return NextResponse.json(
+          {
+            error: error.message || "Failed to fetch Google Ads data",
+            ga4FallbackError: ga4Error.message,
+          },
+          { status: 500 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       {
         error: error.message || "Failed to fetch Google Ads data",

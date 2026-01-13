@@ -31,6 +31,8 @@ interface GoogleAdsData {
     averageCtr: number;
     averageCpc: number;
   };
+  source?: string; // "ga4" or "api"
+  note?: string; // Optional note about data source
 }
 
 interface GoogleAdsMetricsProps {
@@ -84,10 +86,22 @@ export function GoogleAdsMetrics({ data, isLoading }: GoogleAdsMetricsProps) {
       {/* Account Info */}
       <Card>
         <CardHeader>
-          <CardTitle>{data.descriptiveName}</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Customer ID: {data.customerId} • {campaigns.length} Campaigns
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{data.descriptiveName}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Customer ID: {data.customerId} • {campaigns.length} Campaigns
+              </p>
+            </div>
+            {data.source === "ga4" && (
+              <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+                <span className="text-xs">📊 GA4 Data</span>
+              </Badge>
+            )}
+          </div>
+          {data.note && (
+            <p className="text-xs text-muted-foreground mt-2 italic">{data.note}</p>
+          )}
         </CardHeader>
       </Card>
 

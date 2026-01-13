@@ -43,3 +43,6 @@ next-env.d.ts
 
 # config files with secrets
 DATA/claude_desktop_config.json
+
+# user data storage
+data/

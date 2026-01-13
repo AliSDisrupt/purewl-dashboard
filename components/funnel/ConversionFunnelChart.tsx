@@ -17,7 +17,7 @@ interface FunnelStage {
   count: number;
   percentage: number;
   color: string;
-  breakdown?: Record<string, number>; // Channel breakdown: { "LinkedIn": 100, "Reddit": 50, ... }
+  breakdown?: Record<string, number>;
 }
 
 interface ConversionFunnelChartProps {
@@ -28,11 +28,49 @@ interface ConversionFunnelChartProps {
   };
 }
 
+// Animated number component
+const AnimatedNumber = ({ value, prefix = '', suffix = '', duration = 1200 }: { value: number; prefix?: string; suffix?: string; duration?: number }) => {
+  const [display, setDisplay] = useState(0);
+  
+  useEffect(() => {
+    const start = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [value, duration]);
+  
+  return <span>{prefix}{display.toLocaleString()}{suffix}</span>;
+};
+
+// Conversion connector between stages
+const ConversionConnector = ({ rate, delay }: { rate: number; delay: number }) => (
+  <motion.div 
+    className="flex items-center py-2 ml-7"
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: delay / 1000, duration: 0.5 }}
+  >
+    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-600/30 to-transparent" />
+    <div className="flex items-center px-3 py-1 mx-3 bg-white/5 border border-white/10 rounded-full text-xs font-mono text-gray-400">
+      <svg width="10" height="10" viewBox="0 0 10 10" className="mr-1.5 opacity-50">
+        <path d="M5 0 L10 5 L5 10 L0 5 Z" fill="currentColor" />
+      </svg>
+      {rate.toFixed(1)}%
+    </div>
+    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-600/30 to-transparent" />
+  </motion.div>
+);
+
 export function ConversionFunnelChart({
   stages,
   dateRange,
 }: ConversionFunnelChartProps) {
   const [animated, setAnimated] = useState(false);
+  const [hoveredStage, setHoveredStage] = useState<string | null>(null);
 
   useEffect(() => {
     setAnimated(true);
@@ -49,23 +87,15 @@ export function ConversionFunnelChart({
   }
 
   const maxCount = stages[0]?.count || 1;
-  const stageColors = ["#3b82f6", "#a855f7", "#14b8a6", "#f59e0b"];
-
-  // Debug: Log breakdown data for troubleshooting
-  useEffect(() => {
-    if (stages.length > 0) {
-      stages.forEach((stage) => {
-        if (stage.breakdown && Object.keys(stage.breakdown).length > 0) {
-          console.log(`[Funnel Chart] Stage ${stage.number} (${stage.name}) breakdown:`, stage.breakdown);
-        } else {
-          console.log(`[Funnel Chart] Stage ${stage.number} (${stage.name}) has no breakdown data`);
-        }
-      });
-    }
-  }, [stages]);
+  const stageColors = [
+    { primary: "#3B82F6", secondary: "#60A5FA", glow: "rgba(59, 130, 246, 0.3)", icon: "👁" },
+    { primary: "#8B5CF6", secondary: "#A78BFA", glow: "rgba(139, 92, 246, 0.3)", icon: "✉" },
+    { primary: "#F59E0B", secondary: "#FBBF24", glow: "rgba(245, 158, 11, 0.3)", icon: "🤝" },
+    { primary: "#10B981", secondary: "#34D399", glow: "rgba(16, 185, 129, 0.3)", icon: "💰" },
+  ];
 
   const formatDateRange = () => {
-    if (!dateRange) return "";
+    if (!dateRange) return "Date Range";
     try {
       const start = new Date(dateRange.startDate);
       const end = new Date(dateRange.endDate);
@@ -75,262 +105,415 @@ export function ConversionFunnelChart({
         const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       };
-      return `${formatDate(start)} - ${formatDate(end)}T23:59:59`;
+      return `${formatDate(start)} - ${formatDate(end)}`;
     } catch {
-      return "";
+      return "Date Range";
     }
   };
 
+  // Calculate conversion rates
+  const getConversionRate = (fromIndex: number) => {
+    if (fromIndex >= stages.length - 1) return 0;
+    const from = stages[fromIndex].count;
+    const to = stages[fromIndex + 1].count;
+    return from > 0 ? (to / from) * 100 : 0;
+  };
+
+  // Get source breakdown for first stage (sessions/traffic)
+  const getSourceBreakdown = () => {
+    if (stages.length === 0 || !stages[0].breakdown) return [];
+    
+    const breakdown = stages[0].breakdown;
+    const channelColors: Record<string, string> = {
+      "LinkedIn": "#0A66C2",
+      "Reddit": "#FF4500",
+      "Google Ads": "#4285f4",
+      "Organic": "#10B981",
+      "Direct": "#94A3B8",
+      "Email": "#ea4335",
+      "Social": "#8e75b2",
+      "Referral": "#fbbc04",
+      "Other": "#5f6368",
+    };
+
+    return Object.entries(breakdown)
+      .filter(([_, value]) => value > 0)
+      .sort(([_, a], [__, b]) => b - a)
+      .map(([channel, value]) => ({
+        name: channel,
+        value: value,
+        color: channelColors[channel] || "#6b7280",
+      }));
+  };
+
+  const sourceBreakdown = getSourceBreakdown();
+  const totalBreakdown = sourceBreakdown.reduce((sum, s) => sum + s.value, 0);
+
   return (
-    <Card className="bg-[#1a1a1a] border-gray-800 text-white overflow-hidden">
-      <CardHeader className="pb-4 border-b border-gray-800">
-        <div>
-          <h2 className="text-xl font-bold text-white mb-1">Conversion Funnel</h2>
-          <p className="text-xs text-gray-400">
-            FUNNEL • {formatDateRange() || "Date Range"} <Info className="inline h-3 w-3 ml-1" />
-          </p>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="relative">
-          {/* Y-axis labels */}
-          <div className="absolute left-0 top-8 bottom-20 w-10 flex flex-col justify-between">
-            {[100, 80, 60, 40, 20, 0].map((value) => (
-              <div key={value} className="relative flex items-center">
-                <span className="text-xs text-gray-500">{value}%</span>
-                <div className="absolute left-10 right-0 h-px bg-[#333333]" />
-              </div>
-            ))}
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        .funnel-widget {
+          font-family: 'Outfit', sans-serif;
+          background: linear-gradient(135deg, #0F0F14 0%, #1A1A24 50%, #0F0F14 100%);
+          border-radius: 20px;
+          padding: 32px;
+          min-height: 600px;
+          position: relative;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        
+        .funnel-widget::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+        
+        .widget-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 40px;
+        }
+        
+        .widget-title {
+          font-size: 24px;
+          font-weight: 600;
+          color: #FFFFFF;
+          letter-spacing: -0.5px;
+        }
+        
+        .widget-subtitle {
+          font-size: 13px;
+          color: #71717A;
+          margin-top: 4px;
+          font-weight: 400;
+        }
+        
+        .widget-badge {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          padding: 8px 14px;
+          border-radius: 100px;
+          font-size: 13px;
+          color: #10B981;
+          font-weight: 500;
+        }
+        
+        .widget-badge-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #10B981;
+          animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .funnel-content {
+          display: grid;
+          grid-template-columns: 1fr 280px;
+          gap: 40px;
+        }
+        
+        .funnel-stages {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+        
+        .funnel-stage {
+          padding: 16px 0;
+        }
+        
+        .funnel-stage.hovered .bar-fill {
+          filter: brightness(1.1);
+        }
+        
+        .stage-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        
+        .stage-icon {
+          font-size: 18px;
+        }
+        
+        .stage-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: #E4E4E7;
+        }
+        
+        .stage-source {
+          font-size: 11px;
+          color: #52525B;
+          background: rgba(255, 255, 255, 0.05);
+          padding: 3px 8px;
+          border-radius: 4px;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .bar-container {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        
+        .bar-track {
+          flex: 1;
+          height: 44px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 10px;
+          overflow: hidden;
+          position: relative;
+          transition: box-shadow 0.3s ease;
+          border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        
+        .bar-fill {
+          height: 100%;
+          border-radius: 10px;
+          position: relative;
+          overflow: hidden;
+          transform-origin: left;
+        }
+        
+        .bar-shimmer {
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+          animation: shimmer 2s ease-in-out infinite;
+          animation-delay: 1s;
+        }
+        
+        .bar-value {
+          min-width: 120px;
+          text-align: right;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 20px;
+          font-weight: 600;
+          color: #FFFFFF;
+        }
+        
+        .bar-amount {
+          font-size: 14px;
+          color: #10B981;
+          margin-left: 4px;
+          font-weight: 500;
+        }
+        
+        .source-breakdown {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          padding: 24px;
+          height: fit-content;
+        }
+        
+        .source-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #E4E4E7;
+          margin-bottom: 20px;
+        }
+        
+        .source-bars {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        
+        .source-item {
+          opacity: 0;
+          animation: fadeSlideIn 0.4s ease-out forwards;
+        }
+        
+        .source-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        
+        .source-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 2px;
+        }
+        
+        .source-name {
+          font-size: 13px;
+          color: #A1A1AA;
+          flex: 1;
+        }
+        
+        .source-value {
+          font-size: 13px;
+          font-family: 'JetBrains Mono', monospace;
+          color: #E4E4E7;
+          font-weight: 500;
+        }
+        
+        .source-bar-track {
+          height: 6px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 3px;
+          overflow: hidden;
+        }
+        
+        .source-bar-fill {
+          height: 100%;
+          border-radius: 3px;
+          transform-origin: left;
+        }
+        
+        @keyframes shimmer {
+          0% { left: -100%; }
+          100% { left: 200%; }
+        }
+        
+        @keyframes fadeSlideIn {
+          from { 
+            opacity: 0; 
+            transform: translateY(10px);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+
+      <div className="funnel-widget">
+        <div className="widget-header">
+          <div>
+            <div className="widget-title">Conversion Funnel</div>
+            <div className="widget-subtitle">Full pipeline efficiency • {formatDateRange()}</div>
           </div>
-
-          {/* Main funnel visualization */}
-          <div className="ml-14">
-            <div className="flex items-end justify-between gap-6" style={{ minHeight: "400px", paddingBottom: "80px" }}>
-              {stages.map((stage, index) => {
-                const previousCount = index > 0 ? stages[index - 1].count : maxCount;
-                const dropOff = previousCount - stage.count;
-                const dropOffPercentage = previousCount > 0 ? (dropOff / previousCount) * 100 : 0;
-                const activeHeight = (stage.count / maxCount) * 100;
-                const dropOffHeight = (dropOff / maxCount) * 100;
-                const stageColor = stageColors[index % stageColors.length];
-                const totalBarHeight = index === 0 ? activeHeight : ((previousCount || stage.count) / maxCount) * 100;
-
-                return (
+          <div className="widget-badge">
+            <div className="widget-badge-dot" />
+            Live Data
+          </div>
+        </div>
+        
+        <div className="funnel-content">
+          <div className="funnel-stages">
+            {stages.map((stage, index) => {
+              const widthPercent = (stage.count / maxCount) * 100;
+              const color = stageColors[index % stageColors.length];
+              const stageId = `stage-${stage.number}`;
+              
+              return (
+                <div key={stage.number}>
                   <motion.div
-                    key={stage.number}
-                    className="flex-1 flex flex-col items-center relative"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={animated ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: index * 0.1, duration: 0.5 }}
+                    className={`funnel-stage ${hoveredStage === stageId ? 'hovered' : ''}`}
+                    onMouseEnter={() => setHoveredStage(stageId)}
+                    onMouseLeave={() => setHoveredStage(null)}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={animated ? { opacity: 1, x: 0 } : {}}
+                    transition={{ delay: index * 0.15, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
-                    {/* Stage number badge */}
-                    <div className="mb-3">
-                      <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-white font-bold text-sm">
-                        {stage.number}
-                      </div>
+                    <div className="stage-header">
+                      <span className="stage-icon">{color.icon}</span>
+                      <span className="stage-label">{stage.name}</span>
+                      <span className="stage-source">GA4</span>
                     </div>
-
-                    {/* Bar container - aligned to bottom */}
-                    <div 
-                      className="relative w-full flex flex-col-reverse items-center" 
-                      style={{ height: "320px" }}
-                    >
-                      {/* Active section with channel breakdown - at bottom */}
-                      {stage.count > 0 && (
-                        <motion.div
-                          className="w-full flex flex-col-reverse"
-                          style={{
-                            height: `${activeHeight}%`,
-                            minHeight: activeHeight > 0 ? "2px" : "0",
-                          }}
-                          initial={{ height: 0 }}
-                          animate={animated ? { height: `${activeHeight}%` } : {}}
-                          transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
-                        >
-                          {/* Channel breakdown bars */}
-                          {stage.breakdown && Object.keys(stage.breakdown).length > 0 && 
-                           Object.values(stage.breakdown).some((v: any) => v > 0) ? (
-                            (() => {
-                              const breakdownEntries = Object.entries(stage.breakdown)
-                                .filter(([_, value]) => value > 0)
-                                .sort(([_, a], [__, b]) => b - a);
-                              
-                              if (breakdownEntries.length === 0) {
-                                // No valid breakdown data, use solid color
-                                return (
-                                  <div
-                                    className="w-full"
-                                    style={{
-                                      height: "100%",
-                                      backgroundColor: stageColor,
-                                    }}
-                                  />
-                                );
-                              }
-                              
-                              const totalBreakdown = breakdownEntries.reduce((sum, [_, value]) => sum + value, 0);
-                              
-                              // Channel colors
-                              const channelColors: Record<string, string> = {
-                                "LinkedIn": "#0077b5",
-                                "Reddit": "#ff4500",
-                                "Google Ads": "#4285f4",
-                                "Organic": "#34a853",
-                                "Direct": "#9aa0a6",
-                                "Email": "#ea4335",
-                                "Social": "#8e75b2",
-                                "Referral": "#fbbc04",
-                                "Other": "#5f6368",
-                              };
-
-                              return breakdownEntries.map(([channel, value], breakdownIndex) => {
-                                const channelPercentage = totalBreakdown > 0 ? (value / totalBreakdown) * 100 : 0;
-                                // Calculate height as percentage of the active bar height
-                                const channelHeight = stage.count > 0 ? (value / stage.count) * 100 : 0;
-                                const channelColor = channelColors[channel] || "#6b7280";
-
-                                // Only render if height is significant enough to be visible (at least 1%)
-                                if (channelHeight < 1) return null;
-
-                                return (
-                                  <motion.div
-                                    key={channel}
-                                    className="w-full border-t border-gray-800/50"
-                                    style={{
-                                      height: `${channelHeight}%`,
-                                      backgroundColor: channelColor,
-                                      minHeight: "3px", // Minimum visible height
-                                    }}
-                                    initial={{ height: 0 }}
-                                    animate={animated ? { height: `${channelHeight}%` } : {}}
-                                    transition={{ 
-                                      delay: index * 0.1 + 0.2 + (breakdownIndex * 0.05), 
-                                      duration: 0.3 
-                                    }}
-                                    title={`${channel}: ${value} (${channelPercentage.toFixed(1)}%)`}
-                                  />
-                                );
-                              }).filter(Boolean);
-                            })()
-                          ) : (
-                            // Fallback to solid color if no breakdown
-                            <div
-                              className="w-full"
-                              style={{
-                                height: "100%",
-                                backgroundColor: stageColor,
-                              }}
-                            />
-                          )}
-                        </motion.div>
-                      )}
-
-                      {/* Drop-off section (striped) - above active section */}
-                      {index > 0 && dropOff > 0 && (
-                        <motion.div
-                          className="w-full relative"
-                          style={{
-                            height: `${dropOffHeight}%`,
-                            minHeight: dropOffHeight > 0 ? "2px" : "0",
-                            backgroundImage: `repeating-linear-gradient(
-                              45deg,
-                              #4b5563 0px,
-                              #4b5563 3px,
-                              #1f2937 3px,
-                              #1f2937 6px
-                            )`,
-                          }}
-                          initial={{ height: 0 }}
-                          animate={animated ? { height: `${dropOffHeight}%` } : {}}
-                          transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
-                        />
-                      )}
-                    </div>
-
-                    {/* Arrow to next stage */}
-                    {index < stages.length - 1 && (
-                      <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-full z-10">
-                        <span className="text-gray-500 text-lg">→</span>
-                      </div>
-                    )}
-
-                    {/* Stage name and menu */}
-                    <div className="mt-4 flex items-center gap-2 min-h-[40px]">
-                      <span className="text-sm font-semibold text-white text-center">
-                        {stage.name}
-                      </span>
-                      <button 
-                        className="text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"
-                        aria-label="More options"
+                    
+                    <div className="bar-container">
+                      <div 
+                        className="bar-track"
+                        style={{ 
+                          boxShadow: hoveredStage === stageId ? `0 0 30px ${color.glow}` : 'none'
+                        }}
                       >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="mt-2 text-center space-y-1 min-h-[60px]">
-                      <div className="text-sm text-white font-medium">
-                        {stage.count} {stage.count === 1 ? "person" : "persons"} ({stage.percentage.toFixed(2)}%)
+                        <motion.div 
+                          className="bar-fill"
+                          style={{ 
+                            background: `linear-gradient(90deg, ${color.primary} 0%, ${color.secondary} 100%)`,
+                          }}
+                          initial={{ scaleX: 0 }}
+                          animate={animated ? { scaleX: widthPercent / 100 } : { scaleX: 0 }}
+                          transition={{ delay: index * 0.15 + 0.2, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        >
+                          <div className="bar-shimmer" />
+                        </motion.div>
                       </div>
-                      {index > 0 && dropOff > 0 && (
-                        <div className="text-xs text-[#ef4444] flex items-center justify-center gap-1">
-                          <span>↘</span>
-                          <span>
-                            {dropOff} {dropOff === 1 ? "person" : "persons"} ({dropOffPercentage.toFixed(2)}%)
-                          </span>
-                        </div>
-                      )}
-                      {index === 0 && (
-                        <div className="text-xs text-gray-500">
-                          {stage.count} {stage.count === 1 ? "person" : "persons"} (100%)
-                        </div>
-                      )}
-                      {/* Channel Breakdown */}
-                      {stage.breakdown && Object.keys(stage.breakdown).length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {Object.entries(stage.breakdown)
-                            .filter(([_, value]) => value > 0)
-                            .sort(([_, a], [__, b]) => b - a)
-                            .slice(0, 4)
-                            .map(([channel, value]) => {
-                              const channelPercentage = stage.count > 0 ? (value / stage.count) * 100 : 0;
-                              const channelColors: Record<string, string> = {
-                                "LinkedIn": "#0077b5",
-                                "Reddit": "#ff4500",
-                                "Google Ads": "#4285f4",
-                                "Organic": "#34a853",
-                                "Direct": "#9aa0a6",
-                                "Email": "#ea4335",
-                                "Social": "#8e75b2",
-                                "Referral": "#fbbc04",
-                                "Other": "#5f6368",
-                              };
-                              return (
-                                <div key={channel} className="flex items-center justify-center gap-2 text-xs">
-                                  <div 
-                                    className="w-2 h-2 rounded-full" 
-                                    style={{ backgroundColor: channelColors[channel] || "#6b7280" }}
-                                  />
-                                  <span className="text-gray-400">
-                                    {channel}: {value} ({channelPercentage.toFixed(1)}%)
-                                  </span>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      )}
-                      <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
-                        <span>⏱</span>
-                        <span>–</span>
+                      
+                      <div className="bar-value">
+                        <AnimatedNumber value={stage.count} duration={1200 + index * 100} />
+                        <span className="text-sm text-gray-400 ml-2">
+                          ({stage.percentage.toFixed(1)}%)
+                        </span>
                       </div>
                     </div>
                   </motion.div>
-                );
-              })}
-            </div>
+                  
+                  {index < stages.length - 1 && (
+                    <ConversionConnector 
+                      rate={getConversionRate(index)} 
+                      delay={index * 150 + 400}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
+          
+          {sourceBreakdown.length > 0 && (
+            <div className="source-breakdown">
+              <div className="source-title">Traffic Sources</div>
+              <div className="source-bars">
+                {sourceBreakdown.slice(0, 6).map((source, i) => (
+                  <motion.div 
+                    key={source.name} 
+                    className="source-item"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={animated ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: 0.8 + i * 0.1, duration: 0.4 }}
+                  >
+                    <div className="source-header">
+                      <span className="source-dot" style={{ background: source.color }} />
+                      <span className="source-name">{source.name}</span>
+                      <span className="source-value">
+                        {totalBreakdown > 0 ? ((source.value / totalBreakdown) * 100).toFixed(0) : 0}%
+                      </span>
+                    </div>
+                    <div className="source-bar-track">
+                      <motion.div 
+                        className="source-bar-fill" 
+                        style={{ 
+                          background: source.color
+                        }}
+                        initial={{ scaleX: 0 }}
+                        animate={animated ? { scaleX: totalBreakdown > 0 ? source.value / totalBreakdown : 0 } : { scaleX: 0 }}
+                        transition={{ delay: 0.8 + i * 0.1 + 0.2, duration: 0.6 }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </>
   );
 }

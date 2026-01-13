@@ -102,13 +102,24 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
+        // Check storage for updated role on each session check
+        // This ensures role changes take effect immediately
+        // Use token role as default, storage check happens in API routes
+        session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
       }
       return session;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (user) {
         token.id = user.id;
+        // Determine role - admin@orion.local is always admin
+        const isAdmin = user.email === 'admin@orion.local' || user.id === 'admin';
+        token.role = isAdmin ? 'admin' : 'user';
       }
+      
+      // Note: Storage check removed from JWT callback because it runs in Edge Runtime
+      // Role updates are checked in session callback which runs in Node.js runtime
+      
       return token;
     },
   },

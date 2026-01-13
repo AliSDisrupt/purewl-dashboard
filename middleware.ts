@@ -32,6 +32,14 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
+  // Protect admin routes - only admins can access
+  if (pathname.startsWith("/admin")) {
+    const isAdmin = req.auth.user?.role === 'admin' || req.auth.user?.email === 'admin@orion.local';
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+  }
+
   return NextResponse.next();
 });
 

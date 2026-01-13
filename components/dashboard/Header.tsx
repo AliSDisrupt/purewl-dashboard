@@ -1,21 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Bot, LogOut, User } from "lucide-react";
+import { RefreshCw, Bot, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "./DateRangePicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { AgentPopup } from "@/components/agent/AgentPopup";
 import { useSession, signOut } from "next-auth/react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const queryClient = useQueryClient();
@@ -63,35 +55,15 @@ export function Header() {
             Refresh
           </Button>
           {session && (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    {session.user?.email || session.user?.name || "User"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>
-                    {session.user?.email || "Signed in"}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="gap-2"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           )}
         </div>
       </motion.header>

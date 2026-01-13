@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
+import { LoginTracker } from "@/components/auth/LoginTracker";
 
 export default function DashboardLayout({
   children,
@@ -8,6 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex h-screen overflow-hidden">
+      <LoginTracker />
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />

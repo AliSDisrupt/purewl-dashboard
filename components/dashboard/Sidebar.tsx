@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   BarChart3,
@@ -15,25 +16,35 @@ import {
   Bot,
   TrendingDown,
   TrendingUp,
-  FileText
+  FileText,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-const navigation = [
-  { name: "Overview", href: "/", icon: LayoutDashboard },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "CRM", href: "/crm", icon: Users },
-  { name: "Ads", href: "/ads", icon: Megaphone },
-  { name: "Funnel", href: "/funnel", icon: TrendingDown },
-  { name: "Community", href: "/community", icon: MessageSquare },
-  { name: "Reports", href: "/reports", icon: FileText },
-  { name: "Agent", href: "/agent", icon: Bot },
-  { name: "Signals", href: "/signals", icon: TrendingUp },
-];
+const getNavigation = (isAdmin: boolean) => {
+  const baseNavigation = [
+    { name: "Overview", href: "/", icon: LayoutDashboard },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "CRM", href: "/crm", icon: Users },
+    { name: "Ads", href: "/ads", icon: Megaphone },
+    { name: "Funnel", href: "/funnel", icon: TrendingDown },
+    { name: "Community", href: "/community", icon: MessageSquare },
+    { name: "Reports", href: "/reports", icon: FileText },
+    { name: "Agent", href: "/agent", icon: Bot },
+    { name: "Signals", href: "/signals", icon: TrendingUp },
+  ];
+  
+  if (isAdmin) {
+    return [...baseNavigation, { name: "Admin", href: "/admin", icon: Shield }];
+  }
+  
+  return baseNavigation;
+};
 
 export function Sidebar() {
   const pathnameFromHook = usePathname();
+  const { data: session } = useSession();
   const [pathname, setPathname] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -42,6 +53,8 @@ export function Sidebar() {
     }
     return false;
   });
+  
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local';
 
   useEffect(() => {
     setPathname(pathnameFromHook || "");
@@ -103,7 +116,7 @@ export function Sidebar() {
         </button>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navigation.map((item) => {
+        {getNavigation(isAdmin).map((item) => {
           const isActive = pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));
           const Icon = item.icon;
