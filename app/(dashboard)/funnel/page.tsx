@@ -93,6 +93,14 @@ async function fetchLeadSources(startDate: string, endDate: string) {
   return res.json();
 }
 
+async function fetchDealSources(startDate: string, endDate: string) {
+  const res = await fetch(
+    `/api/funnel/deal-sources?startDate=${startDate}&endDate=${endDate}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch deal sources");
+  return res.json();
+}
+
 export default function FunnelPage() {
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     if (typeof window !== "undefined") {
@@ -237,6 +245,14 @@ export default function FunnelPage() {
   const { data: leadSourcesData, isLoading: leadSourcesLoading, isFetching: leadSourcesFetching } = useQuery({
     queryKey: ["lead-sources", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchLeadSources(dateRange.startDate, dateRange.endDate),
+    refetchInterval: 300000,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
+  });
+
+  const { data: dealSourcesData, isLoading: dealSourcesLoading, isFetching: dealSourcesFetching } = useQuery({
+    queryKey: ["deal-sources", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealSources(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
     staleTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
@@ -388,7 +404,7 @@ export default function FunnelPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold">Full Funnel Analysis</h1>
-            {(isFetching || contentROIFetching || ga4OverviewFetching || sourceMediumFetching || geographyFetching || technologyFetching || dealsFetching || leadSourcesFetching) && (
+            {(isFetching || contentROIFetching || ga4OverviewFetching || sourceMediumFetching || geographyFetching || technologyFetching || dealsFetching || leadSourcesFetching || dealSourcesFetching) && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-xs">Updating...</span>
@@ -583,7 +599,10 @@ export default function FunnelPage() {
           sourceBreakdown={leadSourcesData?.sourceBreakdown || []}
           topLandingPages={leadSourcesData?.topLandingPages || []}
           summary={leadSourcesData?.summary || { totalLeads: 0, uniqueSources: 0, uniquePages: 0 }}
-          isLoading={leadSourcesLoading}
+          dealSources={dealSourcesData?.dealSources || []}
+          revenueSources={dealSourcesData?.revenueSources || []}
+          dealSummary={dealSourcesData?.summary || { totalDeals: 0, totalClosedWon: 0, totalRevenue: 0 }}
+          isLoading={leadSourcesLoading || dealSourcesLoading}
         />
       </motion.div>
 

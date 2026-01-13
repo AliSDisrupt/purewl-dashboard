@@ -24,6 +24,9 @@ export interface HubSpotDeal {
   closeDate: string | null;
   createdAt?: string | null;
   contactEmail?: string;
+  source?: string | null;
+  sourceData1?: string | null;
+  sourceData2?: string | null;
 }
 
 export interface HubSpotContact {
@@ -201,7 +204,7 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
       const url = `${API_BASE}/crm/v3/objects/deals`;
       const params = new URLSearchParams({
         limit: String(pageSize),
-        properties: "dealname,amount,dealstage,closedate,pipeline,createdate",
+        properties: "dealname,amount,dealstage,closedate,pipeline,createdate,hs_analytics_source,hs_analytics_source_data_1,hs_analytics_source_data_2",
         sort: "-createdAt",
       });
 
@@ -239,6 +242,9 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
           stage: props.dealstage || "Unknown Stage",
           closeDate: props.closedate || null,
           createdAt: props.createdate || d.createdAt || null,
+          source: props.hs_analytics_source || null,
+          sourceData1: props.hs_analytics_source_data_1 || null,
+          sourceData2: props.hs_analytics_source_data_2 || null,
         });
       }
 
