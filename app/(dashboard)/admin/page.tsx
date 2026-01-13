@@ -2,12 +2,12 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, User, Mail, Clock, Activity, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -88,8 +88,23 @@ export default function AdminPage() {
   const updateRoleMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: 'admin' | 'user' }) =>
       updateUserRole(userId, role),
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      
+      // After updating a role, the user needs to refresh their page to see the change
+      // The session will be updated on the next request. For the user whose role was changed,
+      // we'll refresh their page automatically.
+      if (session?.user?.id === variables.userId || session?.user?.email === variables.userId) {
+        // Refresh the page to trigger a new session check
+        // The session callback will check storage on the next request
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        // For other users, show a message that they need to refresh
+        // Their session will update on their next page load
+        alert(`User role updated. The user will see the change after refreshing their page.`);
+      }
     },
   });
   

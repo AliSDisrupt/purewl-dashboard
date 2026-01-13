@@ -102,9 +102,9 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        // Check storage for updated role on each session check
-        // This ensures role changes take effect immediately
-        // Use token role as default, storage check happens in API routes
+        // Use token role for now. Role updates from storage will be reflected
+        // on the next page load/request when the session is refreshed.
+        // Users should refresh their page after role changes to see the update immediately.
         session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
       }
       return session;
