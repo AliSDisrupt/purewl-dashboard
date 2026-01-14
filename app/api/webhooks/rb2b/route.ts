@@ -25,9 +25,11 @@ export async function POST(request: NextRequest) {
       const visitorData = body.person || body.visitor || body.contact || body;
       const pageData = body.page || body.visit || {};
       const companyData = body.company || visitorData.company || {};
+      const sessionData = body.session || {};
+      const behavioralData = body.behavioral || body.engagement || {};
 
-      // Create normalized visitor object
-      const visitorDoc = {
+      // Create normalized visitor object with ALL fields
+      const visitorDoc: any = {
         // Person Info
         firstName: visitorData.first_name || visitorData.firstName || visitorData.given_name,
         lastName: visitorData.last_name || visitorData.lastName || visitorData.family_name,
@@ -41,6 +43,13 @@ export async function POST(request: NextRequest) {
         email: visitorData.email || visitorData.work_email || visitorData.personal_email,
         jobTitle: visitorData.job_title || visitorData.title || visitorData.position || visitorData.jobTitle,
         linkedInUrl: visitorData.linkedin_url || visitorData.linkedin || visitorData.social_linkedin || visitorData.linkedInUrl,
+        phone: visitorData.phone || visitorData.phone_number || visitorData.phoneNumber || visitorData.mobile,
+        twitterUrl: visitorData.twitter_url || visitorData.twitter || visitorData.social_twitter || visitorData.twitterUrl,
+        githubUrl: visitorData.github_url || visitorData.github || visitorData.social_github || visitorData.githubUrl,
+        bio: visitorData.bio || visitorData.about || visitorData.description,
+        profilePicture: visitorData.profile_picture || visitorData.avatar || visitorData.profilePicture || visitorData.photo,
+        seniority: visitorData.seniority || visitorData.level || visitorData.seniority_level,
+        department: visitorData.department || visitorData.team || visitorData.division,
 
         // Company Info
         company:
@@ -56,6 +65,20 @@ export async function POST(request: NextRequest) {
           visitorData.employees ||
           visitorData.companySize,
         companyRevenue: companyData.revenue || visitorData.company_revenue || visitorData.companyRevenue,
+        companyWebsite: companyData.website || companyData.url || visitorData.company_website || visitorData.companyWebsite,
+        companyLinkedIn: companyData.linkedin || companyData.linkedin_url || visitorData.company_linkedin || visitorData.companyLinkedIn,
+        companyTwitter: companyData.twitter || companyData.twitter_url || visitorData.company_twitter || visitorData.companyTwitter,
+        companyType: companyData.type || companyData.company_type || visitorData.companyType,
+        companyFounded: companyData.founded || companyData.founded_year || visitorData.companyFounded,
+        companyDescription: companyData.description || companyData.about || visitorData.companyDescription,
+        companyTechnologies: Array.isArray(companyData.technologies)
+          ? companyData.technologies
+          : companyData.tech_stack
+          ? companyData.tech_stack.split(",").map((t: string) => t.trim())
+          : visitorData.companyTechnologies
+          ? (Array.isArray(visitorData.companyTechnologies) ? visitorData.companyTechnologies : [visitorData.companyTechnologies])
+          : undefined,
+        companyFunding: companyData.funding || companyData.funding_stage || visitorData.companyFunding,
 
         // Location
         country: visitorData.country || visitorData.location?.country || companyData.country,
@@ -72,11 +95,92 @@ export async function POST(request: NextRequest) {
         pageTitle: pageData.title || pageData.page_title || body.pageTitle,
         referrer: pageData.referrer || body.referrer,
         visitedAt: new Date(body.timestamp || body.created_at || Date.now()),
+        sessionId: sessionData.id || sessionData.session_id || body.sessionId || body.session_id,
+        visitCount: sessionData.visit_count || sessionData.visits || body.visitCount || 1,
+        timeOnSite: sessionData.time_on_site || sessionData.duration || body.timeOnSite || body.sessionDuration,
+        deviceType: sessionData.device_type || sessionData.device || body.deviceType || body.device,
+        browser: sessionData.browser || body.browser,
+        operatingSystem: sessionData.os || sessionData.operating_system || body.operatingSystem || body.os,
+        ipAddress: sessionData.ip || body.ip || body.ipAddress,
+        utmSource: body.utm_source || body.utmSource || pageData.utm_source,
+        utmMedium: body.utm_medium || body.utmMedium || pageData.utm_medium,
+        utmCampaign: body.utm_campaign || body.utmCampaign || pageData.utm_campaign,
+        formSubmissions: Array.isArray(body.form_submissions)
+          ? body.form_submissions
+          : body.formSubmissions
+          ? (Array.isArray(body.formSubmissions) ? body.formSubmissions : [body.formSubmissions])
+          : undefined,
+
+        // Behavioral Data
+        engagementScore: behavioralData.score || behavioralData.engagement_score || body.engagementScore,
+        intentSignals: Array.isArray(behavioralData.intent_signals)
+          ? behavioralData.intent_signals
+          : behavioralData.intentSignals
+          ? (Array.isArray(behavioralData.intentSignals) ? behavioralData.intentSignals : [behavioralData.intentSignals])
+          : body.intentSignals
+          ? (Array.isArray(body.intentSignals) ? body.intentSignals : [body.intentSignals])
+          : undefined,
+        technologiesDetected: Array.isArray(body.technologies)
+          ? body.technologies
+          : body.technologiesDetected
+          ? (Array.isArray(body.technologiesDetected) ? body.technologiesDetected : [body.technologiesDetected])
+          : undefined,
+        contentInterests: Array.isArray(body.content_interests)
+          ? body.content_interests
+          : body.contentInterests
+          ? (Array.isArray(body.contentInterests) ? body.contentInterests : [body.contentInterests])
+          : undefined,
+
+        // Visit History
+        firstVisitDate: body.first_visit_date ? new Date(body.first_visit_date) : body.firstVisitDate ? new Date(body.firstVisitDate) : undefined,
+        lastVisitDate: body.last_visit_date ? new Date(body.last_visit_date) : body.lastVisitDate ? new Date(body.lastVisitDate) : undefined,
+        pagesViewed: Array.isArray(body.pages_viewed)
+          ? body.pages_viewed
+          : body.pagesViewed
+          ? (Array.isArray(body.pagesViewed) ? body.pagesViewed : [body.pagesViewed])
+          : pageData.url
+          ? [pageData.url]
+          : undefined,
       };
+
+      // Remove undefined values to keep database clean
+      Object.keys(visitorDoc).forEach((key) => {
+        if (visitorDoc[key] === undefined || visitorDoc[key] === null || visitorDoc[key] === "") {
+          delete visitorDoc[key];
+        }
+      });
 
       // Check if visitor with same email exists
       let visitor;
       if (visitorDoc.email) {
+        // Get existing visitor to preserve visit history
+        const existingVisitor = await Visitor.findOne({ email: visitorDoc.email });
+
+        if (existingVisitor) {
+          // Update visit count
+          visitorDoc.visitCount = (existingVisitor.visitCount || 1) + 1;
+
+          // Merge pages viewed
+          const existingPages = existingVisitor.pagesViewed || [];
+          const newPages = visitorDoc.pagesViewed || [];
+          visitorDoc.pagesViewed = [...new Set([...existingPages, ...newPages])];
+
+          // Preserve first visit date
+          if (existingVisitor.firstVisitDate) {
+            visitorDoc.firstVisitDate = existingVisitor.firstVisitDate;
+          } else {
+            visitorDoc.firstVisitDate = visitorDoc.visitedAt;
+          }
+
+          // Update last visit date
+          visitorDoc.lastVisitDate = visitorDoc.visitedAt;
+        } else {
+          // First visit
+          visitorDoc.firstVisitDate = visitorDoc.visitedAt;
+          visitorDoc.lastVisitDate = visitorDoc.visitedAt;
+          visitorDoc.visitCount = 1;
+        }
+
         // Update existing visitor or create new one
         visitor = await Visitor.findOneAndUpdate(
           { email: visitorDoc.email },
@@ -88,6 +192,9 @@ export async function POST(request: NextRequest) {
         );
       } else {
         // Create new visitor without email
+        visitorDoc.firstVisitDate = visitorDoc.visitedAt;
+        visitorDoc.lastVisitDate = visitorDoc.visitedAt;
+        visitorDoc.visitCount = 1;
         visitor = await Visitor.create(visitorDoc);
       }
 
@@ -106,14 +213,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error: any) {
     console.error("RB2B Webhook Error:", error);
-    
+
     // Return 200 even on error so RB2B doesn't retry
     // Log the error for debugging
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: error.message || "Failed to process webhook",
-        note: "Error logged, but webhook accepted"
+        note: "Error logged, but webhook accepted",
       },
       { status: 200 } // Return 200 so RB2B doesn't retry
     );
@@ -129,5 +236,13 @@ export async function GET() {
     method: "POST",
     description: "Receives visitor identification data from RB2B and stores in MongoDB",
     database: "MongoDB Atlas",
+    fieldsSupported: [
+      "Person: firstName, lastName, fullName, email, jobTitle, linkedInUrl, phone, twitterUrl, githubUrl, bio, profilePicture, seniority, department",
+      "Company: company, companyDomain, industry, companySize, companyRevenue, companyWebsite, companyLinkedIn, companyTwitter, companyType, companyFounded, companyDescription, companyTechnologies, companyFunding",
+      "Location: country, city, region",
+      "Visit: pageUrl, pageTitle, referrer, visitedAt, sessionId, visitCount, timeOnSite, deviceType, browser, operatingSystem, ipAddress, utmSource, utmMedium, utmCampaign, formSubmissions",
+      "Behavioral: engagementScore, intentSignals, technologiesDetected, contentInterests",
+      "History: firstVisitDate, lastVisitDate, pagesViewed",
+    ],
   });
 }
