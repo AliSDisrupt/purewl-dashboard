@@ -202,6 +202,16 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
     // Paginate through all deals
     while (hasMore && pageCount < maxPages) {
       const url = `${API_BASE}/crm/v3/objects/deals`;
+      
+      // Log request for first page to debug
+      if (pageCount === 0) {
+        console.log(`🔍 Fetching HubSpot deals:`, {
+          url: url,
+          hasAccessToken: !!ACCESS_TOKEN,
+          tokenPrefix: ACCESS_TOKEN ? ACCESS_TOKEN.substring(0, 15) + '...' : 'NOT SET'
+        });
+      }
+      
       const params = new URLSearchParams({
         limit: String(pageSize),
         properties: "dealname,amount,dealstage,closedate,pipeline,createdate,hs_analytics_source,hs_analytics_source_data_1,hs_analytics_source_data_2",
@@ -217,13 +227,71 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
         headers: getHeaders(),
       });
 
+      // Check response status and headers
+      const contentType = response.headers.get("content-type");
+      const contentLength = response.headers.get("content-length");
+      
+      // Read response body once
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HubSpot API Error: ${response.status} ${response.statusText} - ${errorText}`);
+        console.error(`HubSpot API Error:`, {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          contentLength,
+          error: responseText
+        });
+        throw new Error(`HubSpot API Error: ${response.status} ${response.statusText} - ${responseText}`);
       }
 
-      const data = await response.json();
+      // Check if response body is empty (HTTP 200 but no body)
+      if (!responseText || responseText.trim() === '') {
+        console.warn(`HubSpot API returned empty body (HTTP 200) for page ${pageCount + 1}`, {
+          url: `${url}?${params}`,
+          contentType,
+          contentLength,
+          note: "This usually means no more data or API returned empty response"
+        });
+        // Empty response means no more data
+        hasMore = false;
+        break;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error(`Failed to parse HubSpot API response:`, {
+          error: parseError,
+          responsePreview: responseText.substring(0, 500),
+          contentType,
+          contentLength,
+          fullUrl: `${url}?${params}`
+        });
+        hasMore = false;
+        break;
+      }
+
       const results = data.results || [];
+      
+      // Log response details for debugging (first page only)
+      if (pageCount === 0) {
+        console.log(`HubSpot Deals API Response:`, {
+          status: response.status,
+          contentType,
+          contentLength,
+          hasResults: !!data.results,
+          resultsCount: results.length,
+          hasPaging: !!data.paging,
+          pagingNext: data.paging?.next?.after,
+          sampleDeal: results[0] ? {
+            id: results[0].id,
+            hasProperties: !!results[0].properties,
+            propertyKeys: results[0].properties ? Object.keys(results[0].properties) : []
+          } : null
+        });
+      }
 
       // Process deals from this page
       for (const d of results) {
