@@ -353,27 +353,27 @@ const BusinessInsights = ({ funnel, conversionRates }: { funnel: any; conversion
     if (!funnel || !conversionRates) return [];
     const insights = [];
     
-    if (funnel.level1?.value > 0 && conversionRates.sessionToLead < 2) {
+    if (sessions > 0 && parseFloat(trafficToDealRate) < 2) {
       insights.push({
         type: 'warning',
-        title: 'Low Traffic-to-Lead Conversion',
-        message: `Only ${conversionRates.sessionToLead.toFixed(1)}% of sessions are converting to leads. Landing pages may need optimization.`,
+        title: 'Low Traffic-to-Deal Conversion',
+        message: `Only ${trafficToDealRate}% of sessions are converting to deals. Landing pages may need optimization.`,
       });
     }
     
-    if (funnel.level3?.value > 0 && conversionRates.dealToClose < 5) {
+    if (dealsCreated > 0 && parseFloat(dealToCloseRate) < 5) {
       insights.push({
         type: 'error',
         title: 'Low Deal Close Rate',
-        message: `Only ${conversionRates.dealToClose.toFixed(1)}% of deals are closing. This may indicate sales team performance issues or low-quality leads.`,
+        message: `Only ${dealToCloseRate}% of deals are closing. This may indicate sales team performance issues.`,
       });
     }
     
-    if (funnel.level2?.value > 0 && funnel.level3?.value > funnel.level2?.value) {
+    if (disqualifiedLeads > 0 && disqualifiedLeads > dealsCreated * 0.3) {
       insights.push({
-        type: 'info',
-        title: 'More Deals Than Leads',
-        message: `HubSpot shows ${funnel.level3?.value} deals but only ${funnel.level2?.value} leads from GA4. Some deals may be manually created.`,
+        type: 'warning',
+        title: 'High Disqualification Rate',
+        message: `${disqualifiedLeads} deals were disqualified. Consider improving lead qualification process.`,
       });
     }
     
@@ -810,6 +810,13 @@ export default function FunnelPage() {
     ? Object.values(closedWonDealsData.summary.stageDetails).reduce((sum: number, stage: any) => sum + (stage.totalValue || 0), 0)
     : 0;
 
+  // Calculate conversion rates for new funnel
+  const trafficToDealRate = sessions > 0 ? ((dealsCreated / sessions) * 100).toFixed(1) : '0.0';
+  const dealToCloseRate = dealsCreated > 0 ? ((closedWonDeals / dealsCreated) * 100).toFixed(1) : '0.0';
+  const avgDealValue = closedWonDeals > 0 ? closedWonRevenue / closedWonDeals : 0;
+  const valuePerDeal = dealsCreated > 0 ? closedWonRevenue / dealsCreated : 0;
+  const pipelineValue = dealsSummary.totalValue || 0;
+
   // Funnel stages for chart - NEW STRUCTURE
   const funnelStages = [
     { id: 'traffic', label: 'Total Traffic', value: sessions, source: 'GA4', color: '#3B82F6', icon: '👁' },
@@ -874,27 +881,27 @@ export default function FunnelPage() {
           delay={0}
         />
         <KPICard
-          label="Leads Generated"
-          value={formatNumber(leads)}
-          subtext={`${leadConversionRate}% conversion rate`}
-          icon="✉"
-          color="#8B5CF6"
+          label="Deals Created"
+          value={formatNumber(dealsCreated)}
+          subtext={`${trafficToDealRate}% conversion rate`}
+          icon="🤝"
+          color="#F59E0B"
           loading={isLoading}
           delay={50}
         />
         <KPICard
-          label="Deals Created"
-          value={formatNumber(dealsCreated)}
-          subtext={`${dealConversionRate}% conversion rate`}
-          icon="🤝"
-          color="#F59E0B"
+          label="Emails Sent"
+          value={formatNumber(emailsSent)}
+          subtext="Conversations Started"
+          icon="📧"
+          color="#EC4899"
           loading={isLoading}
           delay={100}
         />
         <KPICard
           label="Closed-Won Revenue"
           value={`$${formatNumber(closedWonRevenue)}`}
-          subtext={`${closedWonCount} deals closed`}
+          subtext={`${closedWonDeals} deals closed`}
           icon="💰"
           color="#10B981"
           loading={isLoading}
@@ -913,8 +920,8 @@ export default function FunnelPage() {
           small
         />
         <KPICard
-          label="Value per Lead"
-          value={`$${formatNumber(valuePerLead)}`}
+          label="Value per Deal"
+          value={`$${formatNumber(valuePerDeal)}`}
           color="#64748B"
           loading={isLoading}
           delay={250}
