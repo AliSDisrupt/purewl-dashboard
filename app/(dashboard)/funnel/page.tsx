@@ -2,29 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ConversionFunnelChart } from "@/components/funnel/ConversionFunnelChart";
-import { ContentROITable } from "@/components/funnel/ContentROITable";
-import { AccountWatch } from "@/components/funnel/AccountWatch";
 import { LeadSourcesTable } from "@/components/funnel/LeadSourcesTable";
-import { DateRangePicker } from "@/components/dashboard/DateRangePicker";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  AlertCircle, 
-  TrendingDown, 
-  TrendingUp, 
-  Info, 
-  Users, 
-  DollarSign, 
-  Target,
-  BarChart3,
-  Globe,
-  Smartphone,
-  Calendar,
-  Loader2,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { AccountWatch } from "@/components/funnel/AccountWatch";
+import { formatNumber } from "@/lib/utils";
+
+// ============================================
+// FUNNEL PAGE - Full Funnel Analysis
+// Traffic → Leads → Deals → Revenue
+// ============================================
 
 interface DateRange {
   startDate: string;
@@ -32,50 +17,20 @@ interface DateRange {
 }
 
 async function fetchFunnelData(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/funnel?startDate=${startDate}&endDate=${endDate}`
-  );
+  const res = await fetch(`/api/funnel?startDate=${startDate}&endDate=${endDate}`);
   if (!res.ok) throw new Error("Failed to fetch funnel data");
   return res.json();
 }
 
-async function fetchContentROI(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/content-roi?startDate=${startDate}&endDate=${endDate}`
-  );
-  if (!res.ok) throw new Error("Failed to fetch Content ROI data");
-  return res.json();
-}
-
 async function fetchGA4Overview(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/ga4/overview?startDate=${startDate}&endDate=${endDate}`
-  );
+  const res = await fetch(`/api/ga4/overview?startDate=${startDate}&endDate=${endDate}`);
   if (!res.ok) throw new Error("Failed to fetch GA4 overview");
   return res.json();
 }
 
 async function fetchGA4SourceMedium(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/ga4/source-medium?startDate=${startDate}&endDate=${endDate}`
-  );
+  const res = await fetch(`/api/ga4/source-medium?startDate=${startDate}&endDate=${endDate}`);
   if (!res.ok) throw new Error("Failed to fetch source/medium data");
-  return res.json();
-}
-
-async function fetchGA4Geography(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/ga4/geography?startDate=${startDate}&endDate=${endDate}`
-  );
-  if (!res.ok) throw new Error("Failed to fetch geography data");
-  return res.json();
-}
-
-async function fetchGA4Technology(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/ga4/technology?startDate=${startDate}&endDate=${endDate}`
-  );
-  if (!res.ok) throw new Error("Failed to fetch technology data");
   return res.json();
 }
 
@@ -86,20 +41,428 @@ async function fetchHubSpotDeals() {
 }
 
 async function fetchLeadSources(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/funnel/lead-sources?startDate=${startDate}&endDate=${endDate}`
-  );
+  const res = await fetch(`/api/funnel/lead-sources?startDate=${startDate}&endDate=${endDate}`);
   if (!res.ok) throw new Error("Failed to fetch lead sources");
   return res.json();
 }
 
 async function fetchDealSources(startDate: string, endDate: string) {
-  const res = await fetch(
-    `/api/funnel/deal-sources?startDate=${startDate}&endDate=${endDate}`
-  );
+  const res = await fetch(`/api/funnel/deal-sources?startDate=${startDate}&endDate=${endDate}`);
   if (!res.ok) throw new Error("Failed to fetch deal sources");
   return res.json();
 }
+
+// KPI Card Component
+const KPICard = ({ 
+  label, 
+  value, 
+  subtext, 
+  icon, 
+  color, 
+  loading = false,
+  delay = 0, 
+  small = false 
+}: {
+  label: string;
+  value: string;
+  subtext?: string;
+  icon?: string;
+  color?: string;
+  loading?: boolean;
+  delay?: number;
+  small?: boolean;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), delay); }, [delay]);
+  
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: small ? 10 : 14,
+      padding: small ? '14px 18px' : '20px 24px',
+      position: 'relative',
+      overflow: 'hidden',
+      opacity: loaded ? 1 : 0,
+      transform: loaded ? 'translateY(0)' : 'translateY(10px)',
+      transition: 'all 0.4s ease',
+    }}>
+      {color && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: small ? 18 : 24,
+          right: small ? 18 : 24,
+          height: 2,
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+          opacity: 0.6,
+        }} />
+      )}
+      
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: small ? 8 : 10 }}>
+        <span style={{ fontSize: small ? 10 : 11, fontWeight: 600, color: '#52525B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
+        {icon && <span style={{ fontSize: small ? 14 : 16, opacity: 0.6 }}>{icon}</span>}
+      </div>
+      
+      {loading ? (
+        <div style={{ height: small ? 28 : 36, width: 80, background: 'rgba(255,255,255,0.05)', borderRadius: 4, animation: 'pulse 1.5s infinite' }} />
+      ) : (
+        <div style={{ fontSize: small ? 22 : 28, fontWeight: 700, color: '#FFF', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-0.5px' }}>
+          {value}
+        </div>
+      )}
+      
+      {subtext && !loading && (
+        <div style={{ fontSize: 12, color: '#71717A', marginTop: 6 }}>{subtext}</div>
+      )}
+    </div>
+  );
+};
+
+// Conversion Funnel Component
+const ConversionFunnel = ({ 
+  stages, 
+  trafficSources, 
+  loading,
+  dateRange 
+}: { 
+  stages: { id: string; label: string; value: number; source: string; color: string; icon: string }[];
+  trafficSources: { name: string; percentage: number; color: string }[];
+  loading: boolean;
+  dateRange: DateRange;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), 200); }, []);
+  
+  const maxValue = Math.max(...stages.map(s => s.value), 1);
+  
+  const getConversionRate = (index: number) => {
+    if (index >= stages.length - 1) return null;
+    const from = stages[index].value;
+    const to = stages[index + 1].value;
+    return from > 0 ? ((to / from) * 100).toFixed(1) : '0.0';
+  };
+  
+  if (loading) {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        borderRadius: 16,
+        padding: 28,
+        height: 400,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#71717A' }}>Loading funnel data...</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: 16,
+      padding: 28,
+      opacity: loaded ? 1 : 0,
+      transition: 'all 0.5s ease',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', margin: 0 }}>Conversion Funnel</h3>
+          <p style={{ fontSize: 12, color: '#52525B', margin: '4px 0 0' }}>Full pipeline efficiency • {dateRange.startDate} - {dateRange.endDate}</p>
+        </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '6px 12px',
+          background: 'rgba(16, 185, 129, 0.1)',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
+          borderRadius: 100,
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse 2s ease-in-out infinite' }} />
+          <span style={{ fontSize: 12, color: '#10B981', fontWeight: 500 }}>Live Data</span>
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-8 mt-6">
+        {/* Funnel Stages */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {stages.map((stage, i) => {
+            const widthPercent = stage.value > 0 ? Math.max((stage.value / maxValue) * 100, 5) : 5;
+            const conversionRate = getConversionRate(i);
+            
+            return (
+              <div key={stage.id}>
+                {/* Stage */}
+                <div style={{ padding: '16px 0' }}>
+                  {/* Label */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <span style={{ fontSize: 18 }}>{stage.icon}</span>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: '#E4E4E7' }}>{stage.label}</span>
+                    <span style={{
+                      fontSize: 10,
+                      color: stage.source === 'HubSpot' ? '#F97316' : '#3B82F6',
+                      background: stage.source === 'HubSpot' ? 'rgba(249, 115, 22, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}>{stage.source}</span>
+                  </div>
+                  
+                  {/* Bar */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{
+                      flex: 1,
+                      height: 44,
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      borderRadius: 10,
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255, 255, 255, 0.04)',
+                    }}>
+                      <div style={{
+                        width: loaded ? `${widthPercent}%` : '0%',
+                        height: '100%',
+                        background: `linear-gradient(90deg, ${stage.color}cc, ${stage.color})`,
+                        borderRadius: 10,
+                        transition: `width 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${0.1 + i * 0.15}s`,
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: '-100%',
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
+                          animation: loaded ? 'shimmer 2.5s ease-in-out infinite 1.5s' : 'none',
+                        }} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ minWidth: 120, textAlign: 'right' }}>
+                      <span style={{ fontSize: 20, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {stage.id === 'revenue' ? `$${formatNumber(stage.value)}` : formatNumber(stage.value)}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#52525B', marginLeft: 6 }}>
+                        ({((stage.value / maxValue) * 100).toFixed(1)}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Conversion Connector */}
+                {conversionRate && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '6px 0',
+                    marginLeft: 28,
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(113,113,122,0.2), rgba(113,113,122,0.05))' }} />
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 12px',
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 100,
+                      margin: '0 12px',
+                    }}>
+                      <span style={{ color: '#52525B' }}>↓</span>
+                      <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA' }}>{conversionRate}%</span>
+                    </div>
+                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(113,113,122,0.05), transparent)' }} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Traffic Sources Sidebar */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(255, 255, 255, 0.04)',
+          borderRadius: 12,
+          padding: 20,
+          height: 'fit-content',
+        }}>
+          <h4 style={{ fontSize: 14, fontWeight: 600, color: '#E4E4E7', margin: '0 0 16px' }}>Traffic Sources</h4>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {trafficSources.map((source) => (
+              <div key={source.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 2,
+                  background: source.color,
+                }} />
+                <span style={{ flex: 1, fontSize: 13, color: '#A1A1AA' }}>{source.name}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#E4E4E7' }}>{source.percentage.toFixed(1)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Business Insights Component
+const BusinessInsights = ({ funnel, conversionRates }: { funnel: any; conversionRates: any }) => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), 500); }, []);
+  
+  const getInsights = () => {
+    if (!funnel || !conversionRates) return [];
+    const insights = [];
+    
+    if (funnel.level1?.value > 0 && conversionRates.sessionToLead < 2) {
+      insights.push({
+        type: 'warning',
+        title: 'Low Traffic-to-Lead Conversion',
+        message: `Only ${conversionRates.sessionToLead.toFixed(1)}% of sessions are converting to leads. Landing pages may need optimization.`,
+      });
+    }
+    
+    if (funnel.level3?.value > 0 && conversionRates.dealToClose < 5) {
+      insights.push({
+        type: 'error',
+        title: 'Low Deal Close Rate',
+        message: `Only ${conversionRates.dealToClose.toFixed(1)}% of deals are closing. This may indicate sales team performance issues or low-quality leads.`,
+      });
+    }
+    
+    if (funnel.level2?.value > 0 && funnel.level3?.value > funnel.level2?.value) {
+      insights.push({
+        type: 'info',
+        title: 'More Deals Than Leads',
+        message: `HubSpot shows ${funnel.level3?.value} deals but only ${funnel.level2?.value} leads from GA4. Some deals may be manually created.`,
+      });
+    }
+    
+    return insights;
+  };
+  
+  const insights = getInsights();
+  
+  if (insights.length === 0) {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(14, 14, 20, 0.8) 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.15)',
+        borderRadius: 14,
+        padding: 20,
+        opacity: loaded ? 1 : 0,
+        transition: 'all 0.5s ease',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <span style={{ fontSize: 18 }}>💡</span>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: '#FFF', margin: 0 }}>Business Insights</h3>
+        </div>
+        <div style={{ padding: 16, background: 'rgba(16, 185, 129, 0.1)', borderRadius: 10 }}>
+          <span style={{ fontSize: 13, color: '#10B981' }}>✓ No critical issues detected. Funnel is performing within normal parameters.</span>
+        </div>
+      </div>
+    );
+  }
+  
+  const primaryInsight = insights[0];
+  const bgColor = primaryInsight.type === 'error' ? 'rgba(239, 68, 68, 0.05)' : 
+                  primaryInsight.type === 'warning' ? 'rgba(245, 158, 11, 0.05)' : 'rgba(59, 130, 246, 0.05)';
+  const borderColor = primaryInsight.type === 'error' ? 'rgba(239, 68, 68, 0.15)' :
+                      primaryInsight.type === 'warning' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)';
+  const textColor = primaryInsight.type === 'error' ? '#FCA5A5' :
+                    primaryInsight.type === 'warning' ? '#FCD34D' : '#93C5FD';
+  const alertBg = primaryInsight.type === 'error' ? 'rgba(239, 68, 68, 0.1)' :
+                  primaryInsight.type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+  const alertBorder = primaryInsight.type === 'error' ? 'rgba(239, 68, 68, 0.2)' :
+                      primaryInsight.type === 'warning' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(59, 130, 246, 0.2)';
+  
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, ${bgColor} 0%, rgba(14, 14, 20, 0.8) 100%)`,
+      border: `1px solid ${borderColor}`,
+      borderRadius: 14,
+      padding: 20,
+      opacity: loaded ? 1 : 0,
+      transition: 'all 0.5s ease',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <span style={{ fontSize: 18 }}>💡</span>
+        <h3 style={{ fontSize: 15, fontWeight: 600, color: '#FFF', margin: 0 }}>Business Insights</h3>
+      </div>
+      
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 12,
+        padding: 16,
+        background: alertBg,
+        border: `1px solid ${alertBorder}`,
+        borderRadius: 10,
+      }}>
+        <span style={{ fontSize: 16 }}>{primaryInsight.type === 'error' ? '⚠️' : primaryInsight.type === 'warning' ? '⚡' : 'ℹ️'}</span>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: textColor, marginBottom: 4 }}>{primaryInsight.title}</div>
+          <div style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.5 }}>{primaryInsight.message}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Live Account Watch Component  
+const LiveAccountWatch = () => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), 550); }, []);
+  
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: 14,
+      padding: 20,
+      opacity: loaded ? 1 : 0,
+      transition: 'all 0.5s ease',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>🔗</span>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: '#FFF', margin: 0 }}>Live Account Watch</h3>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: '#52525B' }}>🔄</span>
+          <span style={{ fontSize: 12, color: '#52525B' }}>0 Active</span>
+        </div>
+      </div>
+      
+      <p style={{ fontSize: 12, color: '#52525B', marginBottom: 16 }}>Real-time alerts when contacts with open deals visit high-intent pages</p>
+      
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: 20,
+        background: 'rgba(255, 255, 255, 0.02)',
+        borderRadius: 10,
+        justifyContent: 'center',
+      }}>
+        <span style={{ fontSize: 14, color: '#52525B' }}>⏳</span>
+        <span style={{ fontSize: 13, color: '#52525B', textAlign: 'center' }}>No active alerts. Alerts appear when contacts with open deals visit pricing, docs, or other high-intent pages.</span>
+      </div>
+    </div>
+  );
+};
 
 export default function FunnelPage() {
   const [dateRange, setDateRange] = useState<DateRange>(() => {
@@ -143,7 +506,6 @@ export default function FunnelPage() {
     };
   });
 
-  // Listen for date range changes
   useEffect(() => {
     const handleDateRangeChange = () => {
       const savedType = localStorage.getItem("dashboard-date-range-type");
@@ -185,689 +547,200 @@ export default function FunnelPage() {
     };
   }, []);
 
-  // Fetch all data with cache-first strategy
-  const { data, isLoading, error, isFetching } = useQuery({
+  // Fetch data
+  const { data: funnelData, isLoading: funnelLoading } = useQuery({
     queryKey: ["funnel", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchFunnelData(dateRange.startDate, dateRange.endDate),
-    refetchInterval: 300000, // Refresh every 5 minutes in background
-    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
-    placeholderData: (previousData) => previousData, // Show cached data immediately
-  });
-
-  const { data: contentROIData, isLoading: contentROILoading, isFetching: contentROIFetching } = useQuery({
-    queryKey: ["content-roi", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchContentROI(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 
-  const { data: ga4Overview, isLoading: ga4OverviewLoading, isFetching: ga4OverviewFetching } = useQuery({
+  const { data: ga4Overview, isLoading: overviewLoading } = useQuery({
     queryKey: ["ga4-overview", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchGA4Overview(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 
-  const { data: sourceMediumData, isLoading: sourceMediumLoading, isFetching: sourceMediumFetching } = useQuery({
+  const { data: sourceMediumData, isLoading: sourceMediumLoading } = useQuery({
     queryKey: ["ga4-source-medium", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchGA4SourceMedium(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 
-  const { data: geographyData, isLoading: geographyLoading, isFetching: geographyFetching } = useQuery({
-    queryKey: ["ga4-geography", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchGA4Geography(dateRange.startDate, dateRange.endDate),
-    refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
-  });
-
-  const { data: technologyData, isLoading: technologyLoading, isFetching: technologyFetching } = useQuery({
-    queryKey: ["ga4-technology", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchGA4Technology(dateRange.startDate, dateRange.endDate),
-    refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
-  });
-
-  const { data: hubspotDeals, isLoading: dealsLoading, isFetching: dealsFetching } = useQuery({
+  const { data: hubspotDeals, isLoading: dealsLoading } = useQuery({
     queryKey: ["hubspot-deals"],
-    queryFn: () => fetchHubSpotDeals(),
+    queryFn: fetchHubSpotDeals,
     refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 
-  const { data: leadSourcesData, isLoading: leadSourcesLoading, isFetching: leadSourcesFetching } = useQuery({
+  const { data: leadSourcesData, isLoading: leadSourcesLoading } = useQuery({
     queryKey: ["lead-sources", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchLeadSources(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 
-  const { data: dealSourcesData, isLoading: dealSourcesLoading, isFetching: dealSourcesFetching } = useQuery({
+  const { data: dealSourcesData, isLoading: dealSourcesLoading } = useQuery({
     queryKey: ["deal-sources", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchDealSources(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
   });
 
-  const funnel = data?.funnel;
-  const conversionRates = data?.conversionRates;
-  const contentROI = contentROIData?.contentROI || [];
+  // Extract data
+  const funnel = funnelData?.funnel;
+  const conversionRates = funnelData?.conversionRates;
   const overview = ga4Overview?.summary || {};
   const sourceMedium = sourceMediumData?.sourceMedium || [];
-  const geography = geographyData?.countries || [];
-  const browsers = technologyData?.browsers || [];
-  const operatingSystems = technologyData?.operatingSystems || [];
-  const deals = hubspotDeals?.deals || [];
+  const dealsSummary = hubspotDeals?.summary || {};
 
-  // Calculate additional metrics
-  const calculateMetrics = () => {
-    if (!funnel || !overview) return null;
+  // Calculate metrics
+  const sessions = overview.sessions || funnel?.level1?.value || 0;
+  const leads = funnel?.level2?.value || 0;
+  const dealsCreated = funnel?.level3?.value || 0;
+  const closedWonRevenue = funnel?.level4?.value || 0;
+  const closedWonCount = funnel?.level4?.count || 0;
 
-    const avgDealValue = funnel.level3.value > 0 
-      ? funnel.level4.value / funnel.level3.value 
-      : 0;
-    
-    const leadValue = funnel.level2.value > 0
-      ? funnel.level4.value / funnel.level2.value
-      : 0;
+  const leadConversionRate = sessions > 0 ? ((leads / sessions) * 100).toFixed(1) : '0.0';
+  const dealConversionRate = leads > 0 ? ((dealsCreated / leads) * 100).toFixed(1) : '0.0';
 
-    const trafficValue = funnel.level1.value > 0
-      ? funnel.level4.value / funnel.level1.value
-      : 0;
+  const avgDealValue = dealsCreated > 0 ? closedWonRevenue / dealsCreated : 0;
+  const valuePerLead = leads > 0 ? closedWonRevenue / leads : 0;
+  const pipelineValue = dealsSummary.totalValue || 0;
 
-    // Filter deals by date range (created within the selected period)
-    const parseDate = (dateStr: string): Date => {
-      const date = new Date(dateStr);
-      return date;
-    };
+  // Funnel stages for chart
+  const funnelStages = [
+    { id: 'traffic', label: 'Total Traffic', value: sessions, source: 'GA4', color: '#3B82F6', icon: '👁' },
+    { id: 'leads', label: 'Leads Generated', value: leads, source: 'GA4', color: '#8B5CF6', icon: '✉' },
+    { id: 'deals', label: 'Deals Created', value: dealsCreated, source: 'HubSpot', color: '#F59E0B', icon: '🤝' },
+    { id: 'revenue', label: 'Closed-Won Revenue', value: closedWonRevenue, source: 'HubSpot', color: '#10B981', icon: '💰' },
+  ];
 
-    const startDate = parseDate(dateRange.startDate);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = parseDate(dateRange.endDate);
-    endDate.setHours(23, 59, 59, 999);
-
-    // Calculate pipeline value from deals created in the date range
-    const pipelineValue = deals
-      .filter((deal: any) => {
-        if (!deal.createdAt) return false;
-        const dealDate = new Date(deal.createdAt);
-        return dealDate >= startDate && dealDate <= endDate;
-      })
-      .reduce((sum: number, deal: any) => {
-        return sum + (deal.amount || 0);
-      }, 0);
-
+  // Traffic sources from source/medium data
+  const totalSessions = sourceMedium.reduce((sum: number, s: any) => sum + (s.sessions || 0), 0);
+  const trafficSources = sourceMedium.slice(0, 6).map((s: any) => {
+    const name = s.source === '(direct)' ? 'Direct' : 
+                 s.source.toLowerCase().includes('google') && s.medium === 'organic' ? 'Organic' :
+                 s.source.toLowerCase().includes('google') && s.medium === 'cpc' ? 'Google Ads' :
+                 s.source.toLowerCase().includes('reddit') ? 'Reddit' :
+                 s.source.toLowerCase().includes('bing') ? 'Bing' : s.source;
+    const color = s.source.toLowerCase().includes('reddit') ? '#FF4500' :
+                  s.source.toLowerCase().includes('google') && s.medium === 'organic' ? '#10B981' :
+                  s.source.toLowerCase().includes('google') && s.medium === 'cpc' ? '#4285F4' :
+                  s.source === '(direct)' ? '#64748B' : '#06B6D4';
     return {
-      avgDealValue,
-      leadValue,
-      trafficValue,
-      pipelineValue,
-      totalUsers: overview.users || 0,
-      avgSessionDuration: overview.averageSessionDuration || 0,
-      bounceRate: overview.bounceRate || 0,
+      name,
+      percentage: totalSessions > 0 ? (s.sessions / totalSessions) * 100 : 0,
+      color,
     };
-  };
+  });
 
-  const metrics = calculateMetrics();
-
-  // Enhanced insights
-  const getInsights = () => {
-    if (!funnel || !conversionRates) return [];
-
-    const insights = [];
-
-    // Level 1 to Level 2: Landing page/messaging issues
-    if (funnel.level1.value > 0 && conversionRates.sessionToLead < 2) {
-      insights.push({
-        type: "warning",
-        icon: TrendingDown,
-        title: "Low Traffic-to-Lead Conversion",
-        message: `Only ${conversionRates.sessionToLead.toFixed(1)}% of sessions are converting to leads. This suggests landing pages may need optimization or messaging adjustments.`,
-      });
-    }
-
-    // Level 2 to Level 3: Integration issues
-    if (
-      funnel.level2.value > 0 &&
-      conversionRates.leadToDeal < 50 &&
-      funnel.level2.value > funnel.level3.value * 2
-    ) {
-      insights.push({
-        type: "error",
-        icon: AlertCircle,
-        title: "Potential Integration Gap",
-        message: `${funnel.level2.value} leads generated but only ${funnel.level3.value} deals created. The Lead_Generated event is firing, but HubSpot may not be creating deals (check integration).`,
-      });
-    }
-
-    // Level 3 to Level 4: Sales performance
-    if (
-      funnel.level3.value > 0 &&
-      conversionRates.dealToClose < 10 &&
-      funnel.level3.value > funnel.level4.count * 5
-    ) {
-      insights.push({
-        type: "warning",
-        icon: TrendingDown,
-        title: "Low Deal Close Rate",
-        message: `Only ${conversionRates.dealToClose.toFixed(1)}% of deals are closing. This may indicate sales team performance issues or low-quality leads.`,
-      });
-    }
-
-    // Positive insights
-    if (conversionRates.sessionToLead >= 5) {
-      insights.push({
-        type: "success",
-        icon: TrendingUp,
-        title: "Strong Traffic Conversion",
-        message: `${conversionRates.sessionToLead.toFixed(1)}% session-to-lead conversion is excellent!`,
-      });
-    }
-
-    if (conversionRates.dealToClose >= 20) {
-      insights.push({
-        type: "success",
-        icon: TrendingUp,
-        title: "High Close Rate",
-        message: `${conversionRates.dealToClose.toFixed(1)}% deal close rate is performing well!`,
-      });
-    }
-
-    // Bounce rate insights
-    if (metrics && metrics.bounceRate > 70) {
-      insights.push({
-        type: "warning",
-        icon: AlertCircle,
-        title: "High Bounce Rate",
-        message: `Bounce rate of ${metrics.bounceRate.toFixed(1)}% is above optimal. Consider improving landing page relevance and user experience.`,
-      });
-    }
-
-    return insights;
-  };
-
-  const insights = getInsights();
+  const isLoading = funnelLoading || overviewLoading || dealsLoading;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">Full Funnel Analysis</h1>
-            {(isFetching || contentROIFetching || ga4OverviewFetching || sourceMediumFetching || geographyFetching || technologyFetching || dealsFetching || leadSourcesFetching || dealSourcesFetching) && (
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-xs">Updating...</span>
-              </div>
-            )}
-          </div>
-          <p className="text-muted-foreground mt-1">
-            Comprehensive view of your entire customer journey from Traffic → Leads → Deals → Revenue
-          </p>
-        </div>
-        <DateRangePicker />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Fonts and animations */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(14, 14, 20, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #2A2A34; border-radius: 4px; }
+      `}</style>
+      
+      {/* Page Header */}
+      <div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#FFF', margin: 0 }}>Full Funnel Analysis</h1>
+        <p style={{ fontSize: 14, color: '#71717A', margin: '8px 0 0' }}>Comprehensive view of your entire customer journey from Traffic → Leads → Deals → Revenue</p>
       </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center text-muted-foreground">
-              Loading funnel data...
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Failed to load funnel data"}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Key Metrics Overview */}
-      {funnel && metrics && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Traffic</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{funnel.level1.value.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Sessions</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Leads Generated</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{funnel.level2.value.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                {conversionRates?.sessionToLead.toFixed(1)}% conversion rate
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Deals Created</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{funnel.level3.value.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                {conversionRates?.leadToDeal.toFixed(1)}% conversion rate
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Closed-Won Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${funnel.level4.value.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {funnel.level4.count} deals closed
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      {/* Additional Metrics */}
-      {metrics && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4"
-        >
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Deal Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${metrics.avgDealValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Value per Lead</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${metrics.leadValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Pipeline Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${metrics.pipelineValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      {/* Main Funnel Chart */}
-      {funnel && !isLoading && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <ConversionFunnelChart
-            stages={[
-              {
-                number: 1,
-                name: funnel.level1.label || "Total Traffic",
-                count: funnel.level1.value,
-                percentage: 100,
-                color: "#3b82f6",
-                breakdown: funnel.level1.breakdown || {},
-                source: "GA4",
-              },
-              {
-                number: 2,
-                name: funnel.level2.label || "Leads Generated",
-                count: funnel.level2.value,
-                percentage: conversionRates?.sessionToLead || 0,
-                color: "#a855f7",
-                breakdown: funnel.level2.breakdown || {},
-                source: "GA4",
-              },
-              {
-                number: 3,
-                name: funnel.level3.label || "Deals Created",
-                count: funnel.level3.value,
-                percentage: conversionRates?.leadToDeal || 0,
-                color: "#14b8a6",
-                breakdown: funnel.level3.breakdown || {},
-                source: "HubSpot",
-              },
-              {
-                number: 4,
-                name: funnel.level4.label || "Closed-Won Revenue",
-                count: funnel.level4.count || 0,
-                percentage: conversionRates?.dealToClose || 0,
-                color: "#f59e0b",
-                breakdown: funnel.level4.breakdown || {},
-                source: "HubSpot",
-              },
-            ]}
-            dateRange={{
-              startDate: dateRange.startDate,
-              endDate: dateRange.endDate,
-            }}
-          />
-        </motion.div>
-      )}
-
-      {/* Lead Sources Table - First touchpoints where leads were generated */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-      >
-        <LeadSourcesTable
-          leadSources={leadSourcesData?.leadSources || []}
-          sourceBreakdown={leadSourcesData?.sourceBreakdown || []}
-          topLandingPages={leadSourcesData?.topLandingPages || []}
-          summary={leadSourcesData?.summary || { totalLeads: 0, uniqueSources: 0, uniquePages: 0 }}
-          dealSources={dealSourcesData?.dealSources || []}
-          revenueSources={dealSourcesData?.revenueSources || []}
-          dealSummary={dealSourcesData?.summary || { totalDeals: 0, totalClosedWon: 0, totalRevenue: 0 }}
-          isLoading={leadSourcesLoading || dealSourcesLoading}
+      
+      {/* KPI Cards Row 1 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          label="Total Traffic"
+          value={formatNumber(sessions)}
+          subtext="Sessions"
+          icon="👁"
+          color="#3B82F6"
+          loading={isLoading}
+          delay={0}
         />
-      </motion.div>
-
-      {/* Detailed Analysis Tabs */}
-      <Tabs defaultValue="traffic" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="traffic">
-            <Globe className="h-4 w-4 mr-2" />
-            Traffic
-          </TabsTrigger>
-          <TabsTrigger value="geography">
-            <Globe className="h-4 w-4 mr-2" />
-            Geography
-          </TabsTrigger>
-          <TabsTrigger value="technology">
-            <Smartphone className="h-4 w-4 mr-2" />
-            Technology
-          </TabsTrigger>
-          <TabsTrigger value="pipeline">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Pipeline
-          </TabsTrigger>
-          <TabsTrigger value="content">
-            <Calendar className="h-4 w-4 mr-2" />
-            Content
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Traffic Sources Tab */}
-        <TabsContent value="traffic" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Traffic Sources & Mediums</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {sourceMediumLoading ? (
-                <div className="text-center text-muted-foreground py-8">Loading...</div>
-              ) : sourceMedium.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-4 gap-4 font-medium text-sm pb-2 border-b">
-                    <div>Source</div>
-                    <div>Medium</div>
-                    <div className="text-right">Sessions</div>
-                    <div className="text-right">% of Total</div>
-                  </div>
-                  {sourceMedium.slice(0, 10).map((item: any, index: number) => {
-                    const percentage = funnel?.level1.value > 0
-                      ? (item.sessions / funnel.level1.value) * 100
-                      : 0;
-                    return (
-                      <div key={index} className="grid grid-cols-4 gap-4 text-sm">
-                        <div>{item.source || "direct"}</div>
-                        <div>{item.medium || "none"}</div>
-                        <div className="text-right">{item.sessions.toLocaleString()}</div>
-                        <div className="text-right">{percentage.toFixed(1)}%</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">No data available</div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Geography Tab */}
-        <TabsContent value="geography" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Geographic Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {geographyLoading ? (
-                <div className="text-center text-muted-foreground py-8">Loading...</div>
-              ) : geography.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4 font-medium text-sm pb-2 border-b">
-                    <div>Country</div>
-                    <div className="text-right">Sessions</div>
-                    <div className="text-right">% of Total</div>
-                  </div>
-                  {geography.slice(0, 15).map((item: any, index: number) => {
-                    const percentage = funnel?.level1.value > 0
-                      ? (item.sessions / funnel.level1.value) * 100
-                      : 0;
-                    return (
-                      <div key={index} className="grid grid-cols-3 gap-4 text-sm">
-                        <div>{item.country}</div>
-                        <div className="text-right">{item.sessions.toLocaleString()}</div>
-                        <div className="text-right">{percentage.toFixed(1)}%</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">No data available</div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Technology Tab */}
-        <TabsContent value="technology" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Browser & Operating System Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {technologyLoading ? (
-                <div className="text-center text-muted-foreground py-8">Loading...</div>
-              ) : (browsers.length > 0 || operatingSystems.length > 0) ? (
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-medium mb-3">Browser</h3>
-                    <div className="space-y-2">
-                      {browsers.slice(0, 10).map((item: any, index: number) => {
-                        const percentage = overview?.users > 0
-                          ? (item.users / overview.users) * 100
-                          : 0;
-                        return (
-                          <div key={index} className="flex justify-between text-sm">
-                            <span>{item.browser}</span>
-                            <div className="flex items-center gap-4">
-                              <span>{item.users.toLocaleString()}</span>
-                              <span className="text-muted-foreground w-16 text-right">{percentage.toFixed(1)}%</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-medium mb-3">Operating System</h3>
-                    <div className="space-y-2">
-                      {operatingSystems.slice(0, 10).map((item: any, index: number) => {
-                        const percentage = overview?.users > 0
-                          ? (item.users / overview.users) * 100
-                          : 0;
-                        return (
-                          <div key={index} className="flex justify-between text-sm">
-                            <span>{item.os}</span>
-                            <div className="flex items-center gap-4">
-                              <span>{item.users.toLocaleString()}</span>
-                              <span className="text-muted-foreground w-16 text-right">{percentage.toFixed(1)}%</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">No data available</div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Pipeline Tab */}
-        <TabsContent value="pipeline" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pipeline Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dealsLoading ? (
-                <div className="text-center text-muted-foreground py-8">Loading...</div>
-              ) : deals.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4 font-medium text-sm pb-2 border-b">
-                    <div>Stage</div>
-                    <div className="text-right">Deal Count</div>
-                    <div className="text-right">Total Value</div>
-                  </div>
-                  {(Object.entries(
-                    deals.reduce((acc: any, deal: any) => {
-                      const stage = deal.stage || "Unknown";
-                      if (!acc[stage]) {
-                        acc[stage] = { count: 0, value: 0 };
-                      }
-                      acc[stage].count += 1;
-                      acc[stage].value += deal.amount || 0;
-                      return acc;
-                    }, {} as Record<string, { count: number; value: number }>)
-                  ) as [string, { count: number; value: number }][])
-                    .sort((a, b) => {
-                      return b[1].value - a[1].value;
-                    })
-                    .map(([stage, data]) => (
-                      <div key={stage} className="grid grid-cols-3 gap-4 text-sm">
-                        <div>{stage}</div>
-                        <div className="text-right">{data.count}</div>
-                        <div className="text-right">${data.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-8">No data available</div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Content Tab */}
-        <TabsContent value="content" className="space-y-4">
-          <ContentROITable
-            data={contentROI}
-            isLoading={contentROILoading}
-          />
-        </TabsContent>
-      </Tabs>
-
-      {/* Business Insights */}
-      {insights.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Info className="h-5 w-5" />
-            Business Insights
-          </h2>
-          {insights.map((insight, index) => {
-            const Icon = insight.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Alert
-                  variant={
-                    insight.type === "error"
-                      ? "destructive"
-                      : insight.type === "success"
-                      ? "default"
-                      : "default"
-                  }
-                  className={
-                    insight.type === "success"
-                      ? "border-green-500 bg-green-50 dark:bg-green-950"
-                      : ""
-                  }
-                >
-                  <Icon className="h-4 w-4" />
-                  <AlertTitle>{insight.title}</AlertTitle>
-                  <AlertDescription>{insight.message}</AlertDescription>
-                </Alert>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Account Watch Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-      >
-        <AccountWatch />
-      </motion.div>
+        <KPICard
+          label="Leads Generated"
+          value={formatNumber(leads)}
+          subtext={`${leadConversionRate}% conversion rate`}
+          icon="✉"
+          color="#8B5CF6"
+          loading={isLoading}
+          delay={50}
+        />
+        <KPICard
+          label="Deals Created"
+          value={formatNumber(dealsCreated)}
+          subtext={`${dealConversionRate}% conversion rate`}
+          icon="🤝"
+          color="#F59E0B"
+          loading={isLoading}
+          delay={100}
+        />
+        <KPICard
+          label="Closed-Won Revenue"
+          value={`$${formatNumber(closedWonRevenue)}`}
+          subtext={`${closedWonCount} deals closed`}
+          icon="💰"
+          color="#10B981"
+          loading={isLoading}
+          delay={150}
+        />
+      </div>
+      
+      {/* KPI Cards Row 2 */}
+      <div className="grid grid-cols-3 gap-3">
+        <KPICard
+          label="Avg Deal Value"
+          value={`$${formatNumber(avgDealValue)}`}
+          color="#64748B"
+          loading={isLoading}
+          delay={200}
+          small
+        />
+        <KPICard
+          label="Value per Lead"
+          value={`$${formatNumber(valuePerLead)}`}
+          color="#64748B"
+          loading={isLoading}
+          delay={250}
+          small
+        />
+        <KPICard
+          label="Total Pipeline Value"
+          value={`$${formatNumber(pipelineValue)}`}
+          color="#64748B"
+          loading={isLoading}
+          delay={300}
+          small
+        />
+      </div>
+      
+      {/* Conversion Funnel */}
+      <ConversionFunnel 
+        stages={funnelStages} 
+        trafficSources={trafficSources} 
+        loading={isLoading}
+        dateRange={dateRange}
+      />
+      
+      {/* Attribution Sources Table */}
+      <LeadSourcesTable 
+        leadSources={leadSourcesData?.sources || []}
+        dealSources={dealSourcesData?.dealSources || []}
+        revenueSources={dealSourcesData?.revenueSources || []}
+        isLoading={leadSourcesLoading || dealSourcesLoading}
+      />
+      
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <BusinessInsights funnel={funnel} conversionRates={conversionRates} />
+        <LiveAccountWatch />
+      </div>
     </div>
   );
 }
