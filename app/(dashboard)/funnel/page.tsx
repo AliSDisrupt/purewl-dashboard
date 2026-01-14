@@ -345,12 +345,23 @@ const ConversionFunnel = ({
 };
 
 // Business Insights Component
-const BusinessInsights = ({ funnel, conversionRates }: { funnel: any; conversionRates: any }) => {
+const BusinessInsights = ({ 
+  sessions, 
+  dealsCreated, 
+  disqualifiedLeads, 
+  trafficToDealRate, 
+  dealToCloseRate 
+}: { 
+  sessions: number;
+  dealsCreated: number;
+  disqualifiedLeads: number;
+  trafficToDealRate: string;
+  dealToCloseRate: string;
+}) => {
   const [loaded, setLoaded] = useState(false);
   useEffect(() => { setTimeout(() => setLoaded(true), 500); }, []);
   
   const getInsights = () => {
-    if (!funnel || !conversionRates) return [];
     const insights = [];
     
     if (sessions > 0 && parseFloat(trafficToDealRate) < 2) {
@@ -959,7 +970,13 @@ export default function FunnelPage() {
       
       {/* Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BusinessInsights funnel={funnel} conversionRates={conversionRates} />
+        <BusinessInsights 
+          sessions={sessions}
+          dealsCreated={dealsCreated}
+          disqualifiedLeads={disqualifiedLeads}
+          trafficToDealRate={trafficToDealRate}
+          dealToCloseRate={dealToCloseRate}
+        />
         <LiveAccountWatch />
       </div>
     </div>
