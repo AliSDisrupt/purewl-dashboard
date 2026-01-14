@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Globe } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
-import { getFlagFromCode, getFlagFromCountryName } from "@/lib/countryFlags";
+import { FlagEmoji, getCountryCodeFromName } from "@/components/ui/FlagEmoji";
 
 interface GeoData {
   country: string;
@@ -18,10 +18,10 @@ interface GeoMapProps {
   data: GeoData[];
 }
 
-// Use the centralized flag utility from lib/countryFlags
-// This function is kept for backward compatibility but now uses the centralized utility
-const getCountryFlag = (country: string): string => {
-  return getFlagFromCountryName(country);
+// Helper to get country code from country name or use the provided code
+const getCountryCode = (item: GeoData): string => {
+  if (item.countryCode) return item.countryCode;
+  return getCountryCodeFromName(item.country);
 };
 
 // Get color intensity based on user count
@@ -73,17 +73,14 @@ export function GeoMap({ data }: GeoMapProps) {
             </TableHeader>
             <TableBody>
               {sortedData.map((item, index) => {
-              // Use flag from country code if available, otherwise from country name
-              const flag = item.countryCode 
-                ? getFlagFromCode(item.countryCode) 
-                : getFlagFromCountryName(item.country);
+              const countryCode = getCountryCode(item);
               const percentage = (item.users / maxUsers) * 100;
               
               return (
                 <TableRow key={index}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">{flag}</span>
+                      <FlagEmoji countryCode={countryCode} size={24} />
                       <span>{item.country}</span>
                       <Badge variant="outline" className="ml-2 text-xs">
                         #{index + 1}
