@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealsTable } from "@/components/crm/DealsTable";
 import { ContactsTable } from "@/components/crm/ContactsTable";
 import { ConversationsTable } from "@/components/crm/ConversationsTable";
@@ -16,38 +15,22 @@ import { ProductsTable } from "@/components/crm/ProductsTable";
 import { LineItemsTable } from "@/components/crm/LineItemsTable";
 import { QuotesTable } from "@/components/crm/QuotesTable";
 import { OwnersTable } from "@/components/crm/OwnersTable";
-import { KPICard } from "@/components/dashboard/KPICard";
-import { 
-  DollarSign, 
-  Users, 
-  MessageSquare, 
-  Building2, 
-  Ticket, 
-  CheckSquare, 
-  Calendar, 
-  Phone, 
-  Mail, 
-  Package, 
-  ShoppingCart, 
-  FileText 
-} from "lucide-react";
 import { formatNumber } from "@/lib/utils";
+
+// ============================================
+// CRM PAGE - HubSpot CRM Data
+// ============================================
 
 // Fetch functions
 async function fetchHubSpotDeals() {
-  // Fetch ALL deals (no limit parameter = fetch all)
   const res = await fetch("/api/hubspot/deals");
   if (!res.ok) throw new Error("Failed to fetch HubSpot deals");
   return res.json();
 }
 
 async function fetchHubSpotContacts(query: string = "", limit: number = 50) {
-  const params = new URLSearchParams({
-    limit: String(limit),
-  });
-  if (query) {
-    params.append("query", query);
-  }
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (query) params.append("query", query);
   const res = await fetch(`/api/hubspot/contacts?${params}`);
   if (!res.ok) throw new Error("Failed to fetch HubSpot contacts");
   return res.json();
@@ -119,14 +102,216 @@ async function fetchHubSpotOwners() {
   return res.json();
 }
 
+// KPI Card Component
+const KPICard = ({ 
+  label, 
+  value, 
+  icon, 
+  color, 
+  loading = false,
+  delay = 0 
+}: {
+  label: string;
+  value: string;
+  icon: string;
+  color: string;
+  loading?: boolean;
+  delay?: number;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), delay); }, [delay]);
+  
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: 14,
+      padding: '20px 24px',
+      position: 'relative',
+      overflow: 'hidden',
+      opacity: loaded ? 1 : 0,
+      transform: loaded ? 'translateY(0)' : 'translateY(10px)',
+      transition: 'all 0.4s ease',
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 24,
+        right: 24,
+        height: 2,
+        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+        opacity: 0.6,
+      }} />
+      
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#52525B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
+        <span style={{ fontSize: 16, opacity: 0.6 }}>{icon}</span>
+      </div>
+      
+      {loading ? (
+        <div style={{ height: 40, width: 100, background: 'rgba(255,255,255,0.05)', borderRadius: 6, animation: 'pulse 1.5s infinite' }} />
+      ) : (
+        <div style={{ fontSize: 32, fontWeight: 700, color: '#FFF', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '-1px' }}>
+          {value}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Tab Navigation Component
+const TabNavigation = ({ 
+  tabs, 
+  activeTab, 
+  onTabChange 
+}: { 
+  tabs: { id: string; label: string; icon: string }[]; 
+  activeTab: string; 
+  onTabChange: (id: string) => void;
+}) => (
+  <div style={{
+    display: 'flex',
+    background: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 10,
+    padding: 4,
+    gap: 2,
+    overflowX: 'auto',
+  }}>
+    {tabs.map(tab => (
+      <button
+        key={tab.id}
+        onClick={() => onTabChange(tab.id)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 16px',
+          borderRadius: 8,
+          fontSize: 13,
+          fontWeight: 500,
+          color: activeTab === tab.id ? '#FFF' : '#71717A',
+          background: activeTab === tab.id ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+          border: activeTab === tab.id ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid transparent',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <span style={{ fontSize: 14 }}>{tab.icon}</span>
+        {tab.label}
+      </button>
+    ))}
+  </div>
+);
+
+// Deals by Stage Grid
+const DealsByStageGrid = ({ stages, loading }: { stages: Record<string, number>; loading: boolean }) => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), 400); }, []);
+  
+  const getStageColor = (stageId: string) => {
+    if (stageId.toLowerCase().includes('closedlost') || stageId.toLowerCase().includes('lost')) return '#EF4444';
+    if (stageId.toLowerCase().includes('closedwon') || stageId.toLowerCase().includes('won') || stageId.toLowerCase().includes('contract')) return '#10B981';
+    return '#3B82F6';
+  };
+  
+  const stageEntries = Object.entries(stages).sort((a, b) => b[1] - a[1]);
+  
+  if (loading) {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        borderRadius: 14,
+        padding: 24,
+        height: 200,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#71717A' }}>Loading stages...</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: 14,
+      padding: 24,
+      opacity: loaded ? 1 : 0,
+      transition: 'all 0.5s ease',
+    }}>
+      <h3 style={{ fontSize: 16, fontWeight: 600, color: '#FFF', margin: '0 0 20px' }}>Deals by Stage</h3>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {stageEntries.map(([stageId, count]) => {
+          const color = getStageColor(stageId);
+          return (
+            <div key={stageId} style={{
+              padding: '16px',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.04)',
+              borderRadius: 10,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              transition: 'all 0.2s ease',
+            }}>
+              <span style={{
+                fontSize: 11,
+                fontFamily: "'JetBrains Mono', monospace",
+                color: '#71717A',
+                maxWidth: 80,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {stageId}
+              </span>
+              <span style={{
+                fontSize: 18,
+                fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+                color: color,
+              }}>
+                {count}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default function CRMPage() {
+  const [activeTab, setActiveTab] = useState("deals");
   const [contactSearchQuery, setContactSearchQuery] = useState("");
+
+  // Define tabs
+  const tabs = [
+    { id: 'deals', label: 'Deals', icon: '💰' },
+    { id: 'contacts', label: 'Contacts', icon: '👤' },
+    { id: 'companies', label: 'Companies', icon: '🏢' },
+    { id: 'conversations', label: 'Chats', icon: '💬' },
+    { id: 'tickets', label: 'Tickets', icon: '🎫' },
+    { id: 'tasks', label: 'Tasks', icon: '✅' },
+    { id: 'meetings', label: 'Meetings', icon: '📅' },
+    { id: 'calls', label: 'Calls', icon: '📞' },
+    { id: 'emails', label: 'Emails', icon: '📧' },
+    { id: 'products', label: 'Products', icon: '📦' },
+    { id: 'line-items', label: 'Line Items', icon: '🛒' },
+    { id: 'quotes', label: 'Quotes', icon: '📄' },
+    { id: 'owners', label: 'Team', icon: '👥' },
+  ];
 
   // Fetch deals
   const { data: dealsData, isLoading: dealsLoading } = useQuery({
     queryKey: ["hubspot-deals"],
     queryFn: fetchHubSpotDeals,
-    refetchInterval: 300000, // Refresh every 5 minutes
+    refetchInterval: 300000,
   });
 
   // Fetch contacts
@@ -143,7 +328,7 @@ export default function CRMPage() {
     refetchInterval: 300000,
   });
 
-  // Fetch all other data
+  // Fetch other data
   const { data: companiesData, isLoading: companiesLoading } = useQuery({
     queryKey: ["hubspot-companies"],
     queryFn: fetchHubSpotCompanies,
@@ -204,19 +389,12 @@ export default function CRMPage() {
     refetchInterval: 300000,
   });
 
+  // Extract data
   const deals = dealsData?.deals || [];
-  const dealsSummary = dealsData?.summary || {
-    totalDeals: 0,
-    totalValue: 0,
-    byStage: {},
-  };
+  const dealsSummary = dealsData?.summary || { totalDeals: 0, totalValue: 0, byStage: {} };
   const contacts = contactsData?.contacts || [];
   const conversations = conversationsData?.threads || [];
-  const conversationsSummary = conversationsData?.summary || {
-    total: 0,
-    open: 0,
-    closed: 0,
-  };
+  const conversationsSummary = conversationsData?.summary || { total: 0, open: 0, closed: 0 };
   const companies = companiesData?.companies || [];
   const tickets = ticketsData?.tickets || [];
   const tasks = tasksData?.tasks || [];
@@ -228,200 +406,100 @@ export default function CRMPage() {
   const quotes = quotesData?.quotes || [];
   const owners = ownersData?.owners || [];
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">CRM</h1>
-        <p className="text-muted-foreground mt-1">
-          HubSpot CRM data and pipeline management
-        </p>
-      </div>
+  // Render active tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'deals':
+        return (
+          <>
+            <DealsTable deals={deals} summary={dealsSummary} isLoading={dealsLoading} />
+            <DealsByStageGrid stages={dealsSummary.byStage} loading={dealsLoading} />
+          </>
+        );
+      case 'contacts':
+        return <ContactsTable contacts={contacts} isLoading={contactsLoading} onSearch={setContactSearchQuery} />;
+      case 'companies':
+        return <CompaniesTable companies={companies} isLoading={companiesLoading} />;
+      case 'conversations':
+        return <ConversationsTable threads={conversations} summary={conversationsSummary} isLoading={conversationsLoading} />;
+      case 'tickets':
+        return <TicketsTable tickets={tickets} isLoading={ticketsLoading} />;
+      case 'tasks':
+        return <TasksTable tasks={tasks} isLoading={tasksLoading} />;
+      case 'meetings':
+        return <MeetingsTable meetings={meetings} isLoading={meetingsLoading} />;
+      case 'calls':
+        return <CallsTable calls={calls} isLoading={callsLoading} />;
+      case 'emails':
+        return <EmailsTable emails={emails} isLoading={emailsLoading} />;
+      case 'products':
+        return <ProductsTable products={products} isLoading={productsLoading} />;
+      case 'line-items':
+        return <LineItemsTable lineItems={lineItems} isLoading={lineItemsLoading} />;
+      case 'quotes':
+        return <QuotesTable quotes={quotes} isLoading={quotesLoading} />;
+      case 'owners':
+        return <OwnersTable owners={owners} isLoading={ownersLoading} />;
+      default:
+        return null;
+    }
+  };
 
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Fonts and animations */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @keyframes pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(14, 14, 20, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #2A2A34; border-radius: 4px; }
+      `}</style>
+      
+      {/* Page Header */}
+      <div>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#FFF', margin: 0 }}>CRM</h1>
+        <p style={{ fontSize: 14, color: '#71717A', margin: '8px 0 0' }}>HubSpot CRM data and pipeline management</p>
+      </div>
+      
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KPICard
-          title="Pipeline Value"
+          label="Pipeline Value"
           value={`$${formatNumber(dealsSummary.totalValue)}`}
-          change={0}
-          changeLabel=""
-          trend="neutral"
+          icon="💰"
+          color="#10B981"
           loading={dealsLoading}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          delay={0}
         />
         <KPICard
-          title="Total Deals"
+          label="Total Deals"
           value={formatNumber(dealsSummary.totalDeals)}
-          change={0}
-          changeLabel=""
-          trend="neutral"
+          icon="🤝"
+          color="#3B82F6"
           loading={dealsLoading}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          delay={50}
         />
         <KPICard
-          title="Open Conversations"
+          label="Open Conversations"
           value={formatNumber(conversationsSummary.open)}
-          change={0}
-          changeLabel=""
-          trend="neutral"
+          icon="💬"
+          color="#8B5CF6"
           loading={conversationsLoading}
-          icon={<MessageSquare className="h-4 w-4 text-muted-foreground" />}
+          delay={100}
         />
       </div>
-
-      {/* Tabs for different CRM views */}
-      <Tabs defaultValue="deals" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1 overflow-x-auto">
-          <TabsTrigger value="deals" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            <span className="hidden sm:inline">Deals</span>
-          </TabsTrigger>
-          <TabsTrigger value="contacts" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Contacts</span>
-          </TabsTrigger>
-          <TabsTrigger value="companies" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Companies</span>
-          </TabsTrigger>
-          <TabsTrigger value="conversations" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Chats</span>
-          </TabsTrigger>
-          <TabsTrigger value="tickets" className="flex items-center gap-2">
-            <Ticket className="h-4 w-4" />
-            <span className="hidden sm:inline">Tickets</span>
-          </TabsTrigger>
-          <TabsTrigger value="tasks" className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Tasks</span>
-          </TabsTrigger>
-          <TabsTrigger value="meetings" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden sm:inline">Meetings</span>
-          </TabsTrigger>
-          <TabsTrigger value="calls" className="flex items-center gap-2">
-            <Phone className="h-4 w-4" />
-            <span className="hidden sm:inline">Calls</span>
-          </TabsTrigger>
-          <TabsTrigger value="emails" className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            <span className="hidden sm:inline">Emails</span>
-          </TabsTrigger>
-          <TabsTrigger value="products" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            <span className="hidden sm:inline">Products</span>
-          </TabsTrigger>
-          <TabsTrigger value="line-items" className="flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4" />
-            <span className="hidden sm:inline">Line Items</span>
-          </TabsTrigger>
-          <TabsTrigger value="quotes" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Quotes</span>
-          </TabsTrigger>
-          <TabsTrigger value="owners" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Team</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="deals" className="mt-6">
-          <DealsTable
-            deals={deals}
-            summary={dealsSummary}
-            isLoading={dealsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="contacts" className="mt-6">
-          <ContactsTable
-            contacts={contacts}
-            isLoading={contactsLoading}
-            onSearch={(query) => {
-              setContactSearchQuery(query);
-            }}
-          />
-        </TabsContent>
-
-        <TabsContent value="companies" className="mt-6">
-          <CompaniesTable
-            companies={companies}
-            isLoading={companiesLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="conversations" className="mt-6">
-          <ConversationsTable
-            threads={conversations}
-            summary={conversationsSummary}
-            isLoading={conversationsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="tickets" className="mt-6">
-          <TicketsTable
-            tickets={tickets}
-            isLoading={ticketsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="tasks" className="mt-6">
-          <TasksTable
-            tasks={tasks}
-            isLoading={tasksLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="meetings" className="mt-6">
-          <MeetingsTable
-            meetings={meetings}
-            isLoading={meetingsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="calls" className="mt-6">
-          <CallsTable
-            calls={calls}
-            isLoading={callsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="emails" className="mt-6">
-          <EmailsTable
-            emails={emails}
-            isLoading={emailsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="products" className="mt-6">
-          <ProductsTable
-            products={products}
-            isLoading={productsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="line-items" className="mt-6">
-          <LineItemsTable
-            lineItems={lineItems}
-            isLoading={lineItemsLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="quotes" className="mt-6">
-          <QuotesTable
-            quotes={quotes}
-            isLoading={quotesLoading}
-          />
-        </TabsContent>
-
-        <TabsContent value="owners" className="mt-6">
-          <OwnersTable
-            owners={owners}
-            isLoading={ownersLoading}
-          />
-        </TabsContent>
-      </Tabs>
+      
+      {/* Tab Navigation */}
+      <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {/* Tab Content */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {renderTabContent()}
+      </div>
     </div>
   );
 }
