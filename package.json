@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.24.11",
+    "gcp-metadata": "^7.0.1",
     "html2pdf.js": "^0.13.0",
     "lucide-react": "^0.562.0",
     "marked": "^17.0.1",
