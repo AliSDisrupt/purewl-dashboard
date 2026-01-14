@@ -23,6 +23,7 @@ export interface HubSpotDeal {
   stage: string;
   closeDate: string | null;
   createdAt?: string | null;
+  lastModified?: string | null;
   contactEmail?: string;
   source?: string | null;
   sourceData1?: string | null;
@@ -190,7 +191,7 @@ const FALLBACK_STAGE_MAP: Record<string, string> = {
   '1181812774': 'Email sent',
   'closedlost': 'Conversation initiated', // Note: This is Conversation initiated, NOT Lost
   '143589762': 'Qualification',
-  '143589763': 'Proposal shared',
+  '143589763': 'Requirements Received', // Also known as Proposal shared
   '143589764': 'Negotiation',
   '999637325': 'On trial',
   'contractsent': 'Contract sent',
@@ -399,6 +400,7 @@ export async function fetchHubSpotDealsByStage(
 
     // Date range filter (createdate)
     // HubSpot expects timestamps in milliseconds
+    // Use createdate for all cases to ensure deals are included based on creation date
     if (startDate || endDate) {
       if (startDate && endDate) {
         filters.push({
@@ -423,19 +425,40 @@ export async function fetchHubSpotDealsByStage(
     }
 
     // Stage filter (if provided)
-    // HubSpot stages might be stored in different formats, so we use CONTAINS_TOKEN
-    // which will match if the stage name contains the search term
+    // HubSpot stages might be stored as IDs or names, so we need flexible matching
     if (stageName) {
-      // Normalize stage name for better matching (remove spaces, dashes, underscores)
-      const normalizedStage = stageName.toLowerCase().replace(/[-\s_]/g, "");
+      // Map stage IDs/names to possible HubSpot stage values
+      const stageValueMap: Record<string, string[]> = {
+        '143589767': ['143589767', 'Disqualified lead', 'disqualified'],
+        '1181812774': ['1181812774', 'Email sent', 'email'],
+        'closedlost': ['closedlost', 'closed-lost', 'closed lost', 'Conversation initiated'],
+        '143589763': ['143589763', 'Requirements Received', 'requirements received', 'Proposal shared', 'proposal'],
+        '143589765': ['143589765', 'Won', 'closed won', 'closedwon'],
+        '143589766': ['143589766', 'Lost'],
+      };
       
-      // Try multiple filter approaches for better stage matching
-      // First, try exact/contains match
-      filters.push({
-        propertyName: "dealstage",
-        operator: "CONTAINS_TOKEN",
-        value: stageName,
-      });
+      const possibleValues = stageValueMap[stageName.toLowerCase()] || [stageName];
+      
+      // For multiple values, create OR filters
+      // HubSpot uses filterGroups with OR logic
+      if (possibleValues.length > 1) {
+        // Create a separate filter group with OR logic for each possible value
+        const stageFilters = possibleValues.map(value => ({
+          propertyName: "dealstage",
+          operator: "CONTAINS_TOKEN",
+          value: value,
+        }));
+        
+        // Add each as a separate filter (they'll be OR'd together in the same group)
+        filters.push(...stageFilters);
+      } else {
+        // Single value - use CONTAINS_TOKEN for flexible matching
+        filters.push({
+          propertyName: "dealstage",
+          operator: "CONTAINS_TOKEN",
+          value: possibleValues[0],
+        });
+      }
     }
 
     if (filters.length > 0) {
@@ -454,6 +477,7 @@ export async function fetchHubSpotDealsByStage(
           "closedate",
           "pipeline",
           "createdate",
+          "hs_lastmodifieddate",
           "hs_analytics_source",
           "hs_analytics_source_data_1",
           "hs_analytics_source_data_2",
@@ -549,6 +573,7 @@ export async function fetchHubSpotDealsByStage(
           stage: originalStage, // Will be mapped later
           closeDate: props.closedate || null,
           createdAt: deal.createdAt || props.createdate || null,
+          lastModified: props.hs_lastmodifieddate || deal.updatedAt || null,
           source: props.hs_analytics_source || null,
           sourceData1: props.hs_analytics_source_data_1 || null,
           sourceData2: props.hs_analytics_source_data_2 || null,

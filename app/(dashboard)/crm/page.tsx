@@ -395,8 +395,9 @@ const DealsPipelineTable = ({
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    title: deal.stage || deal.dealstage || '—', // Tooltip for full name
-                  }}>
+                  }}
+                  title={deal.stage || deal.dealstage || '—'} // Tooltip for full name
+                  >
                     {deal.stage || deal.dealstage || '—'}
                   </span>
                 </div>

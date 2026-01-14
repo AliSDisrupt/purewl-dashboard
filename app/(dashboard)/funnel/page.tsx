@@ -221,7 +221,21 @@ const ConversionFunnel = ({
         {/* Funnel Stages */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {stages.map((stage, i) => {
-            const widthPercent = stage.value > 0 ? Math.max((stage.value / maxValue) * 100, 5) : 5;
+            // Calculate width based on relative value, with better scaling
+            // Use square root scaling for better visual representation of differences
+            // This makes smaller values more visible while still showing relative sizes
+            let widthPercent = 0;
+            if (maxValue > 0 && stage.value > 0) {
+              // Use square root scaling to make differences more visible
+              const normalizedValue = Math.sqrt(stage.value / maxValue);
+              widthPercent = normalizedValue * 100;
+              // Ensure minimum width for visibility (2% instead of 5%)
+              widthPercent = Math.max(widthPercent, 2);
+            } else if (stage.value === 0) {
+              widthPercent = 0; // Show 0 as truly 0, not a minimum bar
+            } else {
+              widthPercent = 2; // Very small value gets minimum
+            }
             const conversionRate = getConversionRate(i);
             
             return (
@@ -774,29 +788,30 @@ export default function FunnelPage() {
     refetchInterval: 300000,
   });
 
+  // Fetch emails sent (deal stage 1181812774)
+  const { data: emailsSentData, isLoading: emailsSentLoading } = useQuery({
+    queryKey: ["hubspot-deals-email-sent", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "1181812774"), // Email sent stage ID
+    refetchInterval: 300000,
+  });
+
+  // Fetch conversations initiated (deal stage closedlost)
+  const { data: firstResponseData, isLoading: firstResponseLoading } = useQuery({
+    queryKey: ["hubspot-deals-conversation-initiated", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "closedlost"), // Conversation initiated stage ID
+    refetchInterval: 300000,
+  });
+
+  // Fetch requirements received (deal stage 143589763)
   const { data: requirementsReceivedData, isLoading: requirementsLoading } = useQuery({
     queryKey: ["hubspot-deals-requirements", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "requirements received"),
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "143589763"), // Requirements Received stage ID
     refetchInterval: 300000,
   });
 
   const { data: closedWonDealsData, isLoading: closedWonLoading } = useQuery({
     queryKey: ["hubspot-deals-closedwon", dateRange.startDate, dateRange.endDate],
     queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "143589765"), // Won stage ID
-    refetchInterval: 300000,
-  });
-
-  // Fetch emails sent (Conversations Started)
-  const { data: emailsSentData, isLoading: emailsSentLoading } = useQuery({
-    queryKey: ["hubspot-emails-sent", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchEmailsSent(dateRange.startDate, dateRange.endDate),
-    refetchInterval: 300000,
-  });
-
-  // Fetch first response (Conversations Initiated)
-  const { data: firstResponseData, isLoading: firstResponseLoading } = useQuery({
-    queryKey: ["hubspot-first-response", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchFirstResponse(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
   });
 
@@ -813,9 +828,9 @@ export default function FunnelPage() {
   // New funnel stages based on HubSpot deal stages
   const dealsCreated = dealsCreatedData?.summary?.total || 0;
   const disqualifiedLeads = disqualifiedDealsData?.summary?.total || 0;
-  const emailsSent = emailsSentData?.emailsSent || 0; // Conversations Started
-  const firstResponse = firstResponseData?.firstResponseCount || 0; // Conversations Initiated
-  const requirementsReceived = requirementsReceivedData?.summary?.total || 0;
+  const emailsSent = emailsSentData?.summary?.total || 0; // Email sent stage (1181812774)
+  const firstResponse = firstResponseData?.summary?.total || 0; // Conversation initiated stage (closedlost)
+  const requirementsReceived = requirementsReceivedData?.summary?.total || 0; // Requirements Received stage (143589763)
   const closedWonDeals = closedWonDealsData?.summary?.total || 0;
   const closedWonRevenue = closedWonDealsData?.summary?.stageDetails 
     ? Object.values(closedWonDealsData.summary.stageDetails).reduce((sum: number, stage: any) => sum + (stage.totalValue || 0), 0)

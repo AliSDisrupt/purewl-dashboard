@@ -48,48 +48,55 @@ export async function GET(request: Request) {
     let filteredDeals = dealsData.deals;
     
     if (stage) {
-      // Get the original stage value from deals (before name mapping) if available
-      // For now, we'll match against the mapped stage name
+      // Stage ID to expected mapped name mapping
+      // Note: deals have already been mapped to stage names, so we match against the mapped name
+      const stageIdToNameMap: Record<string, string[]> = {
+        '143589767': ['Disqualified lead', 'disqualified'],
+        '1181812774': ['Email sent', 'email'],
+        'closedlost': ['Conversation initiated', 'conversation'],
+        '143589763': ['Requirements Received', 'requirements received', 'Proposal shared', 'proposal'],
+        '143589765': ['Won', 'closed won', 'closedwon'],
+        '143589766': ['Lost'],
+      };
+      
+      const targetStage = stage.toString().toLowerCase().trim();
+      const expectedNames = stageIdToNameMap[targetStage] || [];
+      
       filteredDeals = dealsData.deals.filter((deal: any) => {
-        const dealStage = (deal.stage || "").toString();
-        const targetStage = stage.toString();
+        const dealStage = (deal.stage || "").toString().toLowerCase().trim();
+        
+        // If we have expected names for this stage ID, check against them
+        if (expectedNames.length > 0) {
+          if (expectedNames.some(name => dealStage.includes(name.toLowerCase()) || name.toLowerCase().includes(dealStage))) {
+            return true;
+          }
+        }
         
         // Exact match (case-insensitive)
-        if (dealStage.toLowerCase().trim() === targetStage.toLowerCase().trim()) return true;
+        if (dealStage === targetStage) return true;
         
         // Numeric ID match (if both are numeric)
         if (!isNaN(Number(dealStage)) && !isNaN(Number(targetStage))) {
           if (Number(dealStage) === Number(targetStage)) return true;
         }
         
-        // Check if target is a numeric ID and deal stage is the mapped name
-        // e.g., target="143589767" (Disqualified ID) should match deal.stage="Disqualified lead"
-        if (!isNaN(Number(targetStage))) {
-          // Map the ID to expected name and check
-          const stageIdMap: Record<string, string> = {
-            '143589767': 'Disqualified lead',
-            '1181812774': 'Email sent',
-            'closedlost': 'Conversation initiated',
-            '143589765': 'Won',
-            '143589766': 'Lost',
-          };
-          const expectedName = stageIdMap[targetStage];
-          if (expectedName && dealStage.toLowerCase().includes(expectedName.toLowerCase())) {
-            return true;
-          }
-        }
-        
-        // Contains match (e.g., "closed won" matches "closedwon" or "closed-won")
-        const dealStageLower = dealStage.toLowerCase().trim();
-        const targetStageLower = targetStage.toLowerCase().trim();
-        if (dealStageLower.includes(targetStageLower) || targetStageLower.includes(dealStageLower)) return true;
+        // Contains match
+        if (dealStage.includes(targetStage) || targetStage.includes(dealStage)) return true;
         
         // Handle common variations (normalize spaces, dashes, underscores)
-        const normalizedDealStage = dealStageLower.replace(/[-\s_]/g, "");
-        const normalizedTargetStage = targetStageLower.replace(/[-\s_]/g, "");
+        const normalizedDealStage = dealStage.replace(/[-\s_]/g, "");
+        const normalizedTargetStage = targetStage.replace(/[-\s_]/g, "");
         if (normalizedDealStage === normalizedTargetStage) return true;
         
         return false;
+      });
+      
+      // Debug logging
+      console.log(`🔍 Filtering deals by stage "${stage}":`, {
+        totalDeals: dealsData.deals.length,
+        filteredCount: filteredDeals.length,
+        expectedNames: expectedNames,
+        sampleStages: [...new Set(dealsData.deals.slice(0, 10).map((d: any) => d.stage))],
       });
     }
 
