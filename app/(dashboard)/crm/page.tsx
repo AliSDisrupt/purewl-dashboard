@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { DealsTable } from "@/components/crm/DealsTable";
 import { ContactsTable } from "@/components/crm/ContactsTable";
 import { ConversationsTable } from "@/components/crm/ConversationsTable";
 import { CompaniesTable } from "@/components/crm/CompaniesTable";
@@ -204,14 +203,192 @@ const TabNavigation = ({
   </div>
 );
 
+// Deals Pipeline Table Component
+const DealsPipelineTable = ({ 
+  deals, 
+  totalValue, 
+  totalDeals, 
+  loading 
+}: { 
+  deals: any[]; 
+  totalValue: string; 
+  totalDeals: string; 
+  loading: boolean;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setTimeout(() => setLoaded(true), 300); }, []);
+  
+  const stageColors: Record<string, string> = {
+    'closedwon': '#10B981',
+    'closedlost': '#EF4444',
+    'contractsent': '#F59E0B',
+  };
+  
+  const getStageColor = (stage: string) => {
+    const stageLower = (stage || '').toLowerCase();
+    if (stageLower.includes('won')) return '#10B981';
+    if (stageLower.includes('lost')) return '#EF4444';
+    if (stageLower.includes('contract')) return '#F59E0B';
+    return '#3B82F6';
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '—';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  
+  if (loading) {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        borderRadius: 14,
+        padding: 24,
+        height: 400,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#71717A' }}>Loading deals...</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: 14,
+      overflow: 'hidden',
+      opacity: loaded ? 1 : 0,
+      transition: 'all 0.5s ease',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '16px 24px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>💰</span>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: '#FFF', margin: 0 }}>Deals Pipeline</h3>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, color: '#71717A' }}>Total Value:</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>{totalValue}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, color: '#71717A' }}>Deals:</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>{totalDeals}</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Table Header */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 140px 100px 120px',
+        gap: 16,
+        padding: '12px 24px',
+        background: 'rgba(255, 255, 255, 0.02)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+      }}>
+        {['Deal Name', 'Stage', 'Amount', 'Close Date'].map((h, i) => (
+          <span key={h} style={{
+            fontSize: 10,
+            fontWeight: 600,
+            color: '#52525B',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            textAlign: i > 0 ? 'right' : 'left',
+          }}>{h}</span>
+        ))}
+      </div>
+      
+      {/* Rows */}
+      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+        {deals.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center', color: '#71717A' }}>No deals found</div>
+        ) : (
+          deals.slice(0, 50).map((deal, i) => {
+            const stageColor = getStageColor(deal.stage || deal.dealstage || '');
+            return (
+              <div key={deal.id || i} style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 140px 100px 120px',
+                gap: 16,
+                padding: '14px 24px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+                alignItems: 'center',
+                transition: 'background 0.15s ease',
+              }}>
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: '#E4E4E7', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {deal.dealname || deal.name || 'Untitled Deal'}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#52525B', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {deal.email || deal.contactEmail || '—'}
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <span style={{
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    background: `${stageColor}20`,
+                    color: stageColor,
+                    border: `1px solid ${stageColor}40`,
+                    maxWidth: 120,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {deal.stage || deal.dealstage || '—'}
+                  </span>
+                </div>
+                
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  color: deal.amount ? '#10B981' : '#52525B',
+                  textAlign: 'right',
+                }}>
+                  {deal.amount ? `$${formatNumber(deal.amount)}` : '—'}
+                </span>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: '#71717A' }}>📅</span>
+                  <span style={{ fontSize: 13, color: '#A1A1AA' }}>{formatDate(deal.closedate || deal.closeDate || '')}</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Deals by Stage Grid
 const DealsByStageGrid = ({ stages, loading }: { stages: Record<string, number>; loading: boolean }) => {
   const [loaded, setLoaded] = useState(false);
   useEffect(() => { setTimeout(() => setLoaded(true), 400); }, []);
   
   const getStageColor = (stageId: string) => {
-    if (stageId.toLowerCase().includes('closedlost') || stageId.toLowerCase().includes('lost')) return '#EF4444';
-    if (stageId.toLowerCase().includes('closedwon') || stageId.toLowerCase().includes('won') || stageId.toLowerCase().includes('contract')) return '#10B981';
+    const stageLower = stageId.toLowerCase();
+    if (stageLower.includes('lost')) return '#EF4444';
+    if (stageLower.includes('won') || stageLower.includes('contract')) return '#10B981';
     return '#3B82F6';
   };
   
@@ -232,6 +409,10 @@ const DealsByStageGrid = ({ stages, loading }: { stages: Record<string, number>;
         <span style={{ color: '#71717A' }}>Loading stages...</span>
       </div>
     );
+  }
+  
+  if (stageEntries.length === 0) {
+    return null;
   }
   
   return (
@@ -412,7 +593,12 @@ export default function CRMPage() {
       case 'deals':
         return (
           <>
-            <DealsTable deals={deals} summary={dealsSummary} isLoading={dealsLoading} />
+            <DealsPipelineTable 
+              deals={deals} 
+              totalValue={`$${formatNumber(dealsSummary.totalValue)}`} 
+              totalDeals={formatNumber(dealsSummary.totalDeals)}
+              loading={dealsLoading} 
+            />
             <DealsByStageGrid stages={dealsSummary.byStage} loading={dealsLoading} />
           </>
         );
