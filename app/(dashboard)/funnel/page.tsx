@@ -52,6 +52,12 @@ async function fetchDealSources(startDate: string, endDate: string) {
   return res.json();
 }
 
+async function fetchConversations(startDate: string, endDate: string) {
+  const res = await fetch(`/api/hubspot/conversations?startDate=${startDate}&endDate=${endDate}`);
+  if (!res.ok) throw new Error("Failed to fetch conversations");
+  return res.json();
+}
+
 // KPI Card Component
 const KPICard = ({ 
   label, 
@@ -717,6 +723,12 @@ export default function FunnelPage() {
     refetchInterval: 300000,
   });
 
+  const { data: conversationsData, isLoading: conversationsLoading } = useQuery({
+    queryKey: ["hubspot-conversations", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchConversations(dateRange.startDate, dateRange.endDate),
+    refetchInterval: 300000,
+  });
+
   // Extract data
   const funnel = funnelData?.funnel;
   const conversionRates = funnelData?.conversionRates;
@@ -738,11 +750,17 @@ export default function FunnelPage() {
   const valuePerLead = leads > 0 ? closedWonRevenue / leads : 0;
   const pipelineValue = dealsSummary.totalValue || 0;
 
+  // Get conversations data
+  const conversationsStarted = conversationsData?.conversationsStarted || 0;
+  const conversationsClosed = conversationsData?.conversationsClosed || 0;
+
   // Funnel stages for chart
   const funnelStages = [
     { id: 'traffic', label: 'Total Traffic', value: sessions, source: 'GA4', color: '#3B82F6', icon: '👁' },
     { id: 'leads', label: 'Leads Generated', value: leads, source: 'GA4', color: '#8B5CF6', icon: '✉' },
     { id: 'deals', label: 'Deals Created', value: dealsCreated, source: 'HubSpot', color: '#F59E0B', icon: '🤝' },
+    { id: 'conversations-started', label: 'Conversations Started', value: conversationsStarted, source: 'HubSpot', color: '#EC4899', icon: '💬' },
+    { id: 'conversations-closed', label: 'Conversations Closed', value: conversationsClosed, source: 'HubSpot', color: '#A855F7', icon: '✅' },
     { id: 'revenue', label: 'Closed-Won Revenue', value: closedWonRevenue, source: 'HubSpot', color: '#10B981', icon: '💰' },
   ];
 
@@ -765,7 +783,7 @@ export default function FunnelPage() {
     };
   });
 
-  const isLoading = funnelLoading || overviewLoading || dealsLoading;
+  const isLoading = funnelLoading || overviewLoading || dealsLoading || conversationsLoading;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -782,7 +800,7 @@ export default function FunnelPage() {
       {/* Page Header */}
       <div>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: '#FFF', margin: 0 }}>Full Funnel Analysis</h1>
-        <p style={{ fontSize: 14, color: '#71717A', margin: '8px 0 0' }}>Comprehensive view of your entire customer journey from Traffic → Leads → Deals → Revenue</p>
+        <p style={{ fontSize: 14, color: '#71717A', margin: '8px 0 0' }}>Comprehensive view of your entire customer journey from Traffic → Leads → Deals → Conversations → Revenue</p>
       </div>
       
       {/* KPI Cards Row 1 */}

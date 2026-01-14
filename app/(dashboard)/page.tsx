@@ -549,7 +549,7 @@ export default function DashboardPage() {
   });
 
   const { data: hubspotDeals, isLoading: dealsLoading } = useQuery({
-    queryKey: ["hubspot-deals"],
+    queryKey: ["hubspot-deals", dateRange.startDate, dateRange.endDate],
     queryFn: fetchHubSpotDeals,
     refetchInterval: 300000,
   });
@@ -564,7 +564,21 @@ export default function DashboardPage() {
   const trend = ga4Overview?.trend || [];
   const channels = ga4Channels?.byChannel || [];
   const countries = ga4Geography?.countries || [];
-  const pipelineValue = hubspotDeals?.summary?.totalValue || 0;
+  
+  // Calculate pipeline value from deals created within date range
+  const allDeals = hubspotDeals?.deals || [];
+  const startDate = new Date(dateRange.startDate);
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(dateRange.endDate);
+  endDate.setHours(23, 59, 59, 999);
+  
+  const pipelineValue = allDeals
+    .filter((deal: any) => {
+      if (!deal.createdAt) return false;
+      const dealDate = new Date(deal.createdAt);
+      return dealDate >= startDate && dealDate <= endDate;
+    })
+    .reduce((sum: number, deal: any) => sum + (deal.amount || 0), 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
