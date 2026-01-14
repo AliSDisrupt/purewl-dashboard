@@ -386,7 +386,7 @@ const TrafficSourceCard = ({
       
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px' }}>
         <div>
-          <span style={{ fontSize: 10, color: '#52525B', textTransform: 'uppercase' }}>Impressions</span>
+          <span style={{ fontSize: 10, color: '#52525B', textTransform: 'uppercase' }}>Traffic</span>
           <div style={{ fontSize: 18, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: '#FFF' }}>
             {data.impressions >= 1000 ? (data.impressions / 1000).toFixed(1) + 'K' : data.impressions}
           </div>
@@ -608,7 +608,7 @@ export default function DashboardPage() {
             {/* Summary */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
               {[
-                { label: 'Total Impressions', value: fluidFusionData.total?.impressions || 0, color: '#3B82F6' },
+                { label: 'Total Traffic', value: fluidFusionData.total?.impressions || 0, color: '#3B82F6' },
                 { label: 'Total Clicks', value: fluidFusionData.total?.clicks || 0, color: '#8B5CF6' },
                 { label: 'Total Conversions', value: fluidFusionData.total?.conversions || 0, color: '#10B981' },
                 { label: 'Total Revenue', value: fluidFusionData.total?.revenue || 0, color: '#F59E0B', prefix: '$' },
