@@ -175,9 +175,438 @@ export interface HubSpotOwner {
   team?: string;
 }
 
+// Cache for pipeline stages (ID -> Name mapping)
+let pipelineStagesCache: Record<string, string> | null = null;
+let pipelineStagesCacheTime: number = 0;
+const PIPELINE_CACHE_TTL = 3600000; // 1 hour
+
+/**
+ * Fallback stage mapping for common stage IDs
+ * This ensures we have mappings even if the API doesn't return all stages
+ */
+const FALLBACK_STAGE_MAP: Record<string, string> = {
+  '1183461702': 'Lead Generated',
+  '143589767': 'Disqualified lead',
+  '1181812774': 'Email sent',
+  'closedlost': 'Conversation initiated', // Note: This is Conversation initiated, NOT Lost
+  '143589762': 'Qualification',
+  '143589763': 'Proposal shared',
+  '143589764': 'Negotiation',
+  '999637325': 'On trial',
+  'contractsent': 'Contract sent',
+  '143589765': 'Won',
+  '995534683': 'Payment Recieved',
+  '143589766': 'Lost', // Lost uses numeric ID 143589766, NOT closedlost
+  // Common variations
+  'closedwon': 'Won',
+  'closed won': 'Won',
+  'closed-lost': 'Conversation initiated', // Also maps to Conversation initiated
+  'closed lost': 'Conversation initiated', // Also maps to Conversation initiated
+  'contract-sent': 'Contract sent',
+};
+
+/**
+ * Fetch all deal pipelines with their stages from HubSpot
+ */
+export interface HubSpotPipeline {
+  id: string;
+  label: string;
+  displayOrder: number;
+  stages: Array<{
+    id: string;
+    label: string;
+    displayOrder: number;
+    probability?: string;
+    closedWon?: boolean;
+    closedLost?: boolean;
+  }>;
+}
+
+export async function fetchHubSpotPipelines(): Promise<HubSpotPipeline[]> {
+  try {
+    const url = `${API_BASE}/crm/v3/pipelines/deals`;
+    const response = await fetch(url, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+      console.warn(`Failed to fetch pipelines: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const pipelines: HubSpotPipeline[] = [];
+
+    if (Array.isArray(data.results)) {
+      for (const pipeline of data.results) {
+        const stages = (pipeline.stages || []).map((stage: any) => ({
+          id: String(stage.id || ''),
+          label: stage.label || stage.name || '',
+          displayOrder: stage.displayOrder || 0,
+          probability: stage.probability,
+          closedWon: stage.closedWon || false,
+          closedLost: stage.closedLost || false,
+        }));
+
+        pipelines.push({
+          id: String(pipeline.id || ''),
+          label: pipeline.label || pipeline.name || 'Unnamed Pipeline',
+          displayOrder: pipeline.displayOrder || 0,
+          stages: stages.sort((a, b) => a.displayOrder - b.displayOrder),
+        });
+      }
+    }
+
+    // Sort pipelines by display order
+    pipelines.sort((a, b) => a.displayOrder - b.displayOrder);
+
+    console.log(`✅ Fetched ${pipelines.length} pipelines from HubSpot`);
+    return pipelines;
+  } catch (error) {
+    console.error("Error fetching pipelines:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetch deal pipeline stages from HubSpot and create ID -> Name mapping
+ */
+export async function fetchHubSpotPipelineStages(): Promise<Record<string, string>> {
+  // Return cached data if still valid
+  if (pipelineStagesCache && Date.now() - pipelineStagesCacheTime < PIPELINE_CACHE_TTL) {
+    return pipelineStagesCache;
+  }
+
+  const stageMap: Record<string, string> = { ...FALLBACK_STAGE_MAP };
+
+  try {
+    const url = `${API_BASE}/crm/v3/pipelines/deals`;
+    const response = await fetch(url, {
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+      console.warn(`Failed to fetch pipeline stages: ${response.status}`);
+      console.log(`Using fallback stage mapping with ${Object.keys(FALLBACK_STAGE_MAP).length} stages`);
+      // Cache fallback map
+      pipelineStagesCache = stageMap;
+      pipelineStagesCacheTime = Date.now();
+      return stageMap;
+    }
+
+    const data = await response.json();
+    
+    // Extract stage ID -> name mapping from all pipelines
+    if (Array.isArray(data.results)) {
+      for (const pipeline of data.results) {
+        if (pipeline.stages && Array.isArray(pipeline.stages)) {
+          for (const stage of pipeline.stages) {
+            // Handle both string and numeric IDs
+            const stageId = String(stage.id || stage.stageId || '');
+            const stageLabel = stage.label || stage.name || '';
+            
+            if (stageId && stageLabel) {
+              stageMap[stageId] = stageLabel;
+              // Also map common variations
+              const normalizedId = stageId.toLowerCase().replace(/[-\s_]/g, '');
+              if (normalizedId !== stageId.toLowerCase()) {
+                stageMap[normalizedId] = stageLabel;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Cache the result
+    pipelineStagesCache = stageMap;
+    pipelineStagesCacheTime = Date.now();
+
+    console.log(`✅ Fetched ${Object.keys(stageMap).length} pipeline stages from HubSpot (including fallbacks)`);
+    console.log(`Stage mappings:`, Object.entries(stageMap).slice(0, 10).map(([id, name]) => `${id} → ${name}`).join(', '));
+    
+    return stageMap;
+  } catch (error) {
+    console.error("Error fetching pipeline stages:", error);
+    console.log(`Using fallback stage mapping with ${Object.keys(FALLBACK_STAGE_MAP).length} stages`);
+    // Cache fallback map
+    pipelineStagesCache = stageMap;
+    pipelineStagesCacheTime = Date.now();
+    return stageMap;
+  }
+}
+
+/**
+ * Get stage name from stage ID or return the value if it's already a name
+ */
+function getStageName(stageValue: string | null | undefined, stageMap: Record<string, string>): string {
+  if (!stageValue) return "Unknown Stage";
+  
+  // First, try direct lookup (exact match)
+  if (stageMap[stageValue]) {
+    return stageMap[stageValue];
+  }
+  
+  // Try normalized lookup (lowercase, no spaces/dashes)
+  const normalized = stageValue.toLowerCase().replace(/[-\s_]/g, '');
+  if (stageMap[normalized]) {
+    return stageMap[normalized];
+  }
+  
+  // Check if it's already a readable name (contains spaces, not purely numeric, or long)
+  // If it looks like a name, return it as-is
+  if (stageValue.includes(' ') || 
+      (isNaN(Number(stageValue)) && stageValue.length > 3) ||
+      stageValue.length > 15) {
+    return stageValue; // Already a name
+  }
+
+  // It's likely an ID that we don't have a mapping for
+  // Return the original value (will show as ID if not found)
+  return stageMap[stageValue] || stageValue;
+}
+
 /**
  * Fetch HubSpot deals with pagination to get ALL deals
  */
+/**
+ * Fetch HubSpot deals filtered by stage and date range using search API
+ * This is more efficient than fetching all deals and filtering client-side
+ */
+export async function fetchHubSpotDealsByStage(
+  startDate?: Date,
+  endDate?: Date,
+  stageName?: string
+): Promise<{
+  deals: HubSpotDeal[];
+  summary: {
+    total: number;
+    byStage: Record<string, number>;
+    stageDetails: Record<string, { count: number; totalValue: number }>;
+  };
+}> {
+  try {
+    const allDeals: HubSpotDeal[] = [];
+    let after: string | undefined = undefined;
+    const pageSize = 100;
+    let hasMore = true;
+    let pageCount = 0;
+    const maxPages = 1000;
+
+    // Build filter groups for search API
+    const filterGroups: any[] = [];
+    const filters: any[] = [];
+
+    // Date range filter (createdate)
+    // HubSpot expects timestamps in milliseconds
+    if (startDate || endDate) {
+      if (startDate && endDate) {
+        filters.push({
+          propertyName: "createdate",
+          operator: "BETWEEN",
+          value: startDate.getTime().toString(),
+          highValue: endDate.getTime().toString(),
+        });
+      } else if (startDate) {
+        filters.push({
+          propertyName: "createdate",
+          operator: "GTE",
+          value: startDate.getTime().toString(),
+        });
+      } else if (endDate) {
+        filters.push({
+          propertyName: "createdate",
+          operator: "LTE",
+          value: endDate.getTime().toString(),
+        });
+      }
+    }
+
+    // Stage filter (if provided)
+    // HubSpot stages might be stored in different formats, so we use CONTAINS_TOKEN
+    // which will match if the stage name contains the search term
+    if (stageName) {
+      // Normalize stage name for better matching (remove spaces, dashes, underscores)
+      const normalizedStage = stageName.toLowerCase().replace(/[-\s_]/g, "");
+      
+      // Try multiple filter approaches for better stage matching
+      // First, try exact/contains match
+      filters.push({
+        propertyName: "dealstage",
+        operator: "CONTAINS_TOKEN",
+        value: stageName,
+      });
+    }
+
+    if (filters.length > 0) {
+      filterGroups.push({ filters });
+    }
+
+    // Paginate through search results
+    while (hasMore && pageCount < maxPages) {
+      const searchUrl = `${API_BASE}/crm/v3/objects/deals/search`;
+
+      const searchBody: any = {
+        properties: [
+          "dealname",
+          "amount",
+          "dealstage",
+          "closedate",
+          "pipeline",
+          "createdate",
+          "hs_analytics_source",
+          "hs_analytics_source_data_1",
+          "hs_analytics_source_data_2",
+        ],
+        limit: pageSize,
+        sorts: [{ propertyName: "createdate", direction: "DESCENDING" }],
+      };
+
+      // Only add filterGroups if we have filters
+      if (filterGroups.length > 0 && filters.length > 0) {
+        searchBody.filterGroups = filterGroups;
+      }
+
+      if (after) {
+        searchBody.after = after;
+      }
+
+      // Log first request for debugging
+      if (pageCount === 0) {
+        console.log(`🔍 Fetching HubSpot deals by stage (Search API):`, {
+          url: searchUrl,
+          hasAccessToken: !!ACCESS_TOKEN,
+          tokenPrefix: ACCESS_TOKEN ? ACCESS_TOKEN.substring(0, 15) + "..." : "NOT SET",
+          filters: {
+            startDate: startDate?.toISOString(),
+            endDate: endDate?.toISOString(),
+            startTimestamp: startDate?.getTime(),
+            endTimestamp: endDate?.getTime(),
+            stageName,
+          },
+          filterGroups: filterGroups.length > 0 ? filterGroups : "none (fetching all deals)",
+          searchBodyKeys: Object.keys(searchBody),
+        });
+      }
+
+      const response = await fetch(searchUrl, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify(searchBody),
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        console.error(`HubSpot Search API Error:`, {
+          status: response.status,
+          statusText: response.statusText,
+          error: responseText,
+        });
+        throw new Error(
+          `HubSpot Search API Error: ${response.status} ${response.statusText} - ${responseText}`
+        );
+      }
+
+      if (!responseText || responseText.trim() === "") {
+        console.warn(
+          `HubSpot Search API returned empty body (HTTP 200) for page ${pageCount + 1}`
+        );
+        hasMore = false;
+        break;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error(`Failed to parse HubSpot Search API response:`, {
+          error: parseError,
+          responsePreview: responseText.substring(0, 500),
+        });
+        hasMore = false;
+        break;
+      }
+
+      const results = data.results || [];
+
+      if (pageCount === 0) {
+        console.log(`HubSpot Deals Search API Response:`, {
+          resultsCount: results.length,
+          total: data.total || results.length,
+          hasPaging: !!data.paging,
+        });
+      }
+
+      // Transform results to HubSpotDeal format
+      for (const deal of results) {
+        const props = deal.properties || {};
+        const originalStage = props.dealstage || "Unknown Stage";
+        const dealObj: HubSpotDeal = {
+          id: deal.id,
+          name: props.dealname || "Unnamed Deal",
+          amount: props.amount ? parseFloat(props.amount) : null,
+          stage: originalStage, // Will be mapped later
+          closeDate: props.closedate || null,
+          createdAt: deal.createdAt || props.createdate || null,
+          source: props.hs_analytics_source || null,
+          sourceData1: props.hs_analytics_source_data_1 || null,
+          sourceData2: props.hs_analytics_source_data_2 || null,
+        };
+        allDeals.push(dealObj);
+      }
+
+      // Check for more pages
+      if (data.paging && data.paging.next) {
+        after = data.paging.next.after;
+        hasMore = true;
+        pageCount++;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    // Fetch pipeline stages to map IDs to names
+    const stageMap = await fetchHubSpotPipelineStages();
+
+    // Map stage IDs to names for all deals
+    allDeals.forEach((deal) => {
+      deal.stage = getStageName(deal.stage, stageMap);
+    });
+
+    // Group by stage (now using stage names)
+    const byStage: Record<string, number> = {};
+    const stageDetails: Record<string, { count: number; totalValue: number }> = {};
+
+    allDeals.forEach((deal) => {
+      const dealStage = deal.stage || "Unknown";
+      byStage[dealStage] = (byStage[dealStage] || 0) + 1;
+
+      if (!stageDetails[dealStage]) {
+        stageDetails[dealStage] = { count: 0, totalValue: 0 };
+      }
+      stageDetails[dealStage].count++;
+      stageDetails[dealStage].totalValue += deal.amount || 0;
+    });
+
+    console.log(
+      `✅ Fetched ${allDeals.length} deals from HubSpot (filtered by stage/date) across ${pageCount + 1} page(s)`
+    );
+
+    return {
+      deals: allDeals,
+      summary: {
+        total: allDeals.length,
+        byStage,
+        stageDetails,
+      },
+    };
+  } catch (error: any) {
+    console.error("Error fetching HubSpot deals by stage:", error);
+    throw error;
+  }
+}
+
 export async function fetchHubSpotDeals(limit?: number): Promise<{
   deals: HubSpotDeal[];
   summary: {
@@ -307,7 +736,7 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
           id: String(d.id),
           name: props.dealname || "Unnamed Deal",
           amount,
-          stage: props.dealstage || "Unknown Stage",
+          stage: props.dealstage || "Unknown Stage", // Will be mapped later
           closeDate: props.closedate || null,
           createdAt: props.createdate || d.createdAt || null,
           source: props.hs_analytics_source || null,
@@ -333,7 +762,35 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
       }
     }
 
-    // Calculate summary from ALL deals
+    // Fetch pipeline stages to map IDs to names
+    const stageMap = await fetchHubSpotPipelineStages();
+
+    // Map stage IDs to names for all deals
+    let conversationInitiatedCount = 0;
+    allDeals.forEach((deal) => {
+      const originalStage = deal.stage;
+      deal.stage = getStageName(deal.stage, stageMap);
+      
+      // Debug: Count Conversation initiated deals
+      if (deal.stage === "Conversation initiated" || originalStage === "closedlost") {
+        conversationInitiatedCount++;
+        if (conversationInitiatedCount <= 3) {
+          console.log(`✅ Conversation initiated deal found:`, {
+            id: deal.id,
+            name: deal.name,
+            originalStage,
+            mappedStage: deal.stage,
+            createdAt: deal.createdAt,
+          });
+        }
+      }
+    });
+    
+    if (conversationInitiatedCount > 0) {
+      console.log(`📊 Total Conversation initiated deals: ${conversationInitiatedCount}`);
+    }
+
+    // Calculate summary from ALL deals (now using stage names)
     const totalValue = allDeals
       .filter(d => d.amount !== null)
       .reduce((sum, d) => sum + (d.amount || 0), 0);
@@ -344,6 +801,9 @@ export async function fetchHubSpotDeals(limit?: number): Promise<{
     }, {} as Record<string, number>);
 
     console.log(`Fetched ${allDeals.length} deals from HubSpot across ${pageCount} page(s)`);
+    if (byStage["Conversation initiated"]) {
+      console.log(`📊 Conversation initiated deals in summary: ${byStage["Conversation initiated"]}`);
+    }
 
     return {
       deals: limit ? allDeals.slice(0, limit) : allDeals,

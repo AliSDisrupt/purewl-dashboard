@@ -397,7 +397,12 @@ export default function SignalsPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-1 flex-wrap">
                               <h3 className="font-semibold text-lg text-white">
-                                {visitor.fullName || visitor.email || 'Unknown Visitor'}
+                                {visitor.fullName || 
+                                 (visitor.firstName && visitor.lastName 
+                                   ? `${visitor.firstName} ${visitor.lastName}` 
+                                   : visitor.firstName || visitor.lastName) ||
+                                 visitor.email || 
+                                 'Unknown Visitor'}
                               </h3>
                               {visitor.seniority && (
                                 <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/20">

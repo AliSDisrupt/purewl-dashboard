@@ -22,11 +22,20 @@ export async function POST(request: NextRequest) {
 
       // Extract visitor data from RB2B payload
       // RB2B sends different formats, so we handle multiple structures
-      const visitorData = body.person || body.visitor || body.contact || body;
-      const pageData = body.page || body.visit || {};
-      const companyData = body.company || visitorData.company || {};
-      const sessionData = body.session || {};
-      const behavioralData = body.behavioral || body.engagement || {};
+      const visitorData = body.person || body.visitor || body.contact || body.data || body;
+      const pageData = body.page || body.visit || body.pageData || {};
+      const companyData = body.company || visitorData.company || body.companyData || {};
+      const sessionData = body.session || body.sessionData || {};
+      const behavioralData = body.behavioral || body.engagement || body.behavioralData || {};
+      
+      // Log extracted data for debugging
+      console.log("Extracted visitor data:", {
+        hasVisitorData: !!visitorData,
+        hasEmail: !!(visitorData.email || visitorData.work_email || visitorData.personal_email),
+        hasName: !!(visitorData.full_name || visitorData.name || visitorData.fullName || (visitorData.first_name && visitorData.last_name)),
+        hasCompany: !!(companyData.name || visitorData.company),
+        visitorDataKeys: Object.keys(visitorData),
+      });
 
       // Create normalized visitor object with ALL fields
       const visitorDoc: any = {
@@ -37,11 +46,25 @@ export async function POST(request: NextRequest) {
           visitorData.full_name ||
           visitorData.name ||
           visitorData.fullName ||
+          visitorData.display_name ||
+          visitorData.displayName ||
           (visitorData.first_name && visitorData.last_name
             ? `${visitorData.first_name} ${visitorData.last_name}`
+            : visitorData.firstName && visitorData.lastName
+            ? `${visitorData.firstName} ${visitorData.lastName}`
+            : visitorData.first_name
+            ? visitorData.first_name
+            : visitorData.firstName
+            ? visitorData.firstName
             : undefined),
-        email: visitorData.email || visitorData.work_email || visitorData.personal_email,
-        jobTitle: visitorData.job_title || visitorData.title || visitorData.position || visitorData.jobTitle,
+        email: visitorData.email || visitorData.work_email || visitorData.personal_email || visitorData.workEmail || visitorData.personalEmail || visitorData.email_address || visitorData.emailAddress,
+        jobTitle: visitorData.job_title || 
+                  visitorData.jobTitle || 
+                  visitorData.title || 
+                  visitorData.position || 
+                  visitorData.role ||
+                  visitorData.job_role ||
+                  visitorData.jobRole,
         linkedInUrl: visitorData.linkedin_url || visitorData.linkedin || visitorData.social_linkedin || visitorData.linkedInUrl,
         phone: visitorData.phone || visitorData.phone_number || visitorData.phoneNumber || visitorData.mobile,
         twitterUrl: visitorData.twitter_url || visitorData.twitter || visitorData.social_twitter || visitorData.twitterUrl,
@@ -55,7 +78,14 @@ export async function POST(request: NextRequest) {
         company:
           typeof companyData === "string"
             ? companyData
-            : companyData.name || visitorData.company || visitorData.organization || visitorData.company_name,
+            : companyData.name || 
+              companyData.company_name || 
+              companyData.companyName ||
+              visitorData.company || 
+              visitorData.organization || 
+              visitorData.company_name ||
+              visitorData.companyName ||
+              visitorData.employer,
         companyDomain: companyData.domain || visitorData.company_domain || visitorData.domain || visitorData.companyDomain,
         industry: companyData.industry || visitorData.industry,
         companySize:
@@ -82,13 +112,20 @@ export async function POST(request: NextRequest) {
 
         // Location
         country: visitorData.country || visitorData.location?.country || companyData.country,
-        city: visitorData.city || visitorData.location?.city || companyData.city,
+        city: visitorData.city || 
+              visitorData.location?.city || 
+              visitorData.location_city ||
+              companyData.city ||
+              companyData.location?.city,
         region:
           visitorData.region ||
           visitorData.state ||
           visitorData.location?.region ||
           visitorData.location?.state ||
-          companyData.region,
+          visitorData.location_region ||
+          visitorData.location_state ||
+          companyData.region ||
+          companyData.state,
 
         // Visit Info
         pageUrl: pageData.url || pageData.page_url || body.url || body.pageUrl,
@@ -198,7 +235,17 @@ export async function POST(request: NextRequest) {
         visitor = await Visitor.create(visitorDoc);
       }
 
-      console.log(`RB2B Visitor saved: ${visitor.email || visitor.fullName || visitor._id}`);
+      console.log(`RB2B Visitor saved:`, {
+        id: visitor._id.toString(),
+        email: visitor.email || 'NO EMAIL',
+        fullName: visitor.fullName || 'NO NAME',
+        firstName: visitor.firstName || 'NO FIRST NAME',
+        lastName: visitor.lastName || 'NO LAST NAME',
+        company: visitor.company || 'NO COMPANY',
+        jobTitle: visitor.jobTitle || 'NO JOB TITLE',
+        city: visitor.city || 'NO CITY',
+        region: visitor.region || 'NO REGION',
+      });
 
       return {
         success: true,

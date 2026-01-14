@@ -15,15 +15,58 @@ import { LineItemsTable } from "@/components/crm/LineItemsTable";
 import { QuotesTable } from "@/components/crm/QuotesTable";
 import { OwnersTable } from "@/components/crm/OwnersTable";
 import { formatNumber } from "@/lib/utils";
+import { Calendar } from "lucide-react";
 
 // ============================================
 // CRM PAGE - HubSpot CRM Data
 // ============================================
 
 // Fetch functions
-async function fetchHubSpotDeals() {
-  const res = await fetch("/api/hubspot/deals");
+async function fetchHubSpotDeals(startDate?: string, endDate?: string) {
+  // If no date filter, fetch ALL deals (no filtering)
+  if (!startDate && !endDate) {
+    const res = await fetch("/api/hubspot/deals");
+    if (!res.ok) throw new Error("Failed to fetch HubSpot deals");
+    const data = await res.json();
+    return {
+      deals: data.deals || [],
+      summary: {
+        totalDeals: data.summary?.totalDeals || 0,
+        totalValue: data.summary?.totalValue || 0,
+        byStage: data.summary?.byStage || {},
+      },
+    };
+  }
+  
+  // If date filter provided, use deals-by-stage endpoint (but NO stage filter - shows all stages)
+  const params = new URLSearchParams();
+  if (startDate) {
+    params.append("startDate", startDate);
+  }
+  if (endDate) {
+    params.append("endDate", endDate);
+  }
+  // Note: NOT adding stage parameter - this ensures ALL stages are included
+  
+  const url = `/api/hubspot/deals-by-stage?${params.toString()}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch HubSpot deals");
+  const data = await res.json();
+  
+  // Normalize response format (deals-by-stage uses 'total', deals uses 'totalDeals')
+  return {
+    deals: data.deals || [],
+    summary: {
+      totalDeals: data.summary?.total || data.summary?.totalDeals || 0,
+      totalValue: data.summary?.totalValue || 0,
+      byStage: data.summary?.byStage || {},
+    },
+  };
+}
+
+async function fetchHubSpotPipelines() {
+  const res = await fetch("/api/hubspot/pipelines");
+  if (!res.ok) throw new Error("Failed to fetch HubSpot pipelines");
   return res.json();
 }
 
@@ -322,7 +365,7 @@ const DealsPipelineTable = ({
             return (
               <div key={deal.id || i} style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 140px 100px 120px',
+                gridTemplateColumns: '1fr 180px 100px 160px',
                 gap: 16,
                 padding: '14px 24px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
@@ -338,7 +381,7 @@ const DealsPipelineTable = ({
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
                   <span style={{
                     padding: '4px 10px',
                     borderRadius: 6,
@@ -348,10 +391,11 @@ const DealsPipelineTable = ({
                     background: `${stageColor}20`,
                     color: stageColor,
                     border: `1px solid ${stageColor}40`,
-                    maxWidth: 120,
+                    maxWidth: '100%',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    title: deal.stage || deal.dealstage || '—', // Tooltip for full name
                   }}>
                     {deal.stage || deal.dealstage || '—'}
                   </span>
@@ -381,18 +425,95 @@ const DealsPipelineTable = ({
 };
 
 // Deals by Stage Grid
-const DealsByStageGrid = ({ stages, loading }: { stages: Record<string, number>; loading: boolean }) => {
+const DealsByStageGrid = ({ stages, deals, loading }: { stages: Record<string, number>; deals?: any[]; loading: boolean }) => {
   const [loaded, setLoaded] = useState(false);
   useEffect(() => { setTimeout(() => setLoaded(true), 400); }, []);
   
   const getStageColor = (stageId: string) => {
     const stageLower = stageId.toLowerCase();
     if (stageLower.includes('lost')) return '#EF4444';
-    if (stageLower.includes('won') || stageLower.includes('contract')) return '#10B981';
+    if (stageLower.includes('won') || stageLower.includes('contract') || stageLower.includes('payment')) return '#10B981';
     return '#3B82F6';
   };
   
-  const stageEntries = Object.entries(stages).sort((a, b) => b[1] - a[1]);
+  // Define the order of all stages with their display names and possible IDs/values
+  // This maps HubSpot stage values to display names
+  const stageDefinitions = [
+    { displayName: 'Lead Generated', values: ['Lead Generated', 'lead generated', '1183461702'] },
+    { displayName: 'Disqualified lead', values: ['Disqualified lead', 'disqualified lead', 'Disqualified', 'disqualified', '143589767'] },
+    { displayName: 'Email sent', values: ['Email sent', 'email sent', '1181812774'] },
+    { displayName: 'Conversation initiated', values: ['Conversation initiated', 'conversation initiated', 'closedlost', 'closed-lost', 'closed lost'] },
+    { displayName: 'Qualification', values: ['Qualification', 'qualification', '143589762'] },
+    { displayName: 'Proposal shared', values: ['Proposal shared', 'proposal shared', '143589763'] },
+    { displayName: 'Negotiation', values: ['Negotiation', 'negotiation', '143589764'] },
+    { displayName: 'On trial', values: ['On trial', 'on trial', '999637325'] },
+    { displayName: 'Contract sent', values: ['Contract sent', 'contract sent', 'contractsent', 'contract-sent'] },
+    { displayName: 'Won', values: ['Won', 'won', '143589765', 'closedwon', 'closed-won', 'closed won'] },
+    { displayName: 'Payment Recieved', values: ['Payment Recieved', 'payment recieved', 'Payment Received', 'payment received', '995534683'] },
+    { displayName: 'Lost', values: ['Lost', 'lost', '143589766'] } // Note: closedlost is Conversation initiated, NOT Lost
+  ];
+  
+  // Helper function to check if a deal stage matches any of the stage values
+  const matchesStage = (dealStage: string, stageValues: string[]): boolean => {
+    const normalizedDealStage = (dealStage || '').toLowerCase().trim();
+    return stageValues.some(value => 
+      normalizedDealStage === value.toLowerCase().trim() ||
+      normalizedDealStage.replace(/[-\s_]/g, '') === value.toLowerCase().replace(/[-\s_]/g, '')
+    );
+  };
+  
+  // Calculate most recent deal date for each stage
+  const stageWithDates = stageDefinitions.map(stageDef => {
+    // Find count by matching against all possible stage values
+    let count = 0;
+    Object.entries(stages).forEach(([stageKey, stageCount]) => {
+      if (matchesStage(stageKey, stageDef.values)) {
+        count += stageCount;
+      }
+    });
+    
+    let mostRecentDate: Date | null = null;
+    
+    if (deals && deals.length > 0) {
+      const dealsInStage = deals.filter(deal => {
+        const dealStage = (deal.stage || deal.dealstage || '').toString();
+        return matchesStage(dealStage, stageDef.values);
+      });
+      
+      if (dealsInStage.length > 0) {
+        const dates = dealsInStage
+          .map(deal => {
+            const dateStr = deal.createdAt || deal.createdate;
+            return dateStr ? new Date(dateStr) : null;
+          })
+          .filter((date): date is Date => date !== null);
+        
+        if (dates.length > 0) {
+          mostRecentDate = new Date(Math.max(...dates.map(d => d.getTime())));
+        }
+      }
+    }
+    
+    return {
+      name: stageDef.displayName,
+      count,
+      mostRecentDate,
+      timestamp: mostRecentDate ? mostRecentDate.getTime() : 0
+    };
+  });
+  
+  // Sort by most recent date (newest first), then by count
+  const stageEntries = stageWithDates.sort((a, b) => {
+    // If both have dates, sort by date (newest first)
+    if (a.timestamp > 0 && b.timestamp > 0) {
+      return b.timestamp - a.timestamp;
+    }
+    // If only one has a date, prioritize it
+    if (a.timestamp > 0) return -1;
+    if (b.timestamp > 0) return 1;
+    // If neither has a date, sort by count
+    return b.count - a.count;
+  });
   
   if (loading) {
     return (
@@ -426,39 +547,50 @@ const DealsByStageGrid = ({ stages, loading }: { stages: Record<string, number>;
     }}>
       <h3 style={{ fontSize: 16, fontWeight: 600, color: '#FFF', margin: '0 0 20px' }}>Deals by Stage</h3>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {stageEntries.map(([stageId, count]) => {
-          const color = getStageColor(stageId);
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {stageEntries.map((stage) => {
+          const color = getStageColor(stage.name);
           return (
-            <div key={stageId} style={{
+            <div key={stage.name} style={{
               padding: '16px',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(255, 255, 255, 0.04)',
+              background: stage.count > 0 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.01)',
+              border: stage.count > 0 ? '1px solid rgba(255, 255, 255, 0.04)' : '1px solid rgba(255, 255, 255, 0.02)',
               borderRadius: 10,
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              flexDirection: 'column',
+              gap: 8,
               transition: 'all 0.2s ease',
+              opacity: stage.count > 0 ? 1 : 0.5,
             }}>
               <span style={{
-                fontSize: 11,
-                fontFamily: "'JetBrains Mono', monospace",
-                color: '#71717A',
-                maxWidth: 80,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                fontSize: 13,
+                fontWeight: 500,
+                color: stage.count > 0 ? '#E4E4E7' : '#71717A',
+                wordBreak: 'break-word',
+                lineHeight: '1.4',
               }}>
-                {stageId}
+                {stage.name}
               </span>
-              <span style={{
-                fontSize: 18,
-                fontWeight: 700,
-                fontFamily: "'JetBrains Mono', monospace",
-                color: color,
-              }}>
-                {count}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{
+                  fontSize: 24,
+                  fontWeight: 700,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  color: color,
+                  alignSelf: 'flex-start',
+                }}>
+                  {stage.count}
+                </span>
+                {stage.mostRecentDate && (
+                  <span style={{
+                    fontSize: 10,
+                    color: '#71717A',
+                    fontFamily: "'JetBrains Mono', monospace",
+                  }}>
+                    {stage.mostRecentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
@@ -470,10 +602,19 @@ const DealsByStageGrid = ({ stages, loading }: { stages: Record<string, number>;
 export default function CRMPage() {
   const [activeTab, setActiveTab] = useState("deals");
   const [contactSearchQuery, setContactSearchQuery] = useState("");
+  
+  // Date filtering state - default to no filter (show all deals)
+  const [dateFilter, setDateFilter] = useState<{
+    startDate: string;
+    endDate: string;
+  } | null>(null);
+  
+  const [useDateFilter, setUseDateFilter] = useState(false);
 
   // Define tabs
   const tabs = [
     { id: 'deals', label: 'Deals', icon: '💰' },
+    { id: 'pipelines', label: 'Pipelines', icon: '🔀' },
     { id: 'contacts', label: 'Contacts', icon: '👤' },
     { id: 'companies', label: 'Companies', icon: '🏢' },
     { id: 'conversations', label: 'Chats', icon: '💬' },
@@ -488,11 +629,21 @@ export default function CRMPage() {
     { id: 'owners', label: 'Team', icon: '👥' },
   ];
 
-  // Fetch deals
+  // Fetch deals - show ALL deals by default, or filtered by date if filter is enabled
   const { data: dealsData, isLoading: dealsLoading } = useQuery({
-    queryKey: ["hubspot-deals"],
-    queryFn: fetchHubSpotDeals,
+    queryKey: ["hubspot-deals", useDateFilter ? dateFilter?.startDate : null, useDateFilter ? dateFilter?.endDate : null],
+    queryFn: () => fetchHubSpotDeals(
+      useDateFilter && dateFilter ? dateFilter.startDate : undefined,
+      useDateFilter && dateFilter ? dateFilter.endDate : undefined
+    ),
     refetchInterval: 300000,
+  });
+
+  // Fetch pipelines
+  const { data: pipelinesData, isLoading: pipelinesLoading } = useQuery({
+    queryKey: ["hubspot-pipelines"],
+    queryFn: fetchHubSpotPipelines,
+    refetchInterval: 3600000, // Refresh every hour
   });
 
   // Fetch contacts
@@ -573,6 +724,107 @@ export default function CRMPage() {
   // Extract data
   const deals = dealsData?.deals || [];
   const dealsSummary = dealsData?.summary || { totalDeals: 0, totalValue: 0, byStage: {} };
+  const pipelines = pipelinesData?.pipelines || [];
+
+  // Pipelines display component
+  const PipelinesDisplay = () => {
+    if (pipelinesLoading) {
+      return (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          borderRadius: 14,
+          padding: 24,
+          textAlign: 'center',
+        }}>
+          <span style={{ color: '#71717A' }}>Loading pipelines...</span>
+        </div>
+      );
+    }
+
+    if (pipelines.length === 0) {
+      return (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          borderRadius: 14,
+          padding: 24,
+          textAlign: 'center',
+        }}>
+          <span style={{ color: '#71717A' }}>No pipelines found</span>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {pipelines.map((pipeline: any) => (
+          <div
+            key={pipeline.id}
+            style={{
+              background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: 14,
+              padding: 24,
+            }}
+          >
+            <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 16 }}>
+              {pipeline.label}
+            </h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {pipeline.stages.map((stage: any, index: number) => (
+                <div
+                  key={stage.id}
+                  style={{
+                    padding: '10px 16px',
+                    background: stage.closedWon
+                      ? 'rgba(16, 185, 129, 0.1)'
+                      : stage.closedLost
+                      ? 'rgba(239, 68, 68, 0.1)'
+                      : 'rgba(59, 130, 246, 0.1)',
+                    border: `1px solid ${
+                      stage.closedWon
+                        ? 'rgba(16, 185, 129, 0.3)'
+                        : stage.closedLost
+                        ? 'rgba(239, 68, 68, 0.3)'
+                        : 'rgba(59, 130, 246, 0.3)'
+                    }`,
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: stage.closedWon
+                        ? '#10B981'
+                        : stage.closedLost
+                        ? '#EF4444'
+                        : '#3B82F6',
+                    }}
+                  >
+                    {index + 1}.
+                  </span>
+                  <span style={{ fontSize: 13, color: '#E4E4E7' }}>{stage.label}</span>
+                  {stage.probability && (
+                    <span style={{ fontSize: 11, color: '#71717A', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {stage.probability}%
+                    </span>
+                  )}
+                  <span style={{ fontSize: 10, color: '#52525B', fontFamily: "'JetBrains Mono', monospace" }}>
+                    (ID: {stage.id})
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
   const contacts = contactsData?.contacts || [];
   const conversations = conversationsData?.threads || [];
   const conversationsSummary = conversationsData?.summary || { total: 0, open: 0, closed: 0 };
@@ -593,15 +845,141 @@ export default function CRMPage() {
       case 'deals':
         return (
           <>
+            {/* Date Filter - Optional */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: 14,
+              padding: 20,
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Calendar style={{ width: 18, height: 18, color: '#71717A' }} />
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#E4E4E7' }}>
+                  {useDateFilter ? 'Date Range:' : 'Show All Deals (All Stages)'}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setUseDateFilter(!useDateFilter);
+                  if (!useDateFilter && !dateFilter) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setDate(start.getDate() - 30);
+                    setDateFilter({
+                      startDate: start.toISOString().split("T")[0],
+                      endDate: end.toISOString().split("T")[0],
+                    });
+                  }
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: useDateFilter ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                  border: useDateFilter ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
+                  borderRadius: 8,
+                  color: useDateFilter ? '#3B82F6' : '#10B981',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                {useDateFilter ? 'Disable Filter' : 'Enable Date Filter'}
+              </button>
+              {useDateFilter && dateFilter && (
+                <>
+                  <input
+                    type="date"
+                    value={dateFilter.startDate}
+                    onChange={(e) => setDateFilter({ ...dateFilter, startDate: e.target.value })}
+                    style={{
+                      padding: '8px 12px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: 8,
+                      color: '#E4E4E7',
+                      fontSize: 13,
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  />
+                  <span style={{ color: '#71717A' }}>to</span>
+                  <input
+                    type="date"
+                    value={dateFilter.endDate}
+                    onChange={(e) => setDateFilter({ ...dateFilter, endDate: e.target.value })}
+                    style={{
+                      padding: '8px 12px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: 8,
+                      color: '#E4E4E7',
+                      fontSize: 13,
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setDate(start.getDate() - 30);
+                      setDateFilter({
+                        startDate: start.toISOString().split("T")[0],
+                        endDate: end.toISOString().split("T")[0],
+                      });
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: 8,
+                      color: '#3B82F6',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Last 30 Days
+                  </button>
+                  <button
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setDate(start.getDate() - 90);
+                      setDateFilter({
+                        startDate: start.toISOString().split("T")[0],
+                        endDate: end.toISOString().split("T")[0],
+                      });
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: 8,
+                      color: '#E4E4E7',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Last 90 Days
+                  </button>
+                </>
+              )}
+            </div>
             <DealsPipelineTable 
               deals={deals} 
               totalValue={`$${formatNumber(dealsSummary.totalValue)}`} 
               totalDeals={formatNumber(dealsSummary.totalDeals)}
               loading={dealsLoading} 
             />
-            <DealsByStageGrid stages={dealsSummary.byStage} loading={dealsLoading} />
+            <DealsByStageGrid stages={dealsSummary.byStage} deals={deals} loading={dealsLoading} />
           </>
         );
+      case 'pipelines':
+        return <PipelinesDisplay />;
       case 'contacts':
         return <ContactsTable contacts={contacts} isLoading={contactsLoading} onSearch={setContactSearchQuery} />;
       case 'companies':

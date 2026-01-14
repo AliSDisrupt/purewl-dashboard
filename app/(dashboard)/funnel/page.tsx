@@ -770,7 +770,7 @@ export default function FunnelPage() {
 
   const { data: disqualifiedDealsData, isLoading: disqualifiedLoading } = useQuery({
     queryKey: ["hubspot-deals-disqualified", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "disqualified"),
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "143589767"), // Disqualified leads stage ID
     refetchInterval: 300000,
   });
 
@@ -782,7 +782,7 @@ export default function FunnelPage() {
 
   const { data: closedWonDealsData, isLoading: closedWonLoading } = useQuery({
     queryKey: ["hubspot-deals-closedwon", dateRange.startDate, dateRange.endDate],
-    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "closed won"),
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "143589765"), // Won stage ID
     refetchInterval: 300000,
   });
 
