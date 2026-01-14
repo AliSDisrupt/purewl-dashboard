@@ -50,8 +50,11 @@ function parseDate(dateStr: string): string {
   }
   
   if (dateStr === "today") {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
+    // GA4 data is not available for today (delayed by 24-48 hours)
+    // Use yesterday instead
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().split("T")[0];
   }
   
   if (dateStr.endsWith("daysAgo")) {

@@ -134,11 +134,14 @@ const TrafficTrendChart = ({ data, loading }: { data: any[]; loading: boolean })
     );
   }
   
-  const maxValue = Math.max(...data.map(d => Math.max(d.sessions || 0, d.totalUsers || 0)));
+  const maxValue = Math.max(...data.map(d => Math.max(d.sessions || 0, d.totalUsers || 0)), 1);
   const height = 200;
   const width = 100;
   
-  const getY = (value: number) => height - (value / maxValue) * height;
+  const getY = (value: number) => {
+    if (maxValue === 0) return height;
+    return height - (value / maxValue) * height;
+  };
   
   const formatDate = (dateStr: string) => {
     if (dateStr.length === 8) {
@@ -149,8 +152,22 @@ const TrafficTrendChart = ({ data, loading }: { data: any[]; loading: boolean })
     return dateStr;
   };
   
-  const sessionsPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${(i / (data.length - 1)) * width} ${getY(d.sessions || 0)}`).join(' ');
-  const usersPath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${(i / (data.length - 1)) * width} ${getY(d.totalUsers || 0)}`).join(' ');
+  // Handle single data point case
+  const dataLength = data.length;
+  const divisor = dataLength > 1 ? dataLength - 1 : 1;
+  
+  const sessionsPath = data.map((d, i) => {
+    const x = (i / divisor) * width;
+    const y = getY(d.sessions || 0);
+    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+  
+  const usersPath = data.map((d, i) => {
+    const x = (i / divisor) * width;
+    const y = getY(d.totalUsers || 0);
+    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+  
   const sessionsArea = sessionsPath + ` L ${width} ${height} L 0 ${height} Z`;
   
   return (
@@ -424,13 +441,25 @@ export default function DashboardPage() {
           };
         }
       } else if (savedType === "today") {
-        const today = new Date().toISOString().split("T")[0];
-        return { startDate: today, endDate: today };
-      } else if (savedType === "yesterday") {
+        // GA4 data is not available for today, use yesterday and day before for trend
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
-        return { startDate: yesterdayStr, endDate: yesterdayStr };
+        const dayBefore = new Date();
+        dayBefore.setDate(dayBefore.getDate() - 2);
+        return { 
+          startDate: dayBefore.toISOString().split("T")[0], 
+          endDate: yesterday.toISOString().split("T")[0] 
+        };
+      } else if (savedType === "yesterday") {
+        // For single day, show yesterday and day before for trend comparison
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dayBefore = new Date();
+        dayBefore.setDate(dayBefore.getDate() - 2);
+        return { 
+          startDate: dayBefore.toISOString().split("T")[0], 
+          endDate: yesterday.toISOString().split("T")[0] 
+        };
       } else {
         const saved = localStorage.getItem("dashboard-date-range");
         const days = saved ? parseInt(saved) : 7;
@@ -465,13 +494,25 @@ export default function DashboardPage() {
           });
         }
       } else if (savedType === "today") {
-        const today = new Date().toISOString().split("T")[0];
-        setDateRange({ startDate: today, endDate: today });
-      } else if (savedType === "yesterday") {
+        // GA4 data is not available for today, use yesterday and day before for trend
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
-        setDateRange({ startDate: yesterdayStr, endDate: yesterdayStr });
+        const dayBefore = new Date();
+        dayBefore.setDate(dayBefore.getDate() - 2);
+        setDateRange({ 
+          startDate: dayBefore.toISOString().split("T")[0], 
+          endDate: yesterday.toISOString().split("T")[0] 
+        });
+      } else if (savedType === "yesterday") {
+        // For single day, show yesterday and day before for trend comparison
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dayBefore = new Date();
+        dayBefore.setDate(dayBefore.getDate() - 2);
+        setDateRange({ 
+          startDate: dayBefore.toISOString().split("T")[0], 
+          endDate: yesterday.toISOString().split("T")[0] 
+        });
       } else {
         const saved = localStorage.getItem("dashboard-date-range");
         const days = saved ? parseInt(saved) : 7;
