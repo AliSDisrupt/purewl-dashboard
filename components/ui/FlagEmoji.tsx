@@ -129,7 +129,6 @@ export function getCountryCodeFromName(countryName: string): string {
     Portugal: "PT",
     Greece: "GR",
     Hungary: "HU",
-    "Czech Republic": "CZ",
   };
 
   return countryNameToCode[countryName] || "";
