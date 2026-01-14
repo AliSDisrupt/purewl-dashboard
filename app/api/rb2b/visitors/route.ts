@@ -1,83 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import connectDB from "@/lib/db/mongodb";
+import Visitor from "@/lib/db/models/Visitor";
 
-// RB2B Visitor Interface
-interface RB2BVisitor {
-  id: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  company?: string;
-  companyDomain?: string;
-  jobTitle?: string;
-  linkedInUrl?: string;
-  industry?: string;
-  companySize?: string;
-  country?: string;
-  city?: string;
-  region?: string;
-  pageUrl?: string;
-  referrer?: string;
-  visitedAt: string;
-  rawData?: any;
-}
-
-// Storage file path
-const VISITORS_FILE = path.join(process.cwd(), "data", "rb2b-visitors.json");
-
-// Load visitors from storage
-async function loadVisitors(): Promise<RB2BVisitor[]> {
-  try {
-    const data = await fs.readFile(VISITORS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-// GET: Fetch RB2B visitors
+// GET: Fetch RB2B visitors from MongoDB
 export async function GET(request: NextRequest) {
   try {
+    // Connect to MongoDB
+    await connectDB();
+
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const search = searchParams.get("search") || "";
-    
-    let visitors = await loadVisitors();
-    
-    // Filter by search term if provided
+
+    // Build query
+    let query: any = {};
+
     if (search) {
-      const searchLower = search.toLowerCase();
-      visitors = visitors.filter(v => 
-        v.email?.toLowerCase().includes(searchLower) ||
-        v.fullName?.toLowerCase().includes(searchLower) ||
-        v.company?.toLowerCase().includes(searchLower) ||
-        v.jobTitle?.toLowerCase().includes(searchLower)
-      );
+      const searchRegex = new RegExp(search, "i");
+      query = {
+        $or: [
+          { email: searchRegex },
+          { fullName: searchRegex },
+          { firstName: searchRegex },
+          { lastName: searchRegex },
+          { company: searchRegex },
+          { jobTitle: searchRegex },
+        ],
+      };
     }
-    
-    // Get total count before pagination
-    const total = visitors.length;
-    
-    // Apply pagination
-    const paginatedVisitors = visitors.slice(offset, offset + limit);
-    
-    // Remove rawData from response to reduce payload size
-    const cleanVisitors = paginatedVisitors.map(({ rawData, ...rest }) => rest);
-    
+
+    // Get total count
+    const total = await Visitor.countDocuments(query);
+
+    // Get visitors with pagination, sorted by most recent first
+    const visitors = await Visitor.find(query)
+      .sort({ visitedAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .lean();
+
+    // Transform _id to id for frontend compatibility
+    const transformedVisitors = visitors.map((v: any) => ({
+      id: v._id.toString(),
+      firstName: v.firstName,
+      lastName: v.lastName,
+      fullName: v.fullName,
+      email: v.email,
+      jobTitle: v.jobTitle,
+      linkedInUrl: v.linkedInUrl,
+      company: v.company,
+      companyDomain: v.companyDomain,
+      industry: v.industry,
+      companySize: v.companySize,
+      companyRevenue: v.companyRevenue,
+      country: v.country,
+      city: v.city,
+      region: v.region,
+      pageUrl: v.pageUrl,
+      pageTitle: v.pageTitle,
+      referrer: v.referrer,
+      visitedAt: v.visitedAt,
+      createdAt: v.createdAt,
+      updatedAt: v.updatedAt,
+    }));
+
     return NextResponse.json({
-      visitors: cleanVisitors,
+      visitors: transformedVisitors,
       total,
       limit,
       offset,
       hasMore: offset + limit < total,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching RB2B visitors:", error);
     return NextResponse.json(
-      { error: "Failed to fetch visitors" },
+      { error: error.message || "Failed to fetch visitors" },
       { status: 500 }
     );
   }
@@ -86,23 +84,17 @@ export async function GET(request: NextRequest) {
 // DELETE: Clear all visitors (admin only)
 export async function DELETE() {
   try {
-    const dataDir = path.join(process.cwd(), "data");
-    try {
-      await fs.access(dataDir);
-    } catch {
-      await fs.mkdir(dataDir, { recursive: true });
-    }
-    
-    await fs.writeFile(VISITORS_FILE, JSON.stringify([], null, 2));
-    
+    await connectDB();
+    await Visitor.deleteMany({});
+
     return NextResponse.json({
       success: true,
       message: "All visitors cleared",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error clearing RB2B visitors:", error);
     return NextResponse.json(
-      { error: "Failed to clear visitors" },
+      { error: error.message || "Failed to clear visitors" },
       { status: 500 }
     );
   }
