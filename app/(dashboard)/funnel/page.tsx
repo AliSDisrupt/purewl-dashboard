@@ -863,9 +863,13 @@ export default function FunnelPage() {
       
       {/* Attribution Sources Table */}
       <LeadSourcesTable 
-        leadSources={leadSourcesData?.sources || []}
+        leadSources={leadSourcesData?.leadSources || []}
+        sourceBreakdown={leadSourcesData?.sourceBreakdown || []}
+        topLandingPages={leadSourcesData?.topLandingPages || []}
+        summary={leadSourcesData?.summary || { totalLeads: 0, uniqueSources: 0, uniquePages: 0 }}
         dealSources={dealSourcesData?.dealSources || []}
         revenueSources={dealSourcesData?.revenueSources || []}
+        dealSummary={dealSourcesData?.summary}
         isLoading={leadSourcesLoading || dealSourcesLoading}
       />
       
