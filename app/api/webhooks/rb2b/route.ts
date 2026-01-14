@@ -18,24 +18,39 @@ export async function POST(request: NextRequest) {
       // Connect to MongoDB
       await connectDB();
 
-      console.log("RB2B Webhook received:", JSON.stringify(body, null, 2));
+      // Log the FULL raw payload to see what RB2B is actually sending
+      console.log("=== RB2B WEBHOOK RAW PAYLOAD ===");
+      console.log(JSON.stringify(body, null, 2));
+      console.log("=== PAYLOAD KEYS ===");
+      console.log("Top level keys:", Object.keys(body));
+      console.log("=== END RAW PAYLOAD ===");
 
       // Extract visitor data from RB2B payload
       // RB2B sends different formats, so we handle multiple structures
-      const visitorData = body.person || body.visitor || body.contact || body.data || body;
-      const pageData = body.page || body.visit || body.pageData || {};
-      const companyData = body.company || visitorData.company || body.companyData || {};
-      const sessionData = body.session || body.sessionData || {};
-      const behavioralData = body.behavioral || body.engagement || body.behavioralData || {};
+      // Try all possible locations for visitor data
+      const visitorData = 
+        body.person || 
+        body.visitor || 
+        body.contact || 
+        body.data || 
+        body.user ||
+        body.lead ||
+        body.profile ||
+        body;
+      
+      const pageData = body.page || body.visit || body.pageData || body.page_info || {};
+      const companyData = body.company || visitorData.company || body.companyData || body.company_info || {};
+      const sessionData = body.session || body.sessionData || body.session_info || {};
+      const behavioralData = body.behavioral || body.engagement || body.behavioralData || body.engagement_data || {};
       
       // Log extracted data for debugging
-      console.log("Extracted visitor data:", {
-        hasVisitorData: !!visitorData,
-        hasEmail: !!(visitorData.email || visitorData.work_email || visitorData.personal_email),
-        hasName: !!(visitorData.full_name || visitorData.name || visitorData.fullName || (visitorData.first_name && visitorData.last_name)),
-        hasCompany: !!(companyData.name || visitorData.company),
-        visitorDataKeys: Object.keys(visitorData),
-      });
+      console.log("=== EXTRACTED DATA ===");
+      console.log("Visitor data keys:", Object.keys(visitorData));
+      console.log("Visitor data sample:", JSON.stringify(visitorData, null, 2).substring(0, 500));
+      console.log("Has email:", !!(visitorData.email || visitorData.work_email || visitorData.personal_email || visitorData.email_address));
+      console.log("Has name:", !!(visitorData.full_name || visitorData.name || visitorData.fullName || visitorData.first_name || visitorData.firstName));
+      console.log("Has company:", !!(companyData.name || visitorData.company || companyData.company_name));
+      console.log("=== END EXTRACTED DATA ===");
 
       // Create normalized visitor object with ALL fields
       const visitorDoc: any = {
@@ -180,12 +195,28 @@ export async function POST(request: NextRequest) {
           : undefined,
       };
 
+      // Log what we're about to save
+      console.log("=== VISITOR DOC BEFORE CLEANUP ===");
+      console.log("Fields with values:", Object.keys(visitorDoc).filter(k => visitorDoc[k] !== undefined && visitorDoc[k] !== null && visitorDoc[k] !== ""));
+      console.log("Sample data:", {
+        firstName: visitorDoc.firstName,
+        lastName: visitorDoc.lastName,
+        fullName: visitorDoc.fullName,
+        email: visitorDoc.email,
+        company: visitorDoc.company,
+        jobTitle: visitorDoc.jobTitle,
+      });
+
       // Remove undefined values to keep database clean
       Object.keys(visitorDoc).forEach((key) => {
         if (visitorDoc[key] === undefined || visitorDoc[key] === null || visitorDoc[key] === "") {
           delete visitorDoc[key];
         }
       });
+      
+      console.log("=== VISITOR DOC AFTER CLEANUP ===");
+      console.log("Fields to save:", Object.keys(visitorDoc));
+      console.log("Total fields:", Object.keys(visitorDoc).length);
 
       // Check if visitor with same email exists
       let visitor;

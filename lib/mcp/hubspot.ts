@@ -253,13 +253,13 @@ export async function fetchHubSpotPipelines(): Promise<HubSpotPipeline[]> {
           id: String(pipeline.id || ''),
           label: pipeline.label || pipeline.name || 'Unnamed Pipeline',
           displayOrder: pipeline.displayOrder || 0,
-          stages: stages.sort((a, b) => a.displayOrder - b.displayOrder),
+          stages: stages.sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0)),
         });
       }
     }
 
     // Sort pipelines by display order
-    pipelines.sort((a, b) => a.displayOrder - b.displayOrder);
+    pipelines.sort((a: HubSpotPipeline, b: HubSpotPipeline) => a.displayOrder - b.displayOrder);
 
     console.log(`✅ Fetched ${pipelines.length} pipelines from HubSpot`);
     return pipelines;
@@ -439,26 +439,20 @@ export async function fetchHubSpotDealsByStage(
       
       const possibleValues = stageValueMap[stageName.toLowerCase()] || [stageName];
       
-      // For multiple values, create OR filters
-      // HubSpot uses filterGroups with OR logic
-      if (possibleValues.length > 1) {
-        // Create a separate filter group with OR logic for each possible value
-        const stageFilters = possibleValues.map(value => ({
-          propertyName: "dealstage",
-          operator: "CONTAINS_TOKEN",
-          value: value,
-        }));
-        
-        // Add each as a separate filter (they'll be OR'd together in the same group)
-        filters.push(...stageFilters);
-      } else {
-        // Single value - use CONTAINS_TOKEN for flexible matching
-        filters.push({
-          propertyName: "dealstage",
-          operator: "CONTAINS_TOKEN",
-          value: possibleValues[0],
-        });
-      }
+      // For multiple values, try each one - HubSpot CONTAINS_TOKEN should match any
+      // But we'll use the first value as primary and let client-side filtering handle the rest
+      // This is more reliable than trying to OR multiple filters
+      filters.push({
+        propertyName: "dealstage",
+        operator: "CONTAINS_TOKEN",
+        value: possibleValues[0], // Use first value (usually the ID or most specific)
+      });
+      
+      // Log what we're searching for
+      console.log(`🔍 Searching for stage "${stageName}":`, {
+        possibleValues,
+        usingFilter: possibleValues[0],
+      });
     }
 
     if (filters.length > 0) {
@@ -1593,7 +1587,7 @@ export async function fetchHubSpotEmails(limit?: number): Promise<HubSpotEmail[]
     }
 
     // Sort by sentDate (latest first) as a fallback
-    emails.sort((a, b) => {
+    emails.sort((a: HubSpotEmail, b: HubSpotEmail) => {
       if (!a.sentDate && !b.sentDate) return 0;
       if (!a.sentDate) return 1;
       if (!b.sentDate) return -1;

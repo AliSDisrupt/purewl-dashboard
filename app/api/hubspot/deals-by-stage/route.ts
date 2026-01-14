@@ -36,12 +36,21 @@ export async function GET(request: Request) {
     start.setHours(0, 0, 0, 0);
     const end = parseDate(endDate);
     end.setHours(23, 59, 59, 999);
+    
+    // Debug logging
+    console.log(`📅 Fetching deals by stage:`, {
+      startDate,
+      endDate,
+      parsedStart: start.toISOString(),
+      parsedEnd: end.toISOString(),
+      stage: stage || 'all stages',
+    });
 
     // Fetch deals using search API with server-side filtering
-    // This is more efficient than fetching all deals and filtering client-side
-    // Note: We pass the stage parameter to the search API, but it might be an ID or name
-    // The API will try to match it, but we'll also do client-side matching for accuracy
-    const dealsData = await fetchHubSpotDealsByStage(start, end, stage || undefined);
+    // For stage filtering, we fetch ALL deals in the date range first
+    // Then filter client-side by stage name (after mapping) for accuracy
+    // This is more reliable than trying to match stage IDs on the server side
+    const dealsData = await fetchHubSpotDealsByStage(start, end, undefined); // Fetch all deals first
 
     // If stage filter was provided, we need to do client-side matching
     // because HubSpot might return stage names (after mapping) but we're filtering by ID
@@ -97,7 +106,13 @@ export async function GET(request: Request) {
         filteredCount: filteredDeals.length,
         expectedNames: expectedNames,
         sampleStages: [...new Set(dealsData.deals.slice(0, 10).map((d: any) => d.stage))],
+        allUniqueStages: [...new Set(dealsData.deals.map((d: any) => d.stage))],
       });
+      
+      // If no deals found, log more details
+      if (filteredDeals.length === 0 && dealsData.deals.length > 0) {
+        console.warn(`⚠️ No deals matched stage "${stage}". Available stages:`, [...new Set(dealsData.deals.map((d: any) => d.stage))]);
+      }
     }
 
     // Recalculate summary for filtered deals
