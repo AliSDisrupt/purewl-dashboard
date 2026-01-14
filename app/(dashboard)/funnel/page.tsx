@@ -58,6 +58,27 @@ async function fetchConversations(startDate: string, endDate: string) {
   return res.json();
 }
 
+async function fetchDealsByStage(startDate: string, endDate: string, stage?: string) {
+  const url = stage 
+    ? `/api/hubspot/deals-by-stage?startDate=${startDate}&endDate=${endDate}&stage=${stage}`
+    : `/api/hubspot/deals-by-stage?startDate=${startDate}&endDate=${endDate}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch deals by stage");
+  return res.json();
+}
+
+async function fetchEmailsSent(startDate: string, endDate: string) {
+  const res = await fetch(`/api/hubspot/emails-sent?startDate=${startDate}&endDate=${endDate}`);
+  if (!res.ok) throw new Error("Failed to fetch emails sent");
+  return res.json();
+}
+
+async function fetchFirstResponse(startDate: string, endDate: string) {
+  const res = await fetch(`/api/hubspot/first-response?startDate=${startDate}&endDate=${endDate}`);
+  if (!res.ok) throw new Error("Failed to fetch first response");
+  return res.json();
+}
+
 // KPI Card Component
 const KPICard = ({ 
   label, 
@@ -736,32 +757,29 @@ export default function FunnelPage() {
   const sourceMedium = sourceMediumData?.sourceMedium || [];
   const dealsSummary = hubspotDeals?.summary || {};
 
-  // Calculate metrics
+  // Calculate metrics - NEW FUNNEL STRUCTURE
   const sessions = overview.sessions || funnel?.level1?.value || 0;
-  const leads = funnel?.level2?.value || 0;
-  const dealsCreated = funnel?.level3?.value || 0;
-  const closedWonRevenue = funnel?.level4?.value || 0;
-  const closedWonCount = funnel?.level4?.count || 0;
+  
+  // New funnel stages based on HubSpot deal stages
+  const dealsCreated = dealsCreatedData?.summary?.total || 0;
+  const disqualifiedLeads = disqualifiedDealsData?.summary?.total || 0;
+  const emailsSent = emailsSentData?.emailsSent || 0; // Conversations Started
+  const firstResponse = firstResponseData?.firstResponseCount || 0; // Conversations Initiated
+  const requirementsReceived = requirementsReceivedData?.summary?.total || 0;
+  const closedWonDeals = closedWonDealsData?.summary?.total || 0;
+  const closedWonRevenue = closedWonDealsData?.summary?.stageDetails 
+    ? Object.values(closedWonDealsData.summary.stageDetails).reduce((sum: number, stage: any) => sum + (stage.totalValue || 0), 0)
+    : 0;
 
-  const leadConversionRate = sessions > 0 ? ((leads / sessions) * 100).toFixed(1) : '0.0';
-  const dealConversionRate = leads > 0 ? ((dealsCreated / leads) * 100).toFixed(1) : '0.0';
-
-  const avgDealValue = dealsCreated > 0 ? closedWonRevenue / dealsCreated : 0;
-  const valuePerLead = leads > 0 ? closedWonRevenue / leads : 0;
-  const pipelineValue = dealsSummary.totalValue || 0;
-
-  // Get conversations data
-  const conversationsStarted = conversationsData?.conversationsStarted || 0;
-  const conversationsClosed = conversationsData?.conversationsClosed || 0;
-
-  // Funnel stages for chart
+  // Funnel stages for chart - NEW STRUCTURE
   const funnelStages = [
     { id: 'traffic', label: 'Total Traffic', value: sessions, source: 'GA4', color: '#3B82F6', icon: '👁' },
-    { id: 'leads', label: 'Leads Generated', value: leads, source: 'GA4', color: '#8B5CF6', icon: '✉' },
-    { id: 'deals', label: 'Deals Created', value: dealsCreated, source: 'HubSpot', color: '#F59E0B', icon: '🤝' },
-    { id: 'conversations-started', label: 'Conversations Started', value: conversationsStarted, source: 'HubSpot', color: '#EC4899', icon: '💬' },
-    { id: 'conversations-closed', label: 'Conversations Closed', value: conversationsClosed, source: 'HubSpot', color: '#A855F7', icon: '✅' },
-    { id: 'revenue', label: 'Closed-Won Revenue', value: closedWonRevenue, source: 'HubSpot', color: '#10B981', icon: '💰' },
+    { id: 'deals-created', label: 'Deal Created', value: dealsCreated, source: 'HubSpot', color: '#F59E0B', icon: '🤝' },
+    { id: 'disqualified', label: 'Disqualified Lead', value: disqualifiedLeads, source: 'HubSpot', color: '#EF4444', icon: '❌' },
+    { id: 'conversations-started', label: 'Email Sent', value: emailsSent, source: 'HubSpot', color: '#EC4899', icon: '📧' },
+    { id: 'first-response', label: 'Conversations Initiated', value: firstResponse, source: 'HubSpot', color: '#8B5CF6', icon: '💬' },
+    { id: 'requirements', label: 'Requirements Received', value: requirementsReceived, source: 'HubSpot', color: '#06B6D4', icon: '📋' },
+    { id: 'revenue', label: 'Won', value: closedWonRevenue, source: 'HubSpot', color: '#10B981', icon: '💰' },
   ];
 
   // Traffic sources from source/medium data
@@ -783,7 +801,9 @@ export default function FunnelPage() {
     };
   });
 
-  const isLoading = funnelLoading || overviewLoading || dealsLoading || conversationsLoading;
+  const isLoading = funnelLoading || overviewLoading || dealsLoading || conversationsLoading || 
+    dealsCreatedLoading || disqualifiedLoading || requirementsLoading || closedWonLoading ||
+    emailsSentLoading || firstResponseLoading;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -800,7 +820,7 @@ export default function FunnelPage() {
       {/* Page Header */}
       <div>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: '#FFF', margin: 0 }}>Full Funnel Analysis</h1>
-        <p style={{ fontSize: 14, color: '#71717A', margin: '8px 0 0' }}>Comprehensive view of your entire customer journey from Traffic → Leads → Deals → Conversations → Revenue</p>
+        <p style={{ fontSize: 14, color: '#71717A', margin: '8px 0 0' }}>Comprehensive view of your entire customer journey from Traffic → Deal Created → Disqualified → Email Sent → First Response → Requirements → Won</p>
       </div>
       
       {/* KPI Cards Row 1 */}
