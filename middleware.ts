@@ -14,11 +14,12 @@ export default auth((req) => {
     });
   }
   
-  // Allow access to auth pages and API routes
+  // Allow access to auth pages, API routes, and webhooks
   if (
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/mcp") ||  // Allow MCP API routes
+    pathname.startsWith("/api/webhooks") ||  // Allow webhook endpoints (RB2B, etc.)
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
     pathname.match(/\.(png|jpg|jpeg|svg|ico)$/)
@@ -46,6 +47,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|api/mcp|auth|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)",
+    "/((?!api/auth|api/mcp|api/webhooks|auth|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)",
   ],
 };

@@ -421,10 +421,46 @@ const BusinessInsights = ({ funnel, conversionRates }: { funnel: any; conversion
   );
 };
 
-// Live Account Watch Component  
+// Live Account Watch Component (RB2B Integration)
 const LiveAccountWatch = () => {
   const [loaded, setLoaded] = useState(false);
+  const [visitors, setVisitors] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => { setTimeout(() => setLoaded(true), 550); }, []);
+  
+  useEffect(() => {
+    const fetchVisitors = async () => {
+      try {
+        const res = await fetch('/api/rb2b/visitors?limit=5');
+        if (res.ok) {
+          const data = await res.json();
+          setVisitors(data.visitors || []);
+        }
+      } catch (err) {
+        console.error('Error fetching RB2B visitors:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchVisitors();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchVisitors, 30000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+    return date.toLocaleDateString();
+  };
   
   return (
     <div style={{
@@ -439,27 +475,124 @@ const LiveAccountWatch = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>🔗</span>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: '#FFF', margin: 0 }}>Live Account Watch</h3>
+          <span style={{
+            fontSize: 10,
+            color: '#F97316',
+            background: 'rgba(249, 115, 22, 0.1)',
+            padding: '2px 6px',
+            borderRadius: 4,
+            fontWeight: 500,
+          }}>RB2B</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#52525B' }}>🔄</span>
-          <span style={{ fontSize: 12, color: '#52525B' }}>0 Active</span>
+          {visitors.length > 0 && (
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', animation: 'pulse 2s ease-in-out infinite' }} />
+          )}
+          <span style={{ fontSize: 12, color: visitors.length > 0 ? '#10B981' : '#52525B' }}>
+            {visitors.length} Identified
+          </span>
         </div>
       </div>
       
-      <p style={{ fontSize: 12, color: '#52525B', marginBottom: 16 }}>Real-time alerts when contacts with open deals visit high-intent pages</p>
+      <p style={{ fontSize: 12, color: '#52525B', marginBottom: 16 }}>
+        Identified website visitors from RB2B • Auto-refreshes every 30s
+      </p>
       
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: 20,
-        background: 'rgba(255, 255, 255, 0.02)',
-        borderRadius: 10,
-        justifyContent: 'center',
-      }}>
-        <span style={{ fontSize: 14, color: '#52525B' }}>⏳</span>
-        <span style={{ fontSize: 13, color: '#52525B', textAlign: 'center' }}>No active alerts. Alerts appear when contacts with open deals visit pricing, docs, or other high-intent pages.</span>
-      </div>
+      {loading ? (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: 20,
+          background: 'rgba(255, 255, 255, 0.02)',
+          borderRadius: 10,
+          justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: 14, color: '#52525B' }}>⏳</span>
+          <span style={{ fontSize: 13, color: '#52525B' }}>Loading visitors...</span>
+        </div>
+      ) : visitors.length === 0 ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 8,
+          padding: 20,
+          background: 'rgba(255, 255, 255, 0.02)',
+          borderRadius: 10,
+        }}>
+          <span style={{ fontSize: 24, opacity: 0.6 }}>👥</span>
+          <span style={{ fontSize: 13, color: '#52525B', textAlign: 'center' }}>
+            No visitors identified yet. RB2B webhook will push data here when visitors are identified.
+          </span>
+          <span style={{ fontSize: 11, color: '#3B82F6', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>
+            Webhook: /api/webhooks/rb2b
+          </span>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflowY: 'auto' }}>
+          {visitors.map((visitor, i) => (
+            <div key={visitor.id || i} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '12px 14px',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.04)',
+              borderRadius: 10,
+              transition: 'all 0.2s ease',
+            }}>
+              {/* Avatar */}
+              <div style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 14,
+                fontWeight: 600,
+                color: '#FFF',
+              }}>
+                {(visitor.firstName?.[0] || visitor.email?.[0] || '?').toUpperCase()}
+              </div>
+              
+              {/* Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#E4E4E7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {visitor.fullName || visitor.email || 'Unknown Visitor'}
+                  </span>
+                  {visitor.linkedInUrl && (
+                    <a href={visitor.linkedInUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#0A66C2', fontSize: 12 }}>
+                      in
+                    </a>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  {visitor.jobTitle && (
+                    <span style={{ fontSize: 11, color: '#71717A' }}>{visitor.jobTitle}</span>
+                  )}
+                  {visitor.company && (
+                    <>
+                      <span style={{ fontSize: 11, color: '#52525B' }}>•</span>
+                      <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 500 }}>{visitor.company}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {/* Time */}
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: 11, color: '#52525B', fontFamily: "'JetBrains Mono', monospace" }}>
+                  {formatTime(visitor.visitedAt)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

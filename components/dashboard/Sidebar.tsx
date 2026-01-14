@@ -46,16 +46,22 @@ export function Sidebar() {
   const pathnameFromHook = usePathname();
   const { data: session } = useSession();
   const [pathname, setPathname] = useState("");
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sidebar-collapsed");
-      return saved === "true";
-    }
-    return false;
-  });
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   // Check admin status from session, but also check storage for updated role
-  const [isAdmin, setIsAdmin] = useState(session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local');
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Load collapsed state from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem("sidebar-collapsed");
+    if (saved === "true") {
+      setIsCollapsed(true);
+    }
+    // Set initial admin state from session
+    setIsAdmin(session?.user?.role === 'admin' || session?.user?.email === 'admin@orion.local');
+  }, []);
   
   // Check for updated role from storage on mount and when session changes
   useEffect(() => {
