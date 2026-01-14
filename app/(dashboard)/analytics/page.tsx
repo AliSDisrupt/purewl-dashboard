@@ -539,9 +539,9 @@ const LandingPagesTable = ({ data, loading }: { data: any[]; loading: boolean })
               borderBottom: '1px solid rgba(255,255,255,0.03)',
               alignItems: 'center',
             }}>
-              <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.pagePath || row.landingPage || '/'}</span>
+              <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.path || row.pagePath || '/'}</span>
               <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: '#FFF', textAlign: 'right' }}>{formatNumber(row.users || 0)}</span>
-              <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA', textAlign: 'right' }}>{formatNumber(row.pageViews || row.views || 0)}</span>
+              <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA', textAlign: 'right' }}>{formatNumber(row.pageViews || 0)}</span>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                 <div style={{ width: 40, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2 }}>
                   <div style={{ width: `${Math.min(engagement, 100)}%`, height: '100%', background: getColor(engagement), borderRadius: 2 }} />
