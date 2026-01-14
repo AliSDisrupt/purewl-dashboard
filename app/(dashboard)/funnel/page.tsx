@@ -750,6 +750,45 @@ export default function FunnelPage() {
     refetchInterval: 300000,
   });
 
+  // Fetch deals by stage for new funnel stages
+  const { data: dealsCreatedData, isLoading: dealsCreatedLoading } = useQuery({
+    queryKey: ["hubspot-deals-created", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate),
+    refetchInterval: 300000,
+  });
+
+  const { data: disqualifiedDealsData, isLoading: disqualifiedLoading } = useQuery({
+    queryKey: ["hubspot-deals-disqualified", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "disqualified"),
+    refetchInterval: 300000,
+  });
+
+  const { data: requirementsReceivedData, isLoading: requirementsLoading } = useQuery({
+    queryKey: ["hubspot-deals-requirements", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "requirements received"),
+    refetchInterval: 300000,
+  });
+
+  const { data: closedWonDealsData, isLoading: closedWonLoading } = useQuery({
+    queryKey: ["hubspot-deals-closedwon", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchDealsByStage(dateRange.startDate, dateRange.endDate, "closed won"),
+    refetchInterval: 300000,
+  });
+
+  // Fetch emails sent (Conversations Started)
+  const { data: emailsSentData, isLoading: emailsSentLoading } = useQuery({
+    queryKey: ["hubspot-emails-sent", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchEmailsSent(dateRange.startDate, dateRange.endDate),
+    refetchInterval: 300000,
+  });
+
+  // Fetch first response (Conversations Initiated)
+  const { data: firstResponseData, isLoading: firstResponseLoading } = useQuery({
+    queryKey: ["hubspot-first-response", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchFirstResponse(dateRange.startDate, dateRange.endDate),
+    refetchInterval: 300000,
+  });
+
   // Extract data
   const funnel = funnelData?.funnel;
   const conversionRates = funnelData?.conversionRates;
