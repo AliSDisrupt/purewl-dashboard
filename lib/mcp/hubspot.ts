@@ -418,10 +418,25 @@ export async function fetchHubSpotConversations(limit: number = 50): Promise<{
     const data = await response.json();
     const threads: HubSpotConversation[] = [];
 
+    // Log detailed sample of first thread to debug
+    if (data.results && data.results.length > 0) {
+      const sample = data.results[0];
+      console.log(`HubSpot Conversations API Response Sample:`, {
+        id: sample.id,
+        status: sample.status,
+        createdAt: sample.createdAt,
+        updatedAt: sample.updatedAt,
+        created: sample.created,
+        updated: sample.updated,
+        timestamp: sample.timestamp,
+        allKeys: Object.keys(sample),
+        fullSample: JSON.stringify(sample, null, 2).substring(0, 500)
+      });
+    }
+    
     console.log(`HubSpot Conversations API Response:`, {
       totalResults: data.results?.length || 0,
       hasPaging: !!data.paging,
-      sampleThread: data.results?.[0] ? Object.keys(data.results[0]) : []
     });
 
     // Process each thread
@@ -436,8 +451,17 @@ export async function fetchHubSpotConversations(limit: number = 50): Promise<{
       let channel = "";
       let participantCount = 0;
       let subject = thread.subject || thread.title || thread.name || "";
-      let createdAt = thread.createdAt || thread.created || thread.timestamp || "";
-      let updatedAt = thread.updatedAt || thread.updated || thread.lastUpdated || "";
+      // Extract dates - try multiple possible field names
+      let createdAt = thread.createdAt || thread.created || thread.timestamp || thread.createdTimestamp || "";
+      let updatedAt = thread.updatedAt || thread.updated || thread.lastUpdated || thread.updatedTimestamp || thread.modifiedAt || "";
+      
+      // If dates are in milliseconds (number), convert to ISO string
+      if (typeof createdAt === 'number') {
+        createdAt = new Date(createdAt).toISOString();
+      }
+      if (typeof updatedAt === 'number') {
+        updatedAt = new Date(updatedAt).toISOString();
+      }
       let assignedTo = thread.assignedTo || thread.assignee || thread.owner || "";
 
       // Try to get additional details from thread object first
@@ -467,8 +491,8 @@ export async function fetchHubSpotConversations(limit: number = 50): Promise<{
         }
       }
 
-      // If we don't have preview yet, try fetching thread details
-      if (!preview && threadId) {
+      // Always fetch thread details to get accurate dates and other metadata
+      if (threadId) {
         try {
           const threadUrl = `${API_BASE}/conversations/v3/conversations/threads/${threadId}`;
           const threadResponse = await fetch(threadUrl, {
@@ -479,12 +503,14 @@ export async function fetchHubSpotConversations(limit: number = 50): Promise<{
             const threadData = await threadResponse.json();
             
             // Get latest message for preview
-            const messages = threadData.messages || [];
-            if (messages.length > 0) {
-              const latestMessage = messages[messages.length - 1];
-              preview = latestMessage.text || latestMessage.body || latestMessage.content || "";
-              if (preview.length > 150) {
-                preview = preview.substring(0, 150) + "...";
+            if (!preview) {
+              const messages = threadData.messages || [];
+              if (messages.length > 0) {
+                const latestMessage = messages[messages.length - 1];
+                preview = latestMessage.text || latestMessage.body || latestMessage.content || "";
+                if (preview.length > 150) {
+                  preview = preview.substring(0, 150) + "...";
+                }
               }
             }
 
@@ -498,15 +524,26 @@ export async function fetchHubSpotConversations(limit: number = 50): Promise<{
               participantCount = threadData.participants?.length || 0;
             }
 
+            // Always update dates from detailed thread data (more reliable)
+            if (threadData.createdAt) {
+              createdAt = threadData.createdAt;
+            } else if (threadData.created) {
+              createdAt = threadData.created;
+            } else if (threadData.timestamp) {
+              createdAt = threadData.timestamp;
+            }
+            
+            if (threadData.updatedAt) {
+              updatedAt = threadData.updatedAt;
+            } else if (threadData.updated) {
+              updatedAt = threadData.updated;
+            } else if (threadData.lastUpdated) {
+              updatedAt = threadData.lastUpdated;
+            }
+
             // Get additional metadata
             if (!subject && threadData.subject) {
               subject = threadData.subject;
-            }
-            if (!createdAt && threadData.createdAt) {
-              createdAt = threadData.createdAt;
-            }
-            if (!updatedAt && threadData.updatedAt) {
-              updatedAt = threadData.updatedAt;
             }
           }
         } catch (err) {
@@ -515,53 +552,101 @@ export async function fetchHubSpotConversations(limit: number = 50): Promise<{
         }
       }
 
-      // Fetch full thread details for more information
+      // Fetch full thread details for more information (only if we don't have dates yet)
       let messages: Array<{ id: string; text: string; from: string; timestamp: string }> = [];
       let participants: Array<{ id: string; name?: string; email?: string }> = [];
       let associatedContact: string | undefined;
       let associatedDeal: string | undefined;
 
-      try {
-        const threadDetailsUrl = `${API_BASE}/conversations/v3/conversations/threads/${threadId}`;
-        const detailsResponse = await fetch(threadDetailsUrl, {
-          headers: getHeaders(),
-        });
+      // Only fetch full details if we're missing dates or other critical info
+      if (!createdAt || !updatedAt || !preview) {
+        try {
+          const threadDetailsUrl = `${API_BASE}/conversations/v3/conversations/threads/${threadId}`;
+          const detailsResponse = await fetch(threadDetailsUrl, {
+            headers: getHeaders(),
+          });
 
-        if (detailsResponse.ok) {
-          const detailsData = await detailsResponse.json();
-          
-          // Extract messages
-          if (detailsData.messages && Array.isArray(detailsData.messages)) {
-            messages = detailsData.messages.map((msg: any) => ({
-              id: String(msg.id || msg.messageId || ""),
-              text: msg.text || msg.body || msg.content || "",
-              from: msg.from?.email || msg.from?.name || msg.sender || "Unknown",
-              timestamp: msg.timestamp || msg.createdAt || msg.sentAt || "",
-            }));
-          }
-
-          // Extract participants
-          if (detailsData.participants && Array.isArray(detailsData.participants)) {
-            participants = detailsData.participants.map((p: any) => ({
-              id: String(p.id || p.participantId || ""),
-              name: p.name || p.displayName || undefined,
-              email: p.email || undefined,
-            }));
-          }
-
-          // Extract associations
-          if (detailsData.associations) {
-            if (detailsData.associations.contacts?.results?.length > 0) {
-              associatedContact = String(detailsData.associations.contacts.results[0].id);
+          if (detailsResponse.ok) {
+            const detailsData = await detailsResponse.json();
+            
+            // Always update dates from detailed response (most reliable)
+            // Try multiple possible field names
+            if (detailsData.createdAt) {
+              createdAt = detailsData.createdAt;
+            } else if (detailsData.created) {
+              createdAt = detailsData.created;
+            } else if (detailsData.timestamp) {
+              createdAt = detailsData.timestamp;
+            } else if (detailsData.createdTimestamp) {
+              createdAt = detailsData.createdTimestamp;
             }
-            if (detailsData.associations.deals?.results?.length > 0) {
-              associatedDeal = String(detailsData.associations.deals.results[0].id);
+            
+            if (detailsData.updatedAt) {
+              updatedAt = detailsData.updatedAt;
+            } else if (detailsData.updated) {
+              updatedAt = detailsData.updated;
+            } else if (detailsData.lastUpdated) {
+              updatedAt = detailsData.lastUpdated;
+            } else if (detailsData.updatedTimestamp) {
+              updatedAt = detailsData.updatedTimestamp;
+            } else if (detailsData.modifiedAt) {
+              updatedAt = detailsData.modifiedAt;
+            }
+            
+            // Convert numeric timestamps to ISO strings
+            if (typeof createdAt === 'number') {
+              createdAt = new Date(createdAt).toISOString();
+            }
+            if (typeof updatedAt === 'number') {
+              updatedAt = new Date(updatedAt).toISOString();
+            }
+            
+            // Extract messages
+            if (detailsData.messages && Array.isArray(detailsData.messages)) {
+              messages = detailsData.messages.map((msg: any) => ({
+                id: String(msg.id || msg.messageId || ""),
+                text: msg.text || msg.body || msg.content || "",
+                from: msg.from?.email || msg.from?.name || msg.sender || "Unknown",
+                timestamp: msg.timestamp || msg.createdAt || msg.sentAt || "",
+              }));
+              
+              // Use first message timestamp as createdAt if still missing
+              if (!createdAt && messages.length > 0 && messages[0].timestamp) {
+                createdAt = messages[0].timestamp;
+              }
+            }
+
+            // Extract participants
+            if (detailsData.participants && Array.isArray(detailsData.participants)) {
+              participants = detailsData.participants.map((p: any) => ({
+                id: String(p.id || p.participantId || ""),
+                name: p.name || p.displayName || undefined,
+                email: p.email || undefined,
+              }));
+            }
+
+            // Extract associations
+            if (detailsData.associations) {
+              if (detailsData.associations.contacts?.results?.length > 0) {
+                associatedContact = String(detailsData.associations.contacts.results[0].id);
+              }
+              if (detailsData.associations.deals?.results?.length > 0) {
+                associatedDeal = String(detailsData.associations.deals.results[0].id);
+              }
+            }
+            
+            // Get preview from messages if still missing
+            if (!preview && messages.length > 0) {
+              preview = messages[messages.length - 1].text || "";
+              if (preview.length > 150) {
+                preview = preview.substring(0, 150) + "...";
+              }
             }
           }
+        } catch (err) {
+          // Silently fail - we already have basic info
+          console.debug(`Could not fetch full details for thread ${threadId}:`, err);
         }
-      } catch (err) {
-        // Silently fail - we already have basic info
-        console.debug(`Could not fetch full details for thread ${threadId}:`, err);
       }
 
       threads.push({
