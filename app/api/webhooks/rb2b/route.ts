@@ -442,7 +442,7 @@ export async function POST(request: NextRequest) {
       // Check if document exists first to avoid conflicts
       const existingPersonVisit = await RB2BPersonVisit.findOne({ identity_key });
 
-      let personVisit;
+      let personVisit: any;
 
       if (existingPersonVisit) {
         // Update existing document
@@ -487,6 +487,11 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ RB2B Person Visit created: ${personVisit._id.toString()}`);
         console.log(`   Page views: ${personVisit.page_views}, Unique days: ${personVisit.unique_days_count}`);
+      }
+
+      // Ensure personVisit is not null before using it
+      if (!personVisit) {
+        throw new Error("Failed to create or update person visit");
       }
 
       // Check if visitor with same email exists
@@ -565,9 +570,9 @@ export async function POST(request: NextRequest) {
         visitorId: visitor._id.toString(),
         identity_key: identity_key,
         pageVisitId: pageVisit._id.toString(),
-        personVisitId: personVisit._id.toString(),
-        pageViews: personVisit.page_views,
-        uniqueDays: personVisit.unique_days_count,
+        personVisitId: personVisit?._id?.toString() || '',
+        pageViews: personVisit?.page_views || 0,
+        uniqueDays: personVisit?.unique_days_count || 0,
       };
     })();
 
