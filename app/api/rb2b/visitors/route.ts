@@ -9,9 +9,97 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
+    const visitorId = searchParams.get("id");
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const search = searchParams.get("search") || "";
+
+    // If ID is provided, return that specific visitor
+    if (visitorId) {
+      const mongoose = require("mongoose");
+      if (!mongoose.Types.ObjectId.isValid(visitorId)) {
+        return NextResponse.json(
+          { error: "Invalid visitor ID format" },
+          { status: 400 }
+        );
+      }
+
+      const visitor = await Visitor.findById(visitorId).lean();
+      if (!visitor) {
+        return NextResponse.json(
+          { error: "Visitor not found" },
+          { status: 404 }
+        );
+      }
+
+      // Transform to match the same format as list endpoint
+      const transformedVisitor = {
+        id: visitor._id.toString(),
+        // Person Info
+        firstName: visitor.firstName,
+        lastName: visitor.lastName,
+        fullName: visitor.fullName,
+        email: visitor.email,
+        jobTitle: visitor.jobTitle,
+        linkedInUrl: visitor.linkedInUrl,
+        phone: visitor.phone,
+        twitterUrl: visitor.twitterUrl,
+        githubUrl: visitor.githubUrl,
+        bio: visitor.bio,
+        profilePicture: visitor.profilePicture,
+        seniority: visitor.seniority,
+        department: visitor.department,
+        // Company Info
+        company: visitor.company,
+        companyDomain: visitor.companyDomain,
+        industry: visitor.industry,
+        companySize: visitor.companySize,
+        companyRevenue: visitor.companyRevenue,
+        companyWebsite: visitor.companyWebsite,
+        companyLinkedIn: visitor.companyLinkedIn,
+        companyTwitter: visitor.companyTwitter,
+        companyType: visitor.companyType,
+        companyFounded: visitor.companyFounded,
+        companyDescription: visitor.companyDescription,
+        companyTechnologies: visitor.companyTechnologies,
+        companyFunding: visitor.companyFunding,
+        // Location
+        country: visitor.country,
+        city: visitor.city,
+        region: visitor.region,
+        // Visit Info
+        pageUrl: visitor.pageUrl,
+        pageTitle: visitor.pageTitle,
+        referrer: visitor.referrer,
+        visitedAt: visitor.visitedAt,
+        sessionId: visitor.sessionId,
+        visitCount: visitor.visitCount,
+        timeOnSite: visitor.timeOnSite,
+        deviceType: visitor.deviceType,
+        browser: visitor.browser,
+        operatingSystem: visitor.operatingSystem,
+        ipAddress: visitor.ipAddress,
+        utmSource: visitor.utmSource,
+        utmMedium: visitor.utmMedium,
+        utmCampaign: visitor.utmCampaign,
+        formSubmissions: visitor.formSubmissions,
+        // Behavioral Data
+        engagementScore: visitor.engagementScore,
+        intentSignals: visitor.intentSignals,
+        technologiesDetected: visitor.technologiesDetected,
+        contentInterests: visitor.contentInterests,
+        // Visit History
+        firstVisitDate: visitor.firstVisitDate,
+        lastVisitDate: visitor.lastVisitDate,
+        pagesViewed: visitor.pagesViewed,
+        isRepeatVisit: visitor.isRepeatVisit,
+        // Metadata
+        createdAt: visitor.createdAt,
+        updatedAt: visitor.updatedAt,
+      };
+
+      return NextResponse.json({ visitor: transformedVisitor });
+    }
 
     // Build query
     let query: any = {};
@@ -100,14 +188,15 @@ export async function GET(request: NextRequest) {
       intentSignals: v.intentSignals,
       technologiesDetected: v.technologiesDetected,
       contentInterests: v.contentInterests,
-      // Visit History
-      firstVisitDate: v.firstVisitDate,
-      lastVisitDate: v.lastVisitDate,
-      pagesViewed: v.pagesViewed,
-      // Metadata
-      createdAt: v.createdAt,
-      updatedAt: v.updatedAt,
-    }));
+        // Visit History
+        firstVisitDate: v.firstVisitDate,
+        lastVisitDate: v.lastVisitDate,
+        pagesViewed: v.pagesViewed,
+        isRepeatVisit: v.isRepeatVisit,
+        // Metadata
+        createdAt: v.createdAt,
+        updatedAt: v.updatedAt,
+      }));
 
     return NextResponse.json({
       visitors: transformedVisitors,

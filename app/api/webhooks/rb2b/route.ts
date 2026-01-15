@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import Visitor from "@/lib/db/models/Visitor";
+import RB2BPageVisit from "@/lib/db/models/RB2BPageVisit";
+import RB2BPersonVisit from "@/lib/db/models/RB2BPersonVisit";
+import { enrichVisitorFromIP, enrichVisitorFromEmail } from "@/lib/rb2b/client";
+import crypto from "crypto";
 
 // POST: Receive webhook from RB2B
 export async function POST(request: NextRequest) {
@@ -26,8 +30,8 @@ export async function POST(request: NextRequest) {
       console.log("=== END RAW PAYLOAD ===");
 
       // Extract visitor data from RB2B payload
-      // RB2B sends different formats, so we handle multiple structures
-      // Try all possible locations for visitor data
+      // RB2B sends data in a flat structure with specific field names
+      // Handle both RB2B format and other possible formats
       const visitorData = 
         body.person || 
         body.visitor || 
@@ -42,22 +46,148 @@ export async function POST(request: NextRequest) {
       const companyData = body.company || visitorData.company || body.companyData || body.company_info || {};
       const sessionData = body.session || body.sessionData || body.session_info || {};
       const behavioralData = body.behavioral || body.engagement || body.behavioralData || body.engagement_data || {};
+
+      // RB2B specific field mappings (RB2B sends flat structure with capitalized field names)
+      const rb2bLinkedInUrl = body["LinkedIn URL"] || body.linkedInUrl || body.linkedin_url;
+      const rb2bFirstName = body["First Name"] || body.firstName || body.first_name;
+      const rb2bLastName = body["Last Name"] || body.lastName || body.last_name;
+      const rb2bTitle = body["Title"] || body.title || body.jobTitle || body.job_title;
+      const rb2bCompanyName = body["Company Name"] || body.companyName || body.company_name;
+      const rb2bBusinessEmail = body["Business Email"] || body.businessEmail || body.business_email;
+      const rb2bWebsite = body["Website"] || body.website;
+      const rb2bIndustry = body["Industry"] || body.industry;
+      const rb2bEmployeeCount = body["Employee Count"] || body.employeeCount || body.employee_count;
+      const rb2bEstimateRevenue = body["Estimate Revenue"] || body.estimateRevenue || body.estimate_revenue;
+      const rb2bCity = body["City"] || body.city;
+      const rb2bState = body["State"] || body.state;
+      const rb2bZipcode = body["Zipcode"] || body.zipcode;
+      const rb2bSeenAt = body["Seen At"] || body.seenAt || body.seen_at;
+      const rb2bReferrer = body["Referrer"] || body.referrer;
+      const rb2bCapturedUrl = body["Captured URL"] || body.capturedUrl || body.captured_url;
+      const rb2bTags = body["Tags"] || body.tags;
+      const rb2bIsRepeatVisit = body["is_repeat_visit"] || body.isRepeatVisit || body.is_repeat_visit;
       
       // Log extracted data for debugging
       console.log("=== EXTRACTED DATA ===");
       console.log("Visitor data keys:", Object.keys(visitorData));
-      console.log("Visitor data sample:", JSON.stringify(visitorData, null, 2).substring(0, 500));
-      console.log("Has email:", !!(visitorData.email || visitorData.work_email || visitorData.personal_email || visitorData.email_address));
-      console.log("Has name:", !!(visitorData.full_name || visitorData.name || visitorData.fullName || visitorData.first_name || visitorData.firstName));
-      console.log("Has company:", !!(companyData.name || visitorData.company || companyData.company_name));
+      console.log("RB2B Fields detected:", {
+        linkedInUrl: !!rb2bLinkedInUrl,
+        firstName: !!rb2bFirstName,
+        lastName: !!rb2bLastName,
+        title: !!rb2bTitle,
+        companyName: !!rb2bCompanyName,
+        businessEmail: !!rb2bBusinessEmail,
+        website: !!rb2bWebsite,
+        industry: !!rb2bIndustry,
+        employeeCount: !!rb2bEmployeeCount,
+        estimateRevenue: !!rb2bEstimateRevenue,
+        city: !!rb2bCity,
+        state: !!rb2bState,
+        zipcode: !!rb2bZipcode,
+        seenAt: !!rb2bSeenAt,
+        referrer: !!rb2bReferrer,
+        capturedUrl: !!rb2bCapturedUrl,
+        tags: !!rb2bTags,
+        isRepeatVisit: !!rb2bIsRepeatVisit,
+      });
+      console.log("Visitor type:", rb2bFirstName || rb2bLastName || rb2bBusinessEmail ? "Person-level" : "Company-level");
+      console.log("Is repeat visit:", rb2bIsRepeatVisit || false);
       console.log("=== END EXTRACTED DATA ===");
 
+      // Extract IP and User Agent for RB2B API enrichment
+      // Try to get IP from request headers (X-Forwarded-For, X-Real-IP, or direct connection)
+      const forwardedFor = request.headers.get("x-forwarded-for");
+      const realIp = request.headers.get("x-real-ip");
+      const ipAddress = 
+        sessionData.ip || 
+        body.ip || 
+        body.ipAddress || 
+        visitorData.ip ||
+        (forwardedFor ? forwardedFor.split(',')[0].trim() : null) ||
+        realIp;
+      const userAgent = 
+        sessionData.user_agent || 
+        sessionData.userAgent || 
+        body.user_agent || 
+        body.userAgent || 
+        request.headers.get("user-agent");
+
+      // Enrich visitor data using RB2B API
+      let enrichedData: any = {};
+      if (ipAddress && process.env.RB2B_API_KEY) {
+        try {
+          console.log("=== RB2B API ENRICHMENT START ===");
+          console.log("IP Address:", ipAddress);
+          console.log("User Agent:", userAgent);
+
+          // Enrich from IP + User Agent
+          const ipEnrichment = await enrichVisitorFromIP(ipAddress, userAgent || undefined);
+          if (ipEnrichment.linkedInProfile) {
+            enrichedData = {
+              ...enrichedData,
+              // Merge LinkedIn profile data
+              firstName: enrichedData.firstName || ipEnrichment.linkedInProfile.first_name,
+              lastName: enrichedData.lastName || ipEnrichment.linkedInProfile.last_name,
+              fullName: enrichedData.fullName || ipEnrichment.linkedInProfile.full_name,
+              linkedInUrl: enrichedData.linkedInUrl || ipEnrichment.linkedInProfile.linkedin_person_url,
+              jobTitle: enrichedData.jobTitle || ipEnrichment.linkedInProfile.job_title || ipEnrichment.linkedInProfile.title,
+              seniority: enrichedData.seniority || ipEnrichment.linkedInProfile.seniority,
+              email: enrichedData.email || ipEnrichment.linkedInProfile.work_email || ipEnrichment.linkedInProfile.personal_email,
+              company: enrichedData.company || ipEnrichment.linkedInProfile.company_domain,
+              companyDomain: enrichedData.companyDomain || ipEnrichment.linkedInProfile.company_domain || ipEnrichment.companyDomain,
+              industry: enrichedData.industry || ipEnrichment.linkedInProfile.industry,
+            };
+          }
+          if (ipEnrichment.companyDomain && !enrichedData.companyDomain) {
+            enrichedData.companyDomain = ipEnrichment.companyDomain;
+          }
+
+          console.log("IP Enrichment Result:", JSON.stringify(ipEnrichment, null, 2));
+          console.log("=== RB2B API ENRICHMENT END ===");
+        } catch (apiError: any) {
+          console.error("RB2B API Enrichment Error:", apiError.message);
+          // Continue without enrichment if API fails
+        }
+      }
+
+      // If we have email but no LinkedIn profile, try enriching from email
+      const extractedEmail = visitorData.email || visitorData.work_email || visitorData.personal_email || visitorData.email_address || enrichedData.email;
+      if (extractedEmail && !enrichedData.linkedInUrl && process.env.RB2B_API_KEY) {
+        try {
+          console.log("=== RB2B EMAIL ENRICHMENT START ===");
+          console.log("Email:", extractedEmail);
+          const emailEnrichment = await enrichVisitorFromEmail(extractedEmail);
+          if (emailEnrichment.linkedInProfile) {
+            enrichedData = {
+              ...enrichedData,
+              linkedInUrl: enrichedData.linkedInUrl || emailEnrichment.linkedInUrl,
+              firstName: enrichedData.firstName || emailEnrichment.linkedInProfile.first_name,
+              lastName: enrichedData.lastName || emailEnrichment.linkedInProfile.last_name,
+              fullName: enrichedData.fullName || emailEnrichment.linkedInProfile.full_name,
+              jobTitle: enrichedData.jobTitle || emailEnrichment.linkedInProfile.job_title || emailEnrichment.linkedInProfile.title,
+              seniority: enrichedData.seniority || emailEnrichment.linkedInProfile.seniority,
+              company: enrichedData.company || emailEnrichment.linkedInProfile.company_domain,
+              companyDomain: enrichedData.companyDomain || emailEnrichment.linkedInProfile.company_domain,
+              industry: enrichedData.industry || emailEnrichment.linkedInProfile.industry,
+            };
+          }
+          console.log("Email Enrichment Result:", JSON.stringify(emailEnrichment, null, 2));
+          console.log("=== RB2B EMAIL ENRICHMENT END ===");
+        } catch (apiError: any) {
+          console.error("RB2B Email Enrichment Error:", apiError.message);
+          // Continue without enrichment if API fails
+        }
+      }
+
       // Create normalized visitor object with ALL fields
+      // Priority: RB2B specific fields > Enriched data > Generic visitor data
       const visitorDoc: any = {
         // Person Info
-        firstName: visitorData.first_name || visitorData.firstName || visitorData.given_name,
-        lastName: visitorData.last_name || visitorData.lastName || visitorData.family_name,
+        firstName: rb2bFirstName || enrichedData.firstName || visitorData.first_name || visitorData.firstName || visitorData.given_name,
+        lastName: rb2bLastName || enrichedData.lastName || visitorData.last_name || visitorData.lastName || visitorData.family_name,
         fullName:
+          (rb2bFirstName && rb2bLastName ? `${rb2bFirstName} ${rb2bLastName}` : undefined) ||
+          enrichedData.fullName ||
           visitorData.full_name ||
           visitorData.name ||
           visitorData.fullName ||
@@ -72,26 +202,29 @@ export async function POST(request: NextRequest) {
             : visitorData.firstName
             ? visitorData.firstName
             : undefined),
-        email: visitorData.email || visitorData.work_email || visitorData.personal_email || visitorData.workEmail || visitorData.personalEmail || visitorData.email_address || visitorData.emailAddress,
-        jobTitle: visitorData.job_title || 
+        email: rb2bBusinessEmail || enrichedData.email || visitorData.email || visitorData.work_email || visitorData.personal_email || visitorData.workEmail || visitorData.personalEmail || visitorData.email_address || visitorData.emailAddress,
+        jobTitle: rb2bTitle || enrichedData.jobTitle ||
+                  visitorData.job_title || 
                   visitorData.jobTitle || 
                   visitorData.title || 
                   visitorData.position || 
                   visitorData.role ||
                   visitorData.job_role ||
                   visitorData.jobRole,
-        linkedInUrl: visitorData.linkedin_url || visitorData.linkedin || visitorData.social_linkedin || visitorData.linkedInUrl,
+        linkedInUrl: rb2bLinkedInUrl || enrichedData.linkedInUrl || visitorData.linkedin_url || visitorData.linkedin || visitorData.social_linkedin || visitorData.linkedInUrl,
         phone: visitorData.phone || visitorData.phone_number || visitorData.phoneNumber || visitorData.mobile,
         twitterUrl: visitorData.twitter_url || visitorData.twitter || visitorData.social_twitter || visitorData.twitterUrl,
         githubUrl: visitorData.github_url || visitorData.github || visitorData.social_github || visitorData.githubUrl,
         bio: visitorData.bio || visitorData.about || visitorData.description,
         profilePicture: visitorData.profile_picture || visitorData.avatar || visitorData.profilePicture || visitorData.photo,
-        seniority: visitorData.seniority || visitorData.level || visitorData.seniority_level,
+        seniority: enrichedData.seniority || visitorData.seniority || visitorData.level || visitorData.seniority_level,
         department: visitorData.department || visitorData.team || visitorData.division,
 
         // Company Info
         company:
-          typeof companyData === "string"
+          rb2bCompanyName ||
+          enrichedData.company ||
+          (typeof companyData === "string"
             ? companyData
             : companyData.name || 
               companyData.company_name || 
@@ -100,17 +233,18 @@ export async function POST(request: NextRequest) {
               visitorData.organization || 
               visitorData.company_name ||
               visitorData.companyName ||
-              visitorData.employer,
-        companyDomain: companyData.domain || visitorData.company_domain || visitorData.domain || visitorData.companyDomain,
-        industry: companyData.industry || visitorData.industry,
+              visitorData.employer),
+        companyDomain: enrichedData.companyDomain || companyData.domain || visitorData.company_domain || visitorData.domain || visitorData.companyDomain,
+        industry: rb2bIndustry || enrichedData.industry || companyData.industry || visitorData.industry,
         companySize:
+          rb2bEmployeeCount ||
           companyData.size ||
           companyData.employees ||
           visitorData.company_size ||
           visitorData.employees ||
           visitorData.companySize,
-        companyRevenue: companyData.revenue || visitorData.company_revenue || visitorData.companyRevenue,
-        companyWebsite: companyData.website || companyData.url || visitorData.company_website || visitorData.companyWebsite,
+        companyRevenue: rb2bEstimateRevenue || companyData.revenue || visitorData.company_revenue || visitorData.companyRevenue,
+        companyWebsite: rb2bWebsite || companyData.website || companyData.url || visitorData.company_website || visitorData.companyWebsite,
         companyLinkedIn: companyData.linkedin || companyData.linkedin_url || visitorData.company_linkedin || visitorData.companyLinkedIn,
         companyTwitter: companyData.twitter || companyData.twitter_url || visitorData.company_twitter || visitorData.companyTwitter,
         companyType: companyData.type || companyData.company_type || visitorData.companyType,
@@ -127,12 +261,13 @@ export async function POST(request: NextRequest) {
 
         // Location
         country: visitorData.country || visitorData.location?.country || companyData.country,
-        city: visitorData.city || 
+        city: rb2bCity || visitorData.city || 
               visitorData.location?.city || 
               visitorData.location_city ||
               companyData.city ||
               companyData.location?.city,
         region:
+          rb2bState ||
           visitorData.region ||
           visitorData.state ||
           visitorData.location?.region ||
@@ -143,10 +278,10 @@ export async function POST(request: NextRequest) {
           companyData.state,
 
         // Visit Info
-        pageUrl: pageData.url || pageData.page_url || body.url || body.pageUrl,
+        pageUrl: rb2bCapturedUrl || pageData.url || pageData.page_url || body.url || body.pageUrl,
         pageTitle: pageData.title || pageData.page_title || body.pageTitle,
-        referrer: pageData.referrer || body.referrer,
-        visitedAt: new Date(body.timestamp || body.created_at || Date.now()),
+        referrer: rb2bReferrer || pageData.referrer || body.referrer,
+        visitedAt: new Date(rb2bSeenAt || body.timestamp || body.created_at || body["Seen At"] || Date.now()),
         sessionId: sessionData.id || sessionData.session_id || body.sessionId || body.session_id,
         visitCount: sessionData.visit_count || sessionData.visits || body.visitCount || 1,
         timeOnSite: sessionData.time_on_site || sessionData.duration || body.timeOnSite || body.sessionDuration,
@@ -165,7 +300,9 @@ export async function POST(request: NextRequest) {
 
         // Behavioral Data
         engagementScore: behavioralData.score || behavioralData.engagement_score || body.engagementScore,
-        intentSignals: Array.isArray(behavioralData.intent_signals)
+        intentSignals: rb2bTags 
+          ? (Array.isArray(rb2bTags) ? rb2bTags : typeof rb2bTags === 'string' ? rb2bTags.split(',').map((t: string) => t.trim()) : [rb2bTags])
+          : Array.isArray(behavioralData.intent_signals)
           ? behavioralData.intent_signals
           : behavioralData.intentSignals
           ? (Array.isArray(behavioralData.intentSignals) ? behavioralData.intentSignals : [behavioralData.intentSignals])
@@ -193,6 +330,7 @@ export async function POST(request: NextRequest) {
           : pageData.url
           ? [pageData.url]
           : undefined,
+        isRepeatVisit: rb2bIsRepeatVisit !== undefined ? rb2bIsRepeatVisit : undefined, // RB2B: repeat visitor flag
       };
 
       // Log what we're about to save
@@ -218,10 +356,130 @@ export async function POST(request: NextRequest) {
       console.log("Fields to save:", Object.keys(visitorDoc));
       console.log("Total fields:", Object.keys(visitorDoc).length);
 
+      // Generate identity_key for RB2B collections
+      // Priority: email > company+city+state > linkedin_url > hash of available data
+      let identity_key: string;
+      if (rb2bBusinessEmail) {
+        identity_key = `email:${rb2bBusinessEmail.toLowerCase().trim()}`;
+      } else if (rb2bCompanyName && rb2bCity && rb2bState) {
+        identity_key = `company:${rb2bCompanyName.toLowerCase().trim()}:${rb2bCity.toLowerCase().trim()}:${rb2bState.toLowerCase().trim()}`;
+      } else if (rb2bLinkedInUrl) {
+        identity_key = `linkedin:${rb2bLinkedInUrl}`;
+      } else {
+        // Fallback: hash available data
+        const hashData = `${rb2bCompanyName || ''}:${rb2bCity || ''}:${rb2bState || ''}:${rb2bCapturedUrl || ''}`;
+        identity_key = `hash:${crypto.createHash('md5').update(hashData).digest('hex')}`;
+      }
+
+      console.log("=== RB2B IDENTITY KEY ===");
+      console.log("Identity Key:", identity_key);
+
+      // Parse seen_at date
+      const seenAtDate = rb2bSeenAt ? new Date(rb2bSeenAt) : new Date();
+
+      // 1. Save raw page visit event to rb2b_page_visits
+      const pageVisitDoc = {
+        identity_key,
+        seen_at: seenAtDate,
+        captured_url: rb2bCapturedUrl || visitorDoc.pageUrl || '',
+        referrer: rb2bReferrer || visitorDoc.referrer,
+        tags: rb2bTags || undefined,
+        first_name: rb2bFirstName || undefined,
+        last_name: rb2bLastName || undefined,
+        title: rb2bTitle || undefined,
+        company_name: rb2bCompanyName || undefined,
+        business_email: rb2bBusinessEmail || undefined,
+        website: rb2bWebsite || undefined,
+        industry: rb2bIndustry || undefined,
+        employee_count: rb2bEmployeeCount || undefined,
+        estimate_revenue: rb2bEstimateRevenue || undefined,
+        city: rb2bCity || '',
+        state: rb2bState || '',
+        zipcode: rb2bZipcode || undefined,
+        linkedin_url: rb2bLinkedInUrl || undefined,
+        is_repeat_visit: rb2bIsRepeatVisit !== undefined ? rb2bIsRepeatVisit : undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(pageVisitDoc).forEach((key) => {
+        if (pageVisitDoc[key as keyof typeof pageVisitDoc] === undefined) {
+          delete pageVisitDoc[key as keyof typeof pageVisitDoc];
+        }
+      });
+
+      const pageVisit = await RB2BPageVisit.create(pageVisitDoc);
+      console.log(`✅ RB2B Page Visit saved: ${pageVisit._id.toString()}`);
+
+      // 2. Aggregate visitor data in rb2b_person_visits
+      const visitorDataDoc = {
+        first_name: rb2bFirstName || undefined,
+        last_name: rb2bLastName || undefined,
+        title: rb2bTitle || undefined,
+        company_name: rb2bCompanyName || undefined,
+        business_email: rb2bBusinessEmail || undefined,
+        website: rb2bWebsite || undefined,
+        industry: rb2bIndustry || undefined,
+        employee_count: rb2bEmployeeCount || undefined,
+        estimate_revenue: rb2bEstimateRevenue || undefined,
+        city: rb2bCity || undefined,
+        state: rb2bState || undefined,
+        zipcode: rb2bZipcode || undefined,
+        linkedin_url: rb2bLinkedInUrl || undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(visitorDataDoc).forEach((key) => {
+        if (visitorDataDoc[key as keyof typeof visitorDataDoc] === undefined) {
+          delete visitorDataDoc[key as keyof typeof visitorDataDoc];
+        }
+      });
+
+      // Get current date (day only, no time) for unique_days tracking
+      const currentDay = new Date(seenAtDate);
+      currentDay.setHours(0, 0, 0, 0);
+
+      // Use findOneAndUpdate with upsert for aggregation
+      const personVisit = await RB2BPersonVisit.findOneAndUpdate(
+        { identity_key },
+        {
+          $set: {
+            last_seen: seenAtDate,
+            last_page: rb2bCapturedUrl || visitorDoc.pageUrl || '',
+            visitor_data: visitorDataDoc,
+          },
+          $setOnInsert: {
+            first_seen: seenAtDate,
+            page_views: 0,
+            all_pages: [],
+            unique_days: [],
+            unique_days_count: 0,
+          },
+          $inc: { page_views: 1 },
+          $addToSet: {
+            all_pages: rb2bCapturedUrl || visitorDoc.pageUrl || '',
+            unique_days: currentDay,
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+        }
+      );
+
+      // Update unique_days_count
+      if (personVisit.unique_days) {
+        personVisit.unique_days_count = personVisit.unique_days.length;
+        await personVisit.save();
+      }
+
+      console.log(`✅ RB2B Person Visit aggregated: ${personVisit._id.toString()}`);
+      console.log(`   Page views: ${personVisit.page_views}, Unique days: ${personVisit.unique_days_count}`);
+
       // Check if visitor with same email exists
+      // For company-only profiles (no email), use company + city + state as identifier
       let visitor;
       if (visitorDoc.email) {
-        // Get existing visitor to preserve visit history
+        // Person-level visitor: match by email
         const existingVisitor = await Visitor.findOne({ email: visitorDoc.email });
 
         if (existingVisitor) {
@@ -242,11 +500,17 @@ export async function POST(request: NextRequest) {
 
           // Update last visit date
           visitorDoc.lastVisitDate = visitorDoc.visitedAt;
+          
+          // If RB2B says it's a repeat visit, mark it
+          if (rb2bIsRepeatVisit !== undefined) {
+            visitorDoc.isRepeatVisit = rb2bIsRepeatVisit;
+          }
         } else {
           // First visit
           visitorDoc.firstVisitDate = visitorDoc.visitedAt;
           visitorDoc.lastVisitDate = visitorDoc.visitedAt;
           visitorDoc.visitCount = 1;
+          visitorDoc.isRepeatVisit = rb2bIsRepeatVisit || false;
         }
 
         // Update existing visitor or create new one
@@ -259,10 +523,13 @@ export async function POST(request: NextRequest) {
           { upsert: true, new: true }
         );
       } else {
-        // Create new visitor without email
+        // Company-level visitor (no email): create new visitor
+        // Note: For company-only profiles, we create a new entry each time
+        // You may want to match by company + city + state if you want to track repeat company visits
         visitorDoc.firstVisitDate = visitorDoc.visitedAt;
         visitorDoc.lastVisitDate = visitorDoc.visitedAt;
         visitorDoc.visitCount = 1;
+        visitorDoc.isRepeatVisit = rb2bIsRepeatVisit || false;
         visitor = await Visitor.create(visitorDoc);
       }
 
@@ -282,6 +549,11 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Visitor data received and saved to database",
         visitorId: visitor._id.toString(),
+        identity_key: identity_key,
+        pageVisitId: pageVisit._id.toString(),
+        personVisitId: personVisit._id.toString(),
+        pageViews: personVisit.page_views,
+        uniqueDays: personVisit.unique_days_count,
       };
     })();
 

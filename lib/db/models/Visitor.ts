@@ -64,6 +64,7 @@ export interface IVisitor extends Document {
   firstVisitDate?: Date;
   lastVisitDate?: Date;
   pagesViewed?: string[];
+  isRepeatVisit?: boolean; // RB2B: indicates if this is a repeat visitor
 
   // Metadata
   createdAt: Date;
@@ -135,6 +136,7 @@ const VisitorSchema = new Schema<IVisitor>(
     firstVisitDate: { type: Date },
     lastVisitDate: { type: Date },
     pagesViewed: [{ type: String, trim: true }],
+    isRepeatVisit: { type: Boolean }, // RB2B: indicates if this is a repeat visitor
   },
   {
     timestamps: true, // Adds createdAt and updatedAt automatically
