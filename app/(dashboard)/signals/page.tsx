@@ -81,11 +81,42 @@ interface RB2BVisitor {
 }
 
 async function fetchRB2BVisitors(limit: number = 100) {
-  const res = await fetch(`/api/rb2b/visitors?limit=${limit}`);
+  // Fetch from new rb2b_person_visits collection (aggregated visitors)
+  const res = await fetch(`/api/rb2b/person-visits?limit=${limit}`);
   if (!res.ok) {
     throw new Error("Failed to fetch visitors");
   }
-  return res.json();
+  const data = await res.json();
+  
+  // Transform rb2b_person_visits format to match the UI interface
+  return {
+    visitors: (data.personVisits || []).map((pv: any) => ({
+      id: pv._id?.toString() || pv.identity_key,
+      email: pv.visitor_data?.business_email,
+      firstName: pv.visitor_data?.first_name,
+      lastName: pv.visitor_data?.last_name,
+      fullName: pv.visitor_data?.first_name && pv.visitor_data?.last_name
+        ? `${pv.visitor_data.first_name} ${pv.visitor_data.last_name}`
+        : pv.visitor_data?.first_name || pv.visitor_data?.last_name || undefined,
+      company: pv.visitor_data?.company_name,
+      companyDomain: pv.visitor_data?.website ? new URL(pv.visitor_data.website).hostname.replace('www.', '') : undefined,
+      jobTitle: pv.visitor_data?.title,
+      linkedInUrl: pv.visitor_data?.linkedin_url,
+      industry: pv.visitor_data?.industry,
+      companySize: pv.visitor_data?.employee_count,
+      companyWebsite: pv.visitor_data?.website,
+      city: pv.visitor_data?.city,
+      region: pv.visitor_data?.state,
+      pageUrl: pv.last_page,
+      visitedAt: pv.last_seen ? new Date(pv.last_seen).toISOString() : new Date().toISOString(),
+      visitCount: pv.page_views,
+      pagesViewed: pv.all_pages || [],
+      // Additional aggregated data
+      uniqueDays: pv.unique_days_count,
+      firstSeen: pv.first_seen ? new Date(pv.first_seen).toISOString() : undefined,
+    })),
+    total: data.total || 0,
+  };
 }
 
 export default function SignalsPage() {

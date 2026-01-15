@@ -439,41 +439,55 @@ export async function POST(request: NextRequest) {
       currentDay.setHours(0, 0, 0, 0);
 
       // Use findOneAndUpdate with upsert for aggregation
-      const personVisit = await RB2BPersonVisit.findOneAndUpdate(
-        { identity_key },
-        {
-          $set: {
-            last_seen: seenAtDate,
-            last_page: rb2bCapturedUrl || visitorDoc.pageUrl || '',
-            visitor_data: visitorDataDoc,
+      // Check if document exists first to avoid conflicts
+      const existingPersonVisit = await RB2BPersonVisit.findOne({ identity_key });
+
+      let personVisit;
+
+      if (existingPersonVisit) {
+        // Update existing document
+        personVisit = await RB2BPersonVisit.findOneAndUpdate(
+          { identity_key },
+          {
+            $set: {
+              last_seen: seenAtDate,
+              last_page: rb2bCapturedUrl || visitorDoc.pageUrl || '',
+              visitor_data: visitorDataDoc,
+            },
+            $inc: { page_views: 1 },
+            $addToSet: {
+              all_pages: rb2bCapturedUrl || visitorDoc.pageUrl || '',
+              unique_days: currentDay,
+            },
           },
-          $setOnInsert: {
-            first_seen: seenAtDate,
-            page_views: 0,
-            all_pages: [],
-            unique_days: [],
-            unique_days_count: 0,
-          },
-          $inc: { page_views: 1 },
-          $addToSet: {
-            all_pages: rb2bCapturedUrl || visitorDoc.pageUrl || '',
-            unique_days: currentDay,
-          },
-        },
-        {
-          upsert: true,
-          new: true,
+          { new: true }
+        );
+
+        // Update unique_days_count
+        if (personVisit && personVisit.unique_days) {
+          personVisit.unique_days_count = personVisit.unique_days.length;
+          await personVisit.save();
         }
-      );
 
-      // Update unique_days_count
-      if (personVisit.unique_days) {
-        personVisit.unique_days_count = personVisit.unique_days.length;
-        await personVisit.save();
+        console.log(`✅ RB2B Person Visit updated: ${personVisit?._id.toString()}`);
+        console.log(`   Page views: ${personVisit?.page_views}, Unique days: ${personVisit?.unique_days_count}`);
+      } else {
+        // Create new document
+        personVisit = await RB2BPersonVisit.create({
+          identity_key,
+          first_seen: seenAtDate,
+          last_seen: seenAtDate,
+          page_views: 1,
+          last_page: rb2bCapturedUrl || visitorDoc.pageUrl || '',
+          visitor_data: visitorDataDoc,
+          all_pages: [rb2bCapturedUrl || visitorDoc.pageUrl || ''],
+          unique_days: [currentDay],
+          unique_days_count: 1,
+        });
+
+        console.log(`✅ RB2B Person Visit created: ${personVisit._id.toString()}`);
+        console.log(`   Page views: ${personVisit.page_views}, Unique days: ${personVisit.unique_days_count}`);
       }
-
-      console.log(`✅ RB2B Person Visit aggregated: ${personVisit._id.toString()}`);
-      console.log(`   Page views: ${personVisit.page_views}, Unique days: ${personVisit.unique_days_count}`);
 
       // Check if visitor with same email exists
       // For company-only profiles (no email), use company + city + state as identifier
