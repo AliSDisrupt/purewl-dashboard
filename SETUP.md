@@ -43,7 +43,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## API Integration Status
 
 ### ✅ Working Now
-- **LinkedIn Ads**: Direct API integration - will fetch real data when `.env.local` is configured
+- **LinkedIn Ads**: 
+  - Direct API integration - will fetch real data when `.env.local` is configured
+  - MCP Server: npm package `linkedin-ads-mcp-server` (configured in Claude Desktop)
 - **HubSpot CRM**: Direct API integration - will fetch real data when `.env.local` is configured
 
 ### ⚠️ Requires Additional Setup

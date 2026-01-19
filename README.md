@@ -109,8 +109,7 @@ purewl-dashboard/
 │   └── utils.ts                # Utility functions
 ├── DATA/                       # MCP server configs and Python scripts
 │   ├── claude_desktop_config.json
-│   ├── server.py               # LinkedIn MCP server
-│   └── hubspot_server.py        # HubSpot MCP server
+│   └── hubspot_server.py        # HubSpot MCP server (Python)
 └── public/                      # Static assets
 ```
 
@@ -148,10 +147,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ## 📡 MCP Server Integration
 
 The dashboard integrates with MCP servers for:
-1. **Google Analytics (GA4)** - Python MCP server (requires bridge)
-2. **HubSpot CRM** - ✅ Direct API integration
-3. **LinkedIn Ads** - ✅ Direct API integration
-4. **Reddit** - Python MCP server (requires bridge)
+1. **Google Analytics (GA4)** - Python MCP server (via uvx)
+2. **HubSpot CRM** - ✅ Direct API integration + Python MCP server
+3. **LinkedIn Ads** - ✅ npm package `linkedin-ads-mcp-server` + Direct API integration
+4. **Reddit** - Python MCP server (via uvx)
 
 ### MCP Bridge Service (Future)
 

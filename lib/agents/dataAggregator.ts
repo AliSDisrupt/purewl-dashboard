@@ -308,8 +308,15 @@ export async function dataAggregator(
           if (!accounts || accounts.length === 0) {
             throw new Error("No LinkedIn accounts found");
           }
-          // Use the first account
-          const accountId = accounts[0].id;
+          // Use PureVPN - Partner & Enterprise Solutions account (ID: 514469053)
+          // or fallback to first account if not found
+          const targetAccount = accounts.find(
+            (acc: any) => 
+              acc.simpleId === "514469053" || 
+              acc.id === "urn:li:sponsoredAccount:514469053" ||
+              (acc.name?.toLowerCase().includes("purevpn") && acc.name?.toLowerCase().includes("partner"))
+          ) || accounts[0];
+          const accountId = targetAccount.id;
           return fetchLinkedInAnalytics(accountId, daysDiff);
         })
         .then((result) => {

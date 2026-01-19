@@ -86,21 +86,51 @@ export function upsertUser(user: Partial<User> & { id: string; email: string; na
   }
 }
 
-// Track login
+// Track login - only track if last login was more than 5 minutes ago
 export function trackLogin(userId: string, ip?: string, userAgent?: string): void {
   const users = loadUsers();
   const user = users.find(u => u.id === userId);
   
   if (user) {
+    const now = new Date();
+    const MIN_TIME_BETWEEN_LOGINS = 5 * 60 * 1000; // 5 minutes in milliseconds
+    
+    // Check if last login was recent (within 5 minutes)
+    if (user.lastLoginAt) {
+      const lastLoginTime = new Date(user.lastLoginAt);
+      const timeSinceLastLogin = now.getTime() - lastLoginTime.getTime();
+      
+      // If last login was less than 5 minutes ago, don't track this as a new login
+      if (timeSinceLastLogin < MIN_TIME_BETWEEN_LOGINS) {
+        return; // Skip tracking this login
+      }
+    }
+    
     const loginEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: now.toISOString(),
       ip,
       userAgent,
     };
     
     user.loginHistory = user.loginHistory || [];
     user.loginHistory.unshift(loginEntry); // Add to beginning
-    user.loginHistory = user.loginHistory.slice(0, 10); // Keep last 10
+    
+    // Filter out duplicate logins that are too close together (within 5 minutes)
+    const uniqueLogins: typeof user.loginHistory = [];
+    for (const login of user.loginHistory) {
+      const loginTime = new Date(login.timestamp);
+      const isDuplicate = uniqueLogins.some(existing => {
+        const existingTime = new Date(existing.timestamp);
+        const timeDiff = Math.abs(loginTime.getTime() - existingTime.getTime());
+        return timeDiff < MIN_TIME_BETWEEN_LOGINS;
+      });
+      
+      if (!isDuplicate) {
+        uniqueLogins.push(login);
+      }
+    }
+    
+    user.loginHistory = uniqueLogins.slice(0, 10); // Keep last 10 unique logins
     user.lastLoginAt = loginEntry.timestamp;
     
     saveUsers(users);

@@ -165,7 +165,7 @@ const AcquisitionPathTable = ({ data, loading }: { data: any[]; loading: boolean
     );
   }
   
-  const sortedData = [...data].sort((a, b) => (b.users || 0) - (a.users || 0)).slice(0, 6);
+  const sortedData = [...data].sort((a, b) => (b.totalUsers || b.users || 0) - (a.totalUsers || a.users || 0)).slice(0, 6);
   
   return (
     <div style={{
@@ -211,7 +211,7 @@ const AcquisitionPathTable = ({ data, loading }: { data: any[]; loading: boolean
             }}>{row.source || '(not set)'}</span>
             <span style={{ fontSize: 12, color: '#71717A', fontFamily: "'JetBrains Mono', monospace" }}>{row.medium || '(none)'}</span>
             <span style={{ fontSize: 12, color: '#A1A1AA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.campaign || '(not set)'}</span>
-            <ValueCell value={formatNumber(row.users || 0)} change={row.change} />
+            <ValueCell value={formatNumber(row.totalUsers || row.users || 0)} change={row.change} />
           </div>
         ))
       )}
@@ -476,7 +476,7 @@ const TopEventsTable = ({ data, loading }: { data: any[]; loading: boolean }) =>
               <span style={{ fontSize: 13, color: '#E4E4E7' }}>{(event.eventName || '').replace(/_/g, ' ')}</span>
             </div>
             <ValueCell value={formatNumber(event.eventCount || 0)} change={event.change} />
-            <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA', textAlign: 'right' }}>{formatNumber(event.users || 0)}</span>
+            <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: '#A1A1AA', textAlign: 'right' }}>{formatNumber(event.totalUsers || event.users || 0)}</span>
             <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: (event.conversions || 0) > 0 ? '#10B981' : '#52525B', textAlign: 'right' }}>{event.conversions || 0}</span>
           </div>
         ))

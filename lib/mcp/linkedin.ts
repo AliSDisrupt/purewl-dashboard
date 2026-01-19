@@ -71,6 +71,22 @@ export interface LinkedInMetrics {
   videoViews?: number;
   videoCompletions?: number;
   
+  // Messaging Metrics (for messaging campaigns)
+  sends?: number;
+  opens?: number;
+  replies?: number;
+  clicksOnSend?: number;
+  
+  // Job Ad Metrics (for job campaigns)
+  jobApplies?: number;
+  jobViews?: number;
+  jobSaves?: number;
+  
+  // Additional Click Metrics
+  textUrlClicks?: number;
+  cardClicks?: number;
+  cardImpressions?: number;
+  
   // Cost Metrics (calculated)
   ctr?: number;
   cpc?: number;
@@ -253,7 +269,7 @@ export async function fetchLinkedInAnalytics(
       "dateRange.end.month": String(endDate.getMonth() + 1),
       "dateRange.end.year": String(endDate.getFullYear()),
       accounts: `List(${fullAccountId})`,
-      fields: "impressions,clicks,costInLocalCurrency,externalWebsiteConversions,externalWebsitePostClickConversions,externalWebsitePostViewConversions,landingPageClicks,totalEngagements,likes,comments,shares,reactions,follows,companyPageClicks,oneClickLeads,qualifiedLeads,validWorkEmailLeads,videoStarts,videoViews,videoCompletions,conversionValueInLocalCurrency",
+      fields: "impressions,clicks,costInLocalCurrency,externalWebsiteConversions,externalWebsitePostClickConversions,externalWebsitePostViewConversions,landingPageClicks,totalEngagements,likes,comments,shares,reactions,follows,companyPageClicks,oneClickLeads,qualifiedLeads,validWorkEmailLeads,videoStarts,videoViews,videoCompletions,conversionValueInLocalCurrency,sends,opens,replies,clicksOnSend,jobApplies,jobViews,jobSaves,textUrlClicks,cardClicks,cardImpressions",
     });
 
     const response = await fetch(`${url}?${params}`, {
@@ -323,6 +339,16 @@ export async function fetchLinkedInAnalytics(
     let totalVideoViews = 0;
     let totalVideoCompletions = 0;
     let totalConversionValue = 0;
+    let totalSends = 0;
+    let totalOpens = 0;
+    let totalReplies = 0;
+    let totalClicksOnSend = 0;
+    let totalJobApplies = 0;
+    let totalJobViews = 0;
+    let totalJobSaves = 0;
+    let totalTextUrlClicks = 0;
+    let totalCardClicks = 0;
+    let totalCardImpressions = 0;
 
     for (const row of data.elements || []) {
       // Core metrics
@@ -354,6 +380,22 @@ export async function fetchLinkedInAnalytics(
       totalVideoStarts += parseInt(row.videoStarts || 0);
       totalVideoViews += parseInt(row.videoViews || 0);
       totalVideoCompletions += parseInt(row.videoCompletions || 0);
+      
+      // Messaging metrics
+      totalSends += parseInt(row.sends || 0);
+      totalOpens += parseInt(row.opens || 0);
+      totalReplies += parseInt(row.replies || 0);
+      totalClicksOnSend += parseInt(row.clicksOnSend || 0);
+      
+      // Job ad metrics
+      totalJobApplies += parseInt(row.jobApplies || 0);
+      totalJobViews += parseInt(row.jobViews || 0);
+      totalJobSaves += parseInt(row.jobSaves || 0);
+      
+      // Additional click metrics
+      totalTextUrlClicks += parseInt(row.textUrlClicks || 0);
+      totalCardClicks += parseInt(row.cardClicks || 0);
+      totalCardImpressions += parseInt(row.cardImpressions || 0);
     }
 
     // Calculate cost metrics
@@ -401,6 +443,16 @@ export async function fetchLinkedInAnalytics(
         videoViews: totalVideoViews,
         videoCompletions: totalVideoCompletions,
         conversionValueInLocalCurrency: totalConversionValue,
+        sends: totalSends,
+        opens: totalOpens,
+        replies: totalReplies,
+        clicksOnSend: totalClicksOnSend,
+        jobApplies: totalJobApplies,
+        jobViews: totalJobViews,
+        jobSaves: totalJobSaves,
+        textUrlClicks: totalTextUrlClicks,
+        cardClicks: totalCardClicks,
+        cardImpressions: totalCardImpressions,
         ctr,
         cpc,
         cpm,

@@ -231,7 +231,26 @@ export default function AdminPage() {
                       >
                         <span className="flex items-center gap-1">
                           <Activity className="h-3 w-3" />
-                          Last 10 Logins ({user.loginHistory.length})
+                          {(() => {
+                            // Count unique logins (filter duplicates within 5 minutes)
+                            const MIN_TIME_BETWEEN_LOGINS = 5 * 60 * 1000;
+                            const uniqueLogins: typeof user.loginHistory = [];
+                            
+                            for (const login of user.loginHistory) {
+                              const loginTime = new Date(login.timestamp);
+                              const isDuplicate = uniqueLogins.some(existing => {
+                                const existingTime = new Date(existing.timestamp);
+                                const timeDiff = Math.abs(loginTime.getTime() - existingTime.getTime());
+                                return timeDiff < MIN_TIME_BETWEEN_LOGINS;
+                              });
+                              
+                              if (!isDuplicate) {
+                                uniqueLogins.push(login);
+                              }
+                            }
+                            
+                            return `Last 10 Unique Logins (${uniqueLogins.length} unique)`;
+                          })()}
                         </span>
                         {expandedUsers.has(user.id) ? (
                           <ChevronUp className="h-4 w-4" />
@@ -241,12 +260,31 @@ export default function AdminPage() {
                       </button>
                       {expandedUsers.has(user.id) && (
                         <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                          {user.loginHistory.slice(0, 10).map((login, idx) => (
-                            <div key={idx} className="flex items-center justify-between py-1">
-                              <span>{formatDistanceToNow(new Date(login.timestamp), { addSuffix: true })}</span>
-                              {login.ip && <span className="text-xs font-mono">{login.ip}</span>}
-                            </div>
-                          ))}
+                          {(() => {
+                            // Filter out duplicate logins that are within 5 minutes of each other
+                            const MIN_TIME_BETWEEN_LOGINS = 5 * 60 * 1000; // 5 minutes
+                            const uniqueLogins: typeof user.loginHistory = [];
+                            
+                            for (const login of user.loginHistory) {
+                              const loginTime = new Date(login.timestamp);
+                              const isDuplicate = uniqueLogins.some(existing => {
+                                const existingTime = new Date(existing.timestamp);
+                                const timeDiff = Math.abs(loginTime.getTime() - existingTime.getTime());
+                                return timeDiff < MIN_TIME_BETWEEN_LOGINS;
+                              });
+                              
+                              if (!isDuplicate) {
+                                uniqueLogins.push(login);
+                              }
+                            }
+                            
+                            return uniqueLogins.slice(0, 10).map((login, idx) => (
+                              <div key={idx} className="flex items-center justify-between py-1">
+                                <span>{formatDistanceToNow(new Date(login.timestamp), { addSuffix: true })}</span>
+                                {login.ip && <span className="text-xs font-mono">{login.ip}</span>}
+                              </div>
+                            ));
+                          })()}
                         </div>
                       )}
                     </div>
