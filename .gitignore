@@ -16,6 +16,7 @@
 
 # backup/duplicate app (remove if you need to keep a copy locally)
 /app - Copy/
+_restore_point_atlas_chat_ui/
 
 # next.js
 /.next/

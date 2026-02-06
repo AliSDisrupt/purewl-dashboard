@@ -12,8 +12,11 @@ function getTextContent(children: React.ReactNode): string {
   if (children == null) return "";
   if (typeof children === "string") return children;
   if (Array.isArray(children)) return children.map(getTextContent).join("");
-  if (typeof children === "object" && "props" in children && children.props?.children != null) {
-    return getTextContent(children.props.children);
+  if (typeof children === "object" && "props" in children) {
+    const child = children as { props?: { children?: React.ReactNode } };
+    if (child.props?.children != null) {
+      return getTextContent(child.props.children);
+    }
   }
   return "";
 }
