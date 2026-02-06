@@ -48,7 +48,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     },
   ]);
   const [savedConversations, setSavedConversations] = useState<SavedConversation[]>([]);
-  const [selectedModel, setSelectedModelState] = useState<ClaudeModel>("claude-3-haiku-20240307");
+  const [selectedModel, setSelectedModelState] = useState<ClaudeModel>("claude-sonnet-4-5-20250929");
 
   // Load saved conversations and model on mount
   useEffect(() => {
@@ -74,7 +74,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
 
     // Load selected model
     const savedModel = localStorage.getItem(SELECTED_MODEL_KEY);
-    if (savedModel && ["claude-opus-4-5-20251101", "claude-sonnet-4-5-20250929", "claude-3-haiku-20240307"].includes(savedModel)) {
+    if (savedModel && ["claude-sonnet-4-5-20250929", "claude-3-haiku-20240307"].includes(savedModel)) {
       setSelectedModelState(savedModel as ClaudeModel);
     }
   }, []);

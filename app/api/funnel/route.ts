@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchGA4Overview } from "@/lib/mcp/ga4";
+import { apiError } from "@/lib/api-response";
 import { fetchGA4Events } from "@/lib/mcp/ga4-campaigns";
 import { fetchGA4SourceMedium } from "@/lib/mcp/ga4-campaigns";
 import { fetchHubSpotDeals } from "@/lib/mcp/hubspot";
@@ -246,11 +247,7 @@ export async function GET(request: Request) {
         endDate,
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching funnel data:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch funnel data" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to fetch funnel data", 500, error);
   }
 }

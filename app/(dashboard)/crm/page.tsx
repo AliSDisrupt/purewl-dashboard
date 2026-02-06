@@ -16,6 +16,64 @@ import { QuotesTable } from "@/components/crm/QuotesTable";
 import { OwnersTable } from "@/components/crm/OwnersTable";
 import { formatNumber } from "@/lib/utils";
 import { Calendar } from "lucide-react";
+import { format } from "date-fns";
+
+// Date range helper functions (synced with DateRangePicker)
+const DATE_RANGE_KEY = "dashboard-date-range";
+const DATE_RANGE_TYPE_KEY = "dashboard-date-range-type";
+const CUSTOM_START_DATE_KEY = "dashboard-custom-start-date";
+const CUSTOM_END_DATE_KEY = "dashboard-custom-end-date";
+
+type DateRangeType = "preset" | "custom" | "today" | "yesterday";
+
+function getDateRangeFromStorage(): { startDate: string; endDate: string } {
+  if (typeof window === "undefined") {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    return {
+      startDate: start.toISOString().split("T")[0]!,
+      endDate: end.toISOString().split("T")[0]!,
+    };
+  }
+
+  const savedType = localStorage.getItem(DATE_RANGE_TYPE_KEY) as DateRangeType | null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (savedType === "today") {
+    const todayStr = format(today, "yyyy-MM-dd");
+    return { startDate: todayStr, endDate: todayStr };
+  }
+
+  if (savedType === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = format(yesterday, "yyyy-MM-dd");
+    return { startDate: yesterdayStr, endDate: yesterdayStr };
+  }
+
+  if (savedType === "custom") {
+    const savedStart = localStorage.getItem(CUSTOM_START_DATE_KEY);
+    const savedEnd = localStorage.getItem(CUSTOM_END_DATE_KEY);
+    if (savedStart && savedEnd) {
+      return {
+        startDate: format(new Date(savedStart), "yyyy-MM-dd"),
+        endDate: format(new Date(savedEnd), "yyyy-MM-dd"),
+      };
+    }
+  }
+
+  // Default to preset (last 30 days)
+  const savedDays = localStorage.getItem(DATE_RANGE_KEY);
+  const days = savedDays ? parseInt(savedDays) : 30;
+  const start = new Date(today);
+  start.setDate(start.getDate() - days);
+  return {
+    startDate: format(start, "yyyy-MM-dd"),
+    endDate: format(today, "yyyy-MM-dd"),
+  };
+}
 
 // ============================================
 // CRM PAGE - HubSpot CRM Data
@@ -141,6 +199,22 @@ async function fetchHubSpotQuotes() {
 async function fetchHubSpotOwners() {
   const res = await fetch("/api/hubspot/owners");
   if (!res.ok) throw new Error("Failed to fetch HubSpot owners");
+  return res.json();
+}
+
+async function fetchWindsorAIHubSpotCRM(startDate?: string, endDate?: string) {
+  const params = new URLSearchParams();
+  if (startDate && endDate) {
+    params.append("startDate", startDate);
+    params.append("endDate", endDate);
+  } else {
+    params.append("datePreset", "last_180d");
+  }
+  const res = await fetch(`/api/windsor-ai/hubspot-crm?${params.toString()}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to fetch Windsor AI HubSpot CRM data");
+  }
   return res.json();
 }
 
@@ -604,6 +678,35 @@ export default function CRMPage() {
   const [activeTab, setActiveTab] = useState("deals");
   const [contactSearchQuery, setContactSearchQuery] = useState("");
   
+  // Get date range from localStorage (synced with DateRangePicker)
+  const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string }>(() => 
+    getDateRangeFromStorage()
+  );
+
+  // Listen for date range changes
+  useEffect(() => {
+    const handleDateRangeChange = () => {
+      setDateRange(getDateRangeFromStorage());
+    };
+
+    window.addEventListener("storage", handleDateRangeChange);
+    window.addEventListener("dateRangeChange", handleDateRangeChange);
+    
+    // Also check on mount and periodically
+    const interval = setInterval(() => {
+      const newRange = getDateRangeFromStorage();
+      if (newRange.startDate !== dateRange.startDate || newRange.endDate !== dateRange.endDate) {
+        setDateRange(newRange);
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener("storage", handleDateRangeChange);
+      window.removeEventListener("dateRangeChange", handleDateRangeChange);
+      clearInterval(interval);
+    };
+  }, [dateRange.startDate, dateRange.endDate]);
+  
   // Date filtering state - default to no filter (show all deals)
   const [dateFilter, setDateFilter] = useState<{
     startDate: string;
@@ -628,6 +731,7 @@ export default function CRMPage() {
     { id: 'line-items', label: 'Line Items', icon: '🛒' },
     { id: 'quotes', label: 'Quotes', icon: '📄' },
     { id: 'owners', label: 'Team', icon: '👥' },
+    { id: 'windsor-ai', label: 'Windsor AI', icon: '🔗' },
   ];
 
   // Fetch deals - show ALL deals by default, or filtered by date if filter is enabled
@@ -719,6 +823,13 @@ export default function CRMPage() {
   const { data: ownersData, isLoading: ownersLoading } = useQuery({
     queryKey: ["hubspot-owners"],
     queryFn: fetchHubSpotOwners,
+    refetchInterval: 300000,
+  });
+
+  // Fetch Windsor AI HubSpot CRM data (synced with DateRangePicker)
+  const { data: windsorAIData, isLoading: windsorAILoading, error: windsorAIError } = useQuery({
+    queryKey: ["windsor-ai-hubspot-crm", dateRange.startDate, dateRange.endDate],
+    queryFn: () => fetchWindsorAIHubSpotCRM(dateRange.startDate, dateRange.endDate),
     refetchInterval: 300000,
   });
 
@@ -1005,6 +1116,266 @@ export default function CRMPage() {
         return <QuotesTable quotes={quotes} isLoading={quotesLoading} />;
       case 'owners':
         return <OwnersTable owners={owners} isLoading={ownersLoading} />;
+      case 'windsor-ai':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {windsorAILoading ? (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: 14,
+                padding: 24,
+                textAlign: 'center',
+              }}>
+                <span style={{ color: '#71717A' }}>Loading Windsor AI HubSpot CRM data...</span>
+              </div>
+            ) : windsorAIError ? (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 14,
+                padding: 24,
+              }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#FCA5A5', marginBottom: 8 }}>
+                  Error Loading Windsor AI Data
+                </h3>
+                <p style={{ fontSize: 14, color: '#71717A' }}>
+                  {windsorAIError instanceof Error ? windsorAIError.message : 'Failed to fetch data from Windsor AI'}
+                </p>
+              </div>
+            ) : windsorAIData ? (
+              <>
+                {/* Summary Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                  <KPICard
+                    label="Total Records"
+                    value={formatNumber(windsorAIData.summary?.totalRecords || 0)}
+                    icon="📊"
+                    color="#3B82F6"
+                    loading={false}
+                    delay={0}
+                  />
+                  <KPICard
+                    label="Unique Emails"
+                    value={formatNumber(windsorAIData.summary?.totalEmails || 0)}
+                    icon="📧"
+                    color="#10B981"
+                    loading={false}
+                    delay={50}
+                  />
+                  <KPICard
+                    label="Meetings"
+                    value={formatNumber(windsorAIData.summary?.totalMeetings || 0)}
+                    icon="📅"
+                    color="#8B5CF6"
+                    loading={false}
+                    delay={100}
+                  />
+                  <KPICard
+                    label="Tickets"
+                    value={formatNumber(windsorAIData.summary?.totalTickets || 0)}
+                    icon="🎫"
+                    color="#F59E0B"
+                    loading={false}
+                    delay={150}
+                  />
+                </div>
+
+                {/* Source Breakdown */}
+                {windsorAIData.summary?.bySource && Object.keys(windsorAIData.summary.bySource).length > 0 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: 14,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 16 }}>
+                      Breakdown by Source
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {Object.entries(windsorAIData.summary.bySource).map(([source, count]: [string, any]) => (
+                        <div key={source} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '12px 16px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          borderRadius: 8,
+                        }}>
+                          <span style={{ fontSize: 14, color: '#E4E4E7' }}>{source || '(not set)'}</span>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: '#3B82F6' }}>{formatNumber(count)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Owner Breakdown */}
+                {windsorAIData.summary?.byOwner && Object.keys(windsorAIData.summary.byOwner).length > 0 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: 14,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 16 }}>
+                      Breakdown by Owner
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {Object.entries(windsorAIData.summary.byOwner).map(([ownerId, count]: [string, any]) => (
+                        <div key={ownerId} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '12px 16px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          borderRadius: 8,
+                        }}>
+                          <span style={{ fontSize: 14, color: '#E4E4E7' }}>Owner ID: {ownerId}</span>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: '#10B981' }}>{formatNumber(count)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Meetings Table */}
+                {windsorAIData.meetings && windsorAIData.meetings.length > 0 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: 14,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 16 }}>
+                      Meetings ({windsorAIData.meetings.length})
+                    </h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Date</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Email</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Activity Type</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Source</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Owner ID</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {windsorAIData.meetings.slice(0, 50).map((meeting: any, index: number) => (
+                            <tr key={index} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{meeting.date}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{meeting.email || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{meeting.activityType || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{meeting.source || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7', fontFamily: "'JetBrains Mono', monospace" }}>{meeting.ownerId || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tickets Table */}
+                {windsorAIData.tickets && windsorAIData.tickets.length > 0 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: 14,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 16 }}>
+                      Tickets ({windsorAIData.tickets.length})
+                    </h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Date</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Email</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Assigned Date</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Team ID</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Source</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {windsorAIData.tickets.slice(0, 50).map((ticket: any, index: number) => (
+                            <tr key={index} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{ticket.date}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{ticket.email || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{ticket.assignedDate || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7', fontFamily: "'JetBrains Mono', monospace" }}>{ticket.teamId || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{ticket.source || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Emails Table */}
+                {windsorAIData.emails && windsorAIData.emails.length > 0 && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: 14,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 16 }}>
+                      Emails ({windsorAIData.emails.length})
+                    </h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Date</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Email</th>
+                            <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#71717A', textTransform: 'uppercase' }}>Source</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {windsorAIData.emails.slice(0, 50).map((email: any, index: number) => (
+                            <tr key={index} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{email.date}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{email.email || '-'}</td>
+                              <td style={{ padding: '12px', fontSize: 13, color: '#E4E4E7' }}>{email.source || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {(!windsorAIData.meetings || windsorAIData.meetings.length === 0) &&
+                 (!windsorAIData.tickets || windsorAIData.tickets.length === 0) &&
+                 (!windsorAIData.emails || windsorAIData.emails.length === 0) && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: 14,
+                    padding: 24,
+                    textAlign: 'center',
+                  }}>
+                    <span style={{ color: '#71717A' }}>{windsorAIData.note || 'No data available'}</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: 14,
+                padding: 24,
+                textAlign: 'center',
+              }}>
+                <span style={{ color: '#71717A' }}>No Windsor AI data available</span>
+              </div>
+            )}
+          </div>
+        );
       default:
         return null;
     }

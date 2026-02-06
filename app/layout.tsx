@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ConversationProvider } from "@/lib/contexts/ConversationContext";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { PageTracking } from "@/components/tracking/PageTracking";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,6 +34,7 @@ export default function RootLayout({
         <SessionProvider>
           <QueryProvider>
             <ConversationProvider>
+              <PageTracking />
               {children}
             </ConversationProvider>
           </QueryProvider>

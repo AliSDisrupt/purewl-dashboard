@@ -2,8 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import Visitor from "@/lib/db/models/Visitor";
 
+function isEmptyPayloadError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    !process.env.MONGODB_URI ||
+    msg.includes("MONGODB_URI is not defined") ||
+    msg.includes("MongoNetworkError") ||
+    msg.includes("MongoServerSelectionError") ||
+    msg.includes("connection") ||
+    msg.includes("ECONNREFUSED") ||
+    msg.includes("timed out")
+  );
+}
+
 // GET: Fetch RB2B visitors from MongoDB
 export async function GET(request: NextRequest) {
+  if (!process.env.MONGODB_URI) {
+    const limit = parseInt(new URL(request.url).searchParams.get("limit") || "50", 10);
+    const offset = parseInt(new URL(request.url).searchParams.get("offset") || "0", 10);
+    return NextResponse.json({
+      visitors: [],
+      total: 0,
+      limit,
+      offset,
+      hasMore: false,
+    });
+  }
+
   try {
     // Connect to MongoDB
     await connectDB();
@@ -205,10 +230,22 @@ export async function GET(request: NextRequest) {
       offset,
       hasMore: offset + limit < total,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching RB2B visitors:", error);
+    if (isEmptyPayloadError(error)) {
+      const { searchParams } = new URL(request.url);
+      const limit = parseInt(searchParams.get("limit") || "50", 10);
+      const offset = parseInt(searchParams.get("offset") || "0", 10);
+      return NextResponse.json({
+        visitors: [],
+        total: 0,
+        limit,
+        offset,
+        hasMore: false,
+      });
+    }
     return NextResponse.json(
-      { error: error.message || "Failed to fetch visitors" },
+      { error: error instanceof Error ? error.message : "Failed to fetch visitors" },
       { status: 500 }
     );
   }
@@ -217,6 +254,18 @@ export async function GET(request: NextRequest) {
 // DELETE: Clear all visitors (admin only)
 export async function DELETE() {
   try {
+    const { auth } = await import("@/lib/auth/config");
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { getUserByEmail, getUserById } = await import("@/lib/storage/users");
+    const userData = session.user.email ? getUserByEmail(session.user.email) : getUserById(session.user.id ?? "");
+    const isAdmin = userData?.role === "admin" || session.user?.email === "admin@orion.local" || session.user?.role === "admin";
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
     await connectDB();
     await Visitor.deleteMany({});
 

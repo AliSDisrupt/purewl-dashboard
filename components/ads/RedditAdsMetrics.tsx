@@ -32,6 +32,8 @@ interface RedditAdsData {
     averageCtr: number;
     averageCpc: number;
   };
+  source?: string; // "windsor-ai" or undefined
+  note?: string; // Optional note about data source
 }
 
 interface RedditAdsMetricsProps {
@@ -52,9 +54,22 @@ export function RedditAdsMetrics({ data, isLoading }: RedditAdsMetricsProps) {
     );
   }
 
-  // Show helpful message if no campaigns and no data
-  if (!data || (data.campaigns.length === 0 && data.summary.totalImpressions === 0)) {
-    const hasError = (data as any)?.error;
+  // Show helpful message if no data at all
+  if (!data) {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="text-center text-muted-foreground">
+            No Reddit Ads data available
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Check if there's an error in the data
+  const hasError = (data as any)?.error;
+  if (hasError) {
     return (
       <Card>
         <CardHeader>
@@ -62,36 +77,57 @@ export function RedditAdsMetrics({ data, isLoading }: RedditAdsMetricsProps) {
         </CardHeader>
         <CardContent className="py-12">
           <div className="text-center space-y-4">
-            {hasError ? (
-              <>
-                <p className="text-destructive font-medium">
-                  Reddit Ads API Error
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {(data as any).error}
-                </p>
-              </>
-            ) : (
-              <p className="text-muted-foreground">
-                {data?.campaigns.length === 0
-                  ? "No campaigns found or Reddit Ads API endpoint structure may be different."
-                  : "No data available for this date range."}
-              </p>
+            <p className="text-destructive font-medium">
+              Reddit Ads API Error
+            </p>
+            <p className="text-muted-foreground text-sm">
+              {(data as any).error}
+            </p>
+            <p className="text-xs text-muted-foreground mt-4">
+              Account ID: {data?.accountId || "Unknown"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show empty state only if truly no data (no campaigns AND no summary metrics)
+  const hasNoData = data.campaigns.length === 0 && 
+                    data.summary.totalImpressions === 0 && 
+                    data.summary.totalClicks === 0 && 
+                    data.summary.totalSpend === 0;
+  
+  if (hasNoData) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>{data?.accountName || "Reddit Ads"}</CardTitle>
+            {data.source === "windsor-ai" && (
+              <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">
+                <span className="text-xs">🔗 Windsor AI</span>
+              </Badge>
             )}
+          </div>
+          {data.note && (
+            <p className="text-xs text-muted-foreground mt-2 italic">{data.note}</p>
+          )}
+        </CardHeader>
+        <CardContent className="py-12">
+          <div className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              No campaigns found for this date range.
+            </p>
             <div className="text-sm text-muted-foreground space-y-2">
               <p>Possible reasons:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Reddit Ads API requires Business Manager integration</li>
-                <li>The token might not be for Reddit Ads API (could be general OAuth token)</li>
-                <li>API access might not be enabled for this account</li>
-                <li>Reddit Ads API endpoints may have changed (v2 deprecated, v3 required)</li>
                 <li>No active campaigns in the selected date range</li>
+                <li>Account name "{data?.accountName || "admin_PureWL"}" may not match Windsor AI</li>
+                <li>Data may not be synced yet in Windsor AI</li>
               </ul>
               <p className="mt-4">
                 Account ID: {data?.accountId || "Unknown"}
-              </p>
-              <p className="text-xs mt-2">
-                Please verify your Reddit Ads API token and ensure your account has API access enabled.
               </p>
             </div>
           </div>
@@ -134,10 +170,22 @@ export function RedditAdsMetrics({ data, isLoading }: RedditAdsMetricsProps) {
       {/* Account Info */}
       <Card>
         <CardHeader>
-          <CardTitle>{data.accountName}</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Account ID: {data.accountId} • {campaigns.length} Campaigns
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{data.accountName}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Account ID: {data.accountId} • {campaigns.length} Campaigns
+              </p>
+            </div>
+            {data.source === "windsor-ai" && (
+              <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">
+                <span className="text-xs">🔗 Windsor AI</span>
+              </Badge>
+            )}
+          </div>
+          {data.note && (
+            <p className="text-xs text-muted-foreground mt-2 italic">{data.note}</p>
+          )}
         </CardHeader>
       </Card>
 

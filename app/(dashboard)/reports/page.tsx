@@ -21,6 +21,7 @@ const CONNECTORS = [
   { id: 'hubspot', name: 'HubSpot CRM', icon: '👥', description: 'Pipeline and deals data' },
   { id: 'linkedin', name: 'LinkedIn Ads', icon: '💼', description: 'Campaign performance metrics' },
   { id: 'reddit', name: 'Reddit', icon: '🔴', description: 'Community mentions and engagement' },
+  { id: 'windsor-ai', name: 'Windsor AI Ads', icon: '🔗', description: 'Google Ads, Reddit Ads, LinkedIn Ads performance' },
 ];
 
 export default function ReportsPage() {

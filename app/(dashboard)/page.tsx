@@ -42,6 +42,62 @@ async function fetchGA4FluidFusion(startDate: string, endDate: string) {
   return res.json();
 }
 
+// Windsor AI fetch functions
+async function fetchWindsorAIGoogleAds(startDate: string, endDate: string, accountName?: string) {
+  const accountParam = accountName ? `&accountName=${encodeURIComponent(accountName)}` : "";
+  const res = await fetch(`/api/windsor-ai/google-ads?startDate=${startDate}&endDate=${endDate}${accountParam}`);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to fetch Windsor AI Google Ads data");
+  }
+  return res.json();
+}
+
+async function fetchWindsorAIRedditAds(startDate: string, endDate: string, accountName?: string) {
+  const accountParam = accountName ? `&accountName=${encodeURIComponent(accountName)}` : "";
+  const res = await fetch(`/api/windsor-ai/reddit-ads?startDate=${startDate}&endDate=${endDate}${accountParam}`);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to fetch Windsor AI Reddit Ads data");
+  }
+  return res.json();
+}
+
+async function fetchWindsorAILinkedInAds(startDate: string, endDate: string, accountName?: string) {
+  const accountParam = accountName ? `&accountName=${encodeURIComponent(accountName)}` : "";
+  const res = await fetch(`/api/windsor-ai/linkedin-ads?startDate=${startDate}&endDate=${endDate}${accountParam}`);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to fetch Windsor AI LinkedIn Ads data");
+  }
+  return res.json();
+}
+
+// Convert YYYY-MM-DD to format expected by API (30daysAgo, yesterday, or YYYY-MM-DD)
+function formatDateForAPI(date: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dateObj = new Date(date);
+  dateObj.setHours(0, 0, 0, 0);
+  
+  if (dateObj.getTime() === today.getTime()) {
+    return "today";
+  }
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (dateObj.getTime() === yesterday.getTime()) {
+    return "yesterday";
+  }
+  
+  const daysDiff = Math.ceil((today.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysDiff > 0 && daysDiff <= 365) {
+    return `${daysDiff}daysAgo`;
+  }
+  
+  return date;
+}
+
 // KPI Card Component
 const KPICard = ({ 
   label, 
@@ -560,6 +616,54 @@ export default function DashboardPage() {
     refetchInterval: 300000,
   });
 
+  // Fetch Windsor AI Ads data
+  const { data: windsorAIGoogleAds, isLoading: googleAdsLoading } = useQuery({
+    queryKey: ["windsor-ai-google-ads", dateRange.startDate, dateRange.endDate, "PureVPN B2B - Business VPN"],
+    queryFn: () => fetchWindsorAIGoogleAds(formatDateForAPI(dateRange.startDate), formatDateForAPI(dateRange.endDate), "PureVPN B2B - Business VPN"),
+    refetchInterval: 300000,
+    retry: false,
+  });
+
+  const { data: windsorAIRedditAds, isLoading: redditAdsLoading } = useQuery({
+    queryKey: ["windsor-ai-reddit-ads", dateRange.startDate, dateRange.endDate, "admin_PureWL"],
+    queryFn: () => fetchWindsorAIRedditAds(formatDateForAPI(dateRange.startDate), formatDateForAPI(dateRange.endDate), "admin_PureWL"),
+    refetchInterval: 300000,
+    retry: false,
+  });
+
+  const { data: windsorAILinkedInAds, isLoading: linkedInAdsLoading } = useQuery({
+    queryKey: ["windsor-ai-linkedin-ads", dateRange.startDate, dateRange.endDate, "PureVPN - Partner & Enterprise Solution"],
+    queryFn: () => fetchWindsorAILinkedInAds(dateRange.startDate, dateRange.endDate, "PureVPN - Partner & Enterprise Solution"),
+    refetchInterval: 300000,
+    retry: false,
+  });
+
+  // Aggregate ads data
+  const adsLoading = googleAdsLoading || redditAdsLoading || linkedInAdsLoading;
+  const googleAdsSummary = windsorAIGoogleAds?.summary || {};
+  const redditAdsSummary = windsorAIRedditAds?.summary || {};
+  const linkedInAdsSummary = windsorAILinkedInAds?.summary || {};
+  const linkedInMetrics = windsorAILinkedInAds?.metrics || {};
+
+  // Calculate totals
+  const totalImpressions = (googleAdsSummary.totalImpressions || 0) + 
+                           (redditAdsSummary.totalImpressions || 0) + 
+                           (linkedInMetrics.impressions || 0);
+  
+  const totalClicks = (googleAdsSummary.totalClicks || 0) + 
+                      (redditAdsSummary.totalClicks || 0) + 
+                      (linkedInMetrics.clicks || 0);
+  
+  const totalCost = (googleAdsSummary.totalSpend || 0) + 
+                    (redditAdsSummary.totalSpend || 0) + 
+                    (linkedInMetrics.spend || 0);
+  
+  const totalConversions = (googleAdsSummary.totalConversions || 0) + 
+                          (redditAdsSummary.totalConversions || 0) + 
+                          (linkedInMetrics.conversions || 0);
+  
+  const overallCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+
   const summary = ga4Overview?.summary;
   const trend = ga4Overview?.trend || [];
   const channels = ga4Channels?.byChannel || [];
@@ -644,77 +748,180 @@ export default function DashboardPage() {
         <GeoDistribution data={countries} loading={geoLoading} />
       </div>
       
-      {/* Total Traffic Section */}
+      {/* Total Traffic Section - Ads Performance */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(14, 14, 20, 0.8) 0%, rgba(18, 18, 26, 0.8) 100%)',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: 14,
         padding: 24,
       }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', margin: '0 0 4px' }}>Total Traffic</h3>
-        <p style={{ fontSize: 13, color: '#52525B', margin: '0 0 20px' }}>Traffic and conversions from Reddit, Google Ads, and Website/Direct</p>
+        <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', margin: '0 0 4px' }}>Total Traffic - Ads Performance</h3>
+        <p style={{ fontSize: 13, color: '#52525B', margin: '0 0 20px' }}>Traffic, clicks, CTR, cost, and form submissions from Google Ads, Reddit Ads, and LinkedIn Ads</p>
         
-        {fluidFusionLoading ? (
+        {adsLoading ? (
           <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#71717A' }}>Loading traffic data...</span>
+            <span style={{ color: '#71717A' }}>Loading ads data...</span>
           </div>
-        ) : fluidFusionData ? (
+        ) : (
           <>
-            {/* Summary */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+            {/* Summary Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
               {[
-                { label: 'Total Traffic', value: fluidFusionData.total?.impressions || 0, color: '#3B82F6' },
-                { label: 'Total Clicks', value: fluidFusionData.total?.clicks || 0, color: '#8B5CF6' },
-                { label: 'Total Conversions', value: fluidFusionData.total?.conversions || 0, color: '#10B981' },
-                { label: 'Total Revenue', value: fluidFusionData.total?.revenue || 0, color: '#F59E0B', prefix: '$' },
+                { label: 'Website Traffic', value: totalImpressions, color: '#3B82F6', format: 'number' },
+                { label: 'Total Clicks', value: totalClicks, color: '#8B5CF6', format: 'number' },
+                { label: 'CTR', value: overallCTR, color: '#10B981', format: 'percent' },
+                { label: 'Total Cost', value: totalCost, color: '#F59E0B', format: 'currency' },
+                { label: 'Forms Filled', value: totalConversions, color: '#EC4899', format: 'number' },
               ].map(m => (
                 <div key={m.label} style={{ padding: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 10 }}>
                   <span style={{ fontSize: 10, color: '#52525B', textTransform: 'uppercase' }}>{m.label}</span>
                   <div style={{ fontSize: 24, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: m.color, marginTop: 6 }}>
-                    {m.prefix || ''}{typeof m.value === 'number' && m.value >= 1000 ? (m.value / 1000).toFixed(1) + 'K' : m.value}
+                    {m.format === 'currency' ? `$${formatNumber(m.value)}` :
+                     m.format === 'percent' ? `${m.value.toFixed(2)}%` :
+                     formatNumber(m.value)}
                   </div>
                 </div>
               ))}
             </div>
             
-            {/* Source Cards */}
+            {/* Source Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <TrafficSourceCard 
-                platform="reddit" 
-                data={{
-                  impressions: fluidFusionData.reddit?.impressions || 0,
-                  clicks: fluidFusionData.reddit?.clicks || 0,
-                  conversions: fluidFusionData.reddit?.conversions || 0,
-                  revenue: fluidFusionData.reddit?.revenue || 0,
-                }} 
-                delay={400} 
-              />
-              <TrafficSourceCard 
-                platform="google" 
-                data={{
-                  impressions: fluidFusionData.googleAds?.impressions || 0,
-                  clicks: fluidFusionData.googleAds?.clicks || 0,
-                  conversions: fluidFusionData.googleAds?.conversions || 0,
-                  revenue: fluidFusionData.googleAds?.revenue || 0,
-                }} 
-                delay={450} 
-              />
-              <TrafficSourceCard 
-                platform="direct" 
-                data={{
-                  impressions: fluidFusionData.website?.impressions || 0,
-                  clicks: fluidFusionData.website?.clicks || 0,
-                  conversions: fluidFusionData.website?.conversions || 0,
-                  revenue: fluidFusionData.website?.revenue || 0,
-                }} 
-                delay={500} 
-              />
+              {/* Google Ads */}
+              <div style={{
+                padding: 20,
+                background: 'rgba(255,255,255,0.02)',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.05)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <span style={{ fontSize: 20 }}>🔵</span>
+                  <h4 style={{ fontSize: 16, fontWeight: 600, color: '#FFF', margin: 0 }}>Google Ads</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Traffic</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(googleAdsSummary.totalImpressions || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Clicks</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(googleAdsSummary.totalClicks || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>CTR</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {googleAdsSummary.averageCtr ? `${googleAdsSummary.averageCtr.toFixed(2)}%` : '0%'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Cost</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>
+                      ${formatNumber(googleAdsSummary.totalSpend || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Forms</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#EC4899', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(googleAdsSummary.totalConversions || 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reddit Ads */}
+              <div style={{
+                padding: 20,
+                background: 'rgba(255,255,255,0.02)',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.05)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <span style={{ fontSize: 20 }}>🔴</span>
+                  <h4 style={{ fontSize: 16, fontWeight: 600, color: '#FFF', margin: 0 }}>Reddit Ads</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Traffic</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(redditAdsSummary.totalImpressions || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Clicks</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(redditAdsSummary.totalClicks || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>CTR</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {redditAdsSummary.averageCtr ? `${redditAdsSummary.averageCtr.toFixed(2)}%` : '0%'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Cost</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>
+                      ${formatNumber(redditAdsSummary.totalSpend || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Forms</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#EC4899', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(redditAdsSummary.totalConversions || 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* LinkedIn Ads */}
+              <div style={{
+                padding: 20,
+                background: 'rgba(255,255,255,0.02)',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.05)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <span style={{ fontSize: 20 }}>🔷</span>
+                  <h4 style={{ fontSize: 16, fontWeight: 600, color: '#FFF', margin: 0 }}>LinkedIn Ads</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Traffic</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(linkedInMetrics.impressions || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Clicks</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(linkedInMetrics.clicks || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>CTR</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#10B981', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {linkedInMetrics.ctr ? `${linkedInMetrics.ctr.toFixed(2)}%` : '0%'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Cost</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>
+                      ${formatNumber(linkedInMetrics.spend || 0)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 12, color: '#71717A' }}>Forms</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#EC4899', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatNumber(linkedInMetrics.conversions || 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
-        ) : (
-          <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#71717A' }}>No traffic data available</span>
-          </div>
         )}
       </div>
     </div>

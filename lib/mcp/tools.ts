@@ -293,7 +293,40 @@ export const mcpTools = [
       required: []
     }
   },
-  
+  {
+    name: "get_hubspot_pipelines",
+    description: "Get HubSpot deal pipelines and their stages (same as /api/hubspot/pipelines).",
+    input_schema: {
+      type: "object" as const,
+      properties: {},
+      required: []
+    }
+  },
+  {
+    name: "get_hubspot_deals_by_stage",
+    description: "Get HubSpot deals grouped by stage within a date range (same as /api/hubspot/deals-by-stage). Uses same stage naming as the dashboard (e.g. Lead Generated, Email sent, Conversation initiated, Won, Lost).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        startDate: {
+          type: "string",
+          description: "Start date: '30daysAgo', '7daysAgo', 'yesterday', or YYYY-MM-DD",
+          default: "30daysAgo"
+        },
+        endDate: {
+          type: "string",
+          description: "End date: 'yesterday', 'today', or YYYY-MM-DD",
+          default: "yesterday"
+        },
+        stage: {
+          type: "string",
+          description: "Optional stage ID or name to filter deals (e.g. 143589765 for Won, 143589766 for Lost)"
+        }
+      },
+      required: []
+    }
+  },
+
   // GA4 Tools
   {
     name: "get_ga4_overview",
@@ -689,6 +722,103 @@ export const mcpTools = [
         query: {
           type: "string",
           description: "Search query to filter posts"
+        }
+      },
+      required: []
+    }
+  },
+  
+  // Windsor AI Ads Tools
+  {
+    name: "get_windsor_ai_google_ads",
+    description: "Get Google Ads performance data from Windsor AI (impressions, clicks, spend, conversions, CTR, CPC).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        startDate: {
+          type: "string",
+          description: "Start date (YYYY-MM-DD format or '30daysAgo')",
+          default: "30daysAgo"
+        },
+        endDate: {
+          type: "string",
+          description: "End date (YYYY-MM-DD format or 'yesterday')",
+          default: "yesterday"
+        },
+        accountName: {
+          type: "string",
+          description: "Google Ads account name",
+          default: "PureVPN B2B - Business VPN"
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_windsor_ai_reddit_ads",
+    description: "Get Reddit Ads performance data from Windsor AI (impressions, clicks, spend, conversions, CTR, CPC).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        startDate: {
+          type: "string",
+          description: "Start date (YYYY-MM-DD format or '30daysAgo')",
+          default: "30daysAgo"
+        },
+        endDate: {
+          type: "string",
+          description: "End date (YYYY-MM-DD format or 'yesterday')",
+          default: "yesterday"
+        },
+        accountName: {
+          type: "string",
+          description: "Reddit Ads account name",
+          default: "admin_PureWL"
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_windsor_ai_linkedin_ads",
+    description: "Get LinkedIn Ads performance data from Windsor AI (impressions, clicks, spend, conversions, CTR, CPC).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        startDate: {
+          type: "string",
+          description: "Start date (YYYY-MM-DD format)",
+          default: "30daysAgo"
+        },
+        endDate: {
+          type: "string",
+          description: "End date (YYYY-MM-DD format)",
+          default: "yesterday"
+        },
+        accountName: {
+          type: "string",
+          description: "LinkedIn Ads account name",
+          default: "PureVPN - Partner & Enterprise Solution"
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_windsor_ai_all_ads",
+    description: "Get all ads performance data from Windsor AI (Google Ads, Reddit Ads, LinkedIn Ads) in one call.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        startDate: {
+          type: "string",
+          description: "Start date (YYYY-MM-DD format)",
+          default: "30daysAgo"
+        },
+        endDate: {
+          type: "string",
+          description: "End date (YYYY-MM-DD format)",
+          default: "yesterday"
         }
       },
       required: []

@@ -1,25 +1,25 @@
 /**
- * Get user role from storage
- * This file is only used in Node.js runtime (API routes, session callbacks)
+ * Get user role from storage (MongoDB or file)
+ * Used in Node.js runtime (API routes, session callbacks)
  */
 
 import { getUserByEmail, getUserById } from '@/lib/storage/users';
 
-export function getUserRoleFromStorage(email?: string | null, userId?: string | null): 'admin' | 'user' | null {
+export async function getUserRoleFromStorage(
+  email?: string | null,
+  userId?: string | null
+): Promise<'admin' | 'user' | null> {
   try {
     let userData = null;
-    
     if (email) {
-      userData = getUserByEmail(email);
+      userData = await getUserByEmail(email);
     }
     if (!userData && userId) {
-      userData = getUserById(userId);
+      userData = await getUserById(userId);
     }
-    
-    if (userData && userData.role) {
+    if (userData?.role) {
       return userData.role;
     }
-    
     return null;
   } catch (error) {
     console.error('Error getting user role from storage:', error);

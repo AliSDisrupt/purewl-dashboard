@@ -4,7 +4,7 @@
  * Fetches Reddit Ads data using the Reddit Ads API
  */
 
-const REDDIT_ADS_API_KEY = process.env.REDDIT_ADS_API_KEY || "eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1NjpzS3dsMnlsV0VtMjVmcXhwTU40cWY4MXE2OWFFdWFyMnpLMUdhVGxjdWNZIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyIiwiZXhwIjo0OTIzNjk5NjU0LjAwOTMyOSwiaWF0IjoxNzY3OTM5NjU0LjAwOTMyOSwianRpIjoiN1dUYzFCZE8xRDhLb2d0T25DODBMOHNKeEdxdWN3IiwiY2lkIjoiMVExRU96VFBXbll2ZXJocHR2Z1dzUSIsImxpZCI6InQyXzI1cnlqamY2c2UiLCJhaWQiOiJ0Ml8yNXJ5ampmNnNlIiwiYXQiOjUsImxjYSI6MTc2NzkzOTY1MjM2NCwic2NwIjoiZUp5S1ZrcE1LVTdPenl0TExTck96TThyVm9vRkJBQUFfXzlCRmdidSIsImZsbyI6MTAsImxsIjp0cnVlfQ.HcaxVZBO_XgkLUwQoORuLE3Cxfy5JSCYPYw3Kbv6w1dSPEzJgkUqZX2-NiBuLioQ2Nm2e9B3uwcw4qMMLqXuq2NqGlHYfncpMsXgOoFb-uDatUZioHklP9Ql2cxZ7qP6TSQB87irSTPRduG2aDhllyVatwRpncYehTvcGvi9pJW0kPHcNj3HmPO7OX575_p68hPP_xiPmp7BtwX3OI9QeHrUEC-h1hLZKP0luC93hg0LGcGqvWSyazJcEQk_f8nKYqDbLNB6JX5ioUf-ep2zdFqj12YKfplNtKXawUkebbR0TnSkpbB17bLCouU6Kdhjps12r8T_IntNmiQw7Vrn9Q";
+const REDDIT_ADS_API_KEY = process.env.REDDIT_ADS_API_KEY;
 
 // Reddit Ads API - Try v3 first (v2 is deprecated), then fallback to v2
 const REDDIT_ADS_API_BASE_V3 = "https://ads-api.reddit.com/api/v3";
@@ -47,12 +47,45 @@ export async function fetchRedditAdsData(
   startDate?: string,
   endDate?: string
 ): Promise<RedditAdsAccount> {
+  const emptySummary = {
+    totalImpressions: 0,
+    totalClicks: 0,
+    totalSpend: 0,
+    totalConversions: 0,
+    averageCtr: 0,
+    averageCpc: 0,
+  };
+
+  if (!REDDIT_ADS_API_KEY) {
+    return {
+      accountId: "",
+      accountName: "Reddit Ads",
+      campaigns: [],
+      summary: emptySummary,
+      error: "REDDIT_ADS_API_KEY is not set. Add it to .env.local.",
+    };
+  }
+
   const headers = {
     Authorization: `Bearer ${REDDIT_ADS_API_KEY}`,
     "Content-Type": "application/json",
   };
 
   try {
+    // Check token with /me (v3) - 403 means valid key but insufficient scope
+    const meRes = await fetch(`${REDDIT_ADS_API_BASE_V3}/me`, { headers });
+    if (meRes.status === 403) {
+      const body = await meRes.json().catch(() => ({}));
+      const msg = body?.message || "Insufficient authentication scope.";
+      return {
+        accountId: "",
+        accountName: "Reddit Ads",
+        campaigns: [],
+        summary: emptySummary,
+        error: `Key is valid but Reddit returned: ${msg} Request Ads API access or create a token with Ads scopes.`,
+      };
+    }
+
     // Try multiple possible endpoints for Reddit Ads API
     // Reddit migrated to v3, but we'll try both v3 and v2
     // The API structure might vary, so we'll try different approaches

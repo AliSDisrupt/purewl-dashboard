@@ -17,9 +17,9 @@ export async function POST(request: Request) {
     const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || undefined;
     const userAgent = request.headers.get('user-agent') || undefined;
     
-    // Create or update user
+    // Create or update user (MongoDB or file)
     const isAdmin = session.user.email === 'admin@orion.local' || session.user.id === 'admin';
-    const userData = upsertUser({
+    const userData = await upsertUser({
       id: session.user.id || session.user.email,
       email: session.user.email,
       name: session.user.name || session.user.email.split('@')[0],
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     });
     
     // Track login
-    trackLogin(userData.id, ip, userAgent);
+    await trackLogin(userData.id, ip, userAgent);
     
     return NextResponse.json({ success: true });
   } catch (error: any) {

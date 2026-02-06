@@ -98,6 +98,11 @@ export function GoogleAdsMetrics({ data, isLoading }: GoogleAdsMetricsProps) {
                 <span className="text-xs">📊 GA4 Data</span>
               </Badge>
             )}
+            {data.source === "windsor-ai" && (
+              <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">
+                <span className="text-xs">🔗 Windsor AI</span>
+              </Badge>
+            )}
           </div>
           {data.note && (
             <p className="text-xs text-muted-foreground mt-2 italic">{data.note}</p>

@@ -30,6 +30,7 @@ import { fetchGA4FluidFusion } from "@/lib/mcp/ga4-fluid-fusion";
 import { fetchHubSpotDeals } from "@/lib/mcp/hubspot";
 import { fetchLinkedInAnalytics, fetchLinkedInAccounts } from "@/lib/mcp/linkedin";
 import { searchRedditPosts } from "@/lib/mcp/reddit";
+import { fetchWindsorAIAds } from "@/lib/mcp/windsor-ai";
 
 export interface DataAggregatorInput {
   dateRange: { start: string; end: string };
@@ -388,6 +389,41 @@ export async function dataAggregator(
         .catch((err) => {
           errors.push(`Reddit: ${err.message || 'Connection failed'}`);
           data.reddit = null;
+        })
+    );
+  }
+
+  if (input.connectors.includes('windsor-ai') || input.connectors.includes('windsor_ai')) {
+    promises.push(
+      fetchWindsorAIAds(input.dateRange.start, input.dateRange.end)
+        .then((adsData) => {
+          if (adsData) {
+            data.windsorAi = {
+              googleAds: adsData.googleAds || null,
+              redditAds: adsData.redditAds || null,
+              linkedInAds: adsData.linkedInAds || null,
+              totalImpressions: (adsData.googleAds?.impressions || 0) + 
+                               (adsData.redditAds?.impressions || 0) + 
+                               (adsData.linkedInAds?.impressions || 0),
+              totalClicks: (adsData.googleAds?.clicks || 0) + 
+                          (adsData.redditAds?.clicks || 0) + 
+                          (adsData.linkedInAds?.clicks || 0),
+              totalSpend: (adsData.googleAds?.spend || 0) + 
+                         (adsData.redditAds?.spend || 0) + 
+                         (adsData.linkedInAds?.spend || 0),
+              totalConversions: (adsData.googleAds?.conversions || 0) + 
+                               (adsData.redditAds?.conversions || 0) + 
+                               (adsData.linkedInAds?.conversions || 0),
+            };
+            notes.push("Windsor AI ads data fetched successfully");
+          } else {
+            errors.push("Windsor AI: No ads data available");
+            data.windsorAi = null;
+          }
+        })
+        .catch((err) => {
+          errors.push(`Windsor AI: ${err.message || 'Connection failed'}`);
+          data.windsorAi = null;
         })
     );
   }

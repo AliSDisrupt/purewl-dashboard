@@ -22,7 +22,7 @@ export function AgentPopup({ open, onOpenChange }: AgentPopupProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={isMinimized ? "h-20" : "h-[600px] max-w-2xl"}
+        className={isMinimized ? "h-20" : "h-[640px] max-w-3xl"}
         showCloseButton={false}
       >
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border">

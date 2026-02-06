@@ -15,13 +15,13 @@ export async function GET() {
     const userEmail = session.user.email;
     const userId = session.user.id;
     
-    // Try to get user from storage
+    // Try to get user from storage (MongoDB or file)
     let userData = null;
     if (userEmail) {
-      userData = getUserByEmail(userEmail);
+      userData = await getUserByEmail(userEmail);
     }
     if (!userData && userId) {
-      userData = getUserById(userId);
+      userData = await getUserById(userId);
     }
     
     if (userData) {

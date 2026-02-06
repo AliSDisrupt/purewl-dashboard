@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KPICard } from "@/components/dashboard/KPICard";
-import { Eye, MousePointerClick, DollarSign, TrendingUp, Target, AlertCircle, Heart, MessageSquare, Share2, Users, Video, UserCheck, Send, Mail, Reply, Briefcase, Save, Link, LayoutGrid } from "lucide-react";
+import { Eye, MousePointerClick, DollarSign, Target, AlertCircle } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 
 interface LinkedInMetrics {
@@ -50,7 +50,7 @@ interface LinkedInMetricsProps {
 }
 
 export function LinkedInMetrics({ metrics, isLoading, hasData = true, dateRange = "Last 30 days" }: LinkedInMetricsProps) {
-  // Use calculated metrics from API if available, otherwise calculate
+  // Only calculate essential metrics: CTR and CPC
   const ctr = metrics.ctr !== undefined 
     ? metrics.ctr.toFixed(2)
     : metrics.impressions > 0 
@@ -62,22 +62,9 @@ export function LinkedInMetrics({ metrics, isLoading, hasData = true, dateRange 
     : metrics.clicks > 0 
       ? (metrics.spend / metrics.clicks).toFixed(2) 
       : "0.00";
-
-  const cpm = metrics.cpm !== undefined
-    ? metrics.cpm.toFixed(2)
-    : metrics.impressions > 0 
-      ? ((metrics.spend / metrics.impressions) * 1000).toFixed(2) 
-      : "0.00";
-
-  const conversionRate = metrics.clicks > 0 
-    ? ((metrics.conversions / metrics.clicks) * 100).toFixed(2)
-    : "0.00";
-
-  const costPerConversion = metrics.costPerConversion !== undefined
-    ? metrics.costPerConversion.toFixed(2)
-    : metrics.conversions > 0
-      ? (metrics.spend / metrics.conversions).toFixed(2)
-      : "0.00";
+  
+  // Form submissions (using oneClickLeads or conversions)
+  const formSubmissions = metrics.oneClickLeads || metrics.conversions || 0;
 
   if (!hasData) {
     return (
@@ -110,8 +97,26 @@ export function LinkedInMetrics({ metrics, isLoading, hasData = true, dateRange 
 
   return (
     <div className="space-y-6">
-      {/* Primary Metrics */}
+      {/* Primary Metrics - Only Essential: Form Submissions, Cost, Impressions, Clicks */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="Form Submissions"
+          value={formatNumber(formSubmissions)}
+          change={0}
+          changeLabel={dateRange}
+          trend="neutral"
+          loading={isLoading}
+          icon={<Target className="h-4 w-4 text-muted-foreground" />}
+        />
+        <KPICard
+          title="Cost"
+          value={`$${formatNumber(metrics.spend)}`}
+          change={0}
+          changeLabel={dateRange}
+          trend="neutral"
+          loading={isLoading}
+          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+        />
         <KPICard
           title="Impressions"
           value={formatNumber(metrics.impressions)}
@@ -130,28 +135,10 @@ export function LinkedInMetrics({ metrics, isLoading, hasData = true, dateRange 
           loading={isLoading}
           icon={<MousePointerClick className="h-4 w-4 text-muted-foreground" />}
         />
-        <KPICard
-          title="Spend"
-          value={`$${formatNumber(metrics.spend)}`}
-          change={0}
-          changeLabel={dateRange}
-          trend="neutral"
-          loading={isLoading}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-        />
-        <KPICard
-          title="Conversions"
-          value={formatNumber(metrics.conversions)}
-          change={0}
-          changeLabel={dateRange}
-          trend="neutral"
-          loading={isLoading}
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-        />
       </div>
 
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Performance Metrics - Only CTR and CPC */}
+      <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -174,353 +161,30 @@ export function LinkedInMetrics({ metrics, isLoading, hasData = true, dateRange 
             <p className="text-xs text-muted-foreground mt-1">Cost per click</p>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">CPM</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${cpm}</div>
-            <p className="text-xs text-muted-foreground mt-1">Cost per 1,000 impressions</p>
-          </CardContent>
-        </Card>
+      </div>
 
+      {/* Geographic Data - Placeholder for geos data */}
+      {(metrics as any).geos && (metrics as any).geos.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Conv. Rate</CardTitle>
+            <CardTitle className="text-lg font-semibold">Geographic Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{conversionRate}%</div>
-            <p className="text-xs text-muted-foreground mt-1">Conversion rate</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Cost/Conv.</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.conversions > 0 ? `$${costPerConversion}` : "—"}
+            <div className="space-y-2">
+              {(metrics as any).geos.map((geo: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                  <span className="font-medium">{geo.country || geo.region || "Unknown"}</span>
+                  <div className="flex gap-4 text-sm text-muted-foreground">
+                    <span>Impressions: {formatNumber(geo.impressions || 0)}</span>
+                    <span>Clicks: {formatNumber(geo.clicks || 0)}</span>
+                    <span>Cost: ${formatNumber(geo.spend || 0)}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Cost per conversion</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Date Range</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-semibold">{dateRange}</div>
-            <p className="text-xs text-muted-foreground mt-1">Analytics period</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Engagement Metrics - Always show */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Engagement Metrics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Engagements</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.totalEngagements ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Heart className="h-4 w-4" />
-                Likes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.likes ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Comments
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.comments ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Share2 className="h-4 w-4" />
-                Shares
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.shares ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Follows
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.follows ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Company Page Clicks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.companyPageClicks ?? 0)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Video Metrics - Always show */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Video Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Video className="h-4 w-4" />
-                Video Views
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.videoViews ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Video Starts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.videoStarts ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Video Completions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.videoCompletions ?? 0)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Lead Metrics - Always show */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Lead Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
-                Qualified Leads
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.qualifiedLeads ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">One-Click Leads</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.oneClickLeads ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Valid Work Email Leads</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.validWorkEmailLeads ?? 0)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Messaging Metrics - Always show */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Messaging Metrics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Send className="h-4 w-4" />
-                Sends
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.sends ?? 0)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Opens
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.opens ?? 0)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Reply className="h-4 w-4" />
-                Replies
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.replies ?? 0)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <MousePointerClick className="h-4 w-4" />
-                Clicks on Send
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.clicksOnSend ?? 0)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Job Ad Metrics - Always show */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Job Ad Metrics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                Job Applications
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.jobApplies ?? 0)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Job Views
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.jobViews ?? 0)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                Job Saves
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.jobSaves ?? 0)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Additional Metrics - Always show */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Additional Metrics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Landing Page Clicks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.landingPageClicks ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">External Website Conversions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.externalWebsiteConversions ?? 0)}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Conversion Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${formatNumber(metrics.conversionValueInLocalCurrency ?? 0)}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Link className="h-4 w-4" />
-                Text URL Clicks
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.textUrlClicks ?? 0)}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                Card Clicks
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.cardClicks ?? 0)}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <LayoutGrid className="h-4 w-4" />
-                Card Impressions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(metrics.cardImpressions ?? 0)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

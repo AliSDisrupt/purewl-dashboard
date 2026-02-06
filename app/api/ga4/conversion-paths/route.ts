@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchGA4ConversionPaths } from "@/lib/mcp/ga4-campaigns";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -10,10 +11,6 @@ export async function GET(request: Request) {
     const data = await fetchGA4ConversionPaths({ startDate, endDate });
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching GA4 conversion paths:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch GA4 conversion paths data" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch GA4 conversion paths data", 500, error);
   }
 }

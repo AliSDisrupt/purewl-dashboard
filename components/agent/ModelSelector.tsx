@@ -13,7 +13,6 @@ import {
 import { Sparkles } from "lucide-react";
 
 export type ClaudeModel = 
-  | "claude-opus-4-5-20251101"
   | "claude-sonnet-4-5-20250929"
   | "claude-3-haiku-20240307";
 
@@ -23,13 +22,11 @@ interface ModelSelectorProps {
 }
 
 const MODEL_LABELS: Record<ClaudeModel, string> = {
-  "claude-opus-4-5-20251101": "Claude Opus 4.5",
   "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5",
   "claude-3-haiku-20240307": "Claude Haiku 3",
 };
 
 const MODEL_DESCRIPTIONS: Record<ClaudeModel, string> = {
-  "claude-opus-4-5-20251101": "Most capable, slower",
   "claude-sonnet-4-5-20250929": "Balanced performance",
   "claude-3-haiku-20240307": "Fastest, most cost-effective",
 };

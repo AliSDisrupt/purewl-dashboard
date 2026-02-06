@@ -17,7 +17,8 @@ import {
   TrendingDown,
   TrendingUp,
   FileText,
-  Shield
+  Shield,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +32,7 @@ const getNavigation = (isAdmin: boolean) => {
     { name: "Funnel", href: "/funnel", icon: TrendingDown },
     { name: "Community", href: "/community", icon: MessageSquare },
     { name: "Reports", href: "/reports", icon: FileText },
+    { name: "Insights", href: "/insights", icon: Sparkles },
     { name: "Agent", href: "/agent", icon: Bot },
     { name: "Signals", href: "/signals", icon: TrendingUp },
   ];

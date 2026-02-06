@@ -5,7 +5,7 @@ async function testAtlasAPI() {
   console.log("🧪 Testing Atlas API...\n");
   
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const testMessage = "What is the realtime traffic from GA4?";
+  const testMessage = process.argv[2] || "What is the realtime traffic from GA4?";
   
   console.log(`📤 Sending test message: "${testMessage}"`);
   console.log(`🌐 URL: ${baseUrl}/api/claude/chat\n`);
@@ -16,6 +16,7 @@ async function testAtlasAPI() {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'text/event-stream',
+        'x-atlas-test': '1',  // Bypass auth in dev for this script
       },
       body: JSON.stringify({
         messages: [

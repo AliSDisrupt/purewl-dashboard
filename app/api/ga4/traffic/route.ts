@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchGA4Channels } from "@/lib/mcp/ga4";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -10,10 +11,6 @@ export async function GET(request: Request) {
     const data = await fetchGA4Channels({ startDate, endDate });
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching GA4 traffic:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch GA4 traffic data" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch GA4 traffic data", 500, error);
   }
 }

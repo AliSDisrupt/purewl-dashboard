@@ -126,9 +126,10 @@ export function CampaignsTable({ campaigns, isLoading }: CampaignsTableProps) {
               <TableRow>
                 <TableHead>Campaign Name</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Objective</TableHead>
-                <TableHead>Analytics (30d)</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Form Submissions</TableHead>
+                <TableHead>Cost</TableHead>
+                <TableHead>Impressions</TableHead>
+                <TableHead>Clicks</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -143,61 +144,33 @@ export function CampaignsTable({ campaigns, isLoading }: CampaignsTableProps) {
                       </div>
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Target className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-sm">{campaign.objective}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     {campaign.analytics ? (
-                      <div className="space-y-2 min-w-[200px]">
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <Eye className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">Impr:</span>
-                            <span className="font-medium">{formatNumber(campaign.analytics.impressions)}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MousePointerClick className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">Clicks:</span>
-                            <span className="font-medium">{formatNumber(campaign.analytics.clicks)}</span>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3 text-green-500" />
-                            <span className="text-muted-foreground">Spend:</span>
-                            <span className="font-medium text-green-500">${formatNumber(campaign.analytics.spend)}</span>
-                          </div>
-                          {campaign.analytics.conversions > 0 && (
-                            <div className="flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3 text-blue-500" />
-                              <span className="text-muted-foreground">Conv:</span>
-                              <span className="font-medium text-blue-500">{formatNumber(campaign.analytics.conversions)}</span>
-                            </div>
-                          )}
-                        </div>
-                        {campaign.analytics.impressions > 0 && (
-                          <div className="text-xs text-muted-foreground pt-1 border-t border-border">
-                            CTR: {((campaign.analytics.clicks / campaign.analytics.impressions) * 100).toFixed(2)}%
-                            {campaign.analytics.clicks > 0 && (
-                              <> • CPC: ${(campaign.analytics.spend / campaign.analytics.clicks).toFixed(2)}</>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : campaign.status === "ACTIVE" || campaign.status === "RUNNING" ? (
-                      <span className="text-xs text-muted-foreground">Loading analytics...</span>
+                      <span className="font-medium">{formatNumber(campaign.analytics.conversions || 0)}</span>
                     ) : (
-                      <span className="text-xs text-muted-foreground">No data</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(campaign.createdAt)}
-                    </div>
+                  <TableCell className="text-right">
+                    {campaign.analytics ? (
+                      <span className="font-medium">${formatNumber(campaign.analytics.spend || 0)}</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {campaign.analytics ? (
+                      <span className="font-medium">{formatNumber(campaign.analytics.impressions || 0)}</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {campaign.analytics ? (
+                      <span className="font-medium">{formatNumber(campaign.analytics.clicks || 0)}</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

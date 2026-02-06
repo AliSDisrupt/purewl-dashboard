@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchGA4TopPages } from "@/lib/mcp/ga4";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -70,11 +71,7 @@ export async function GET(request: Request) {
         totalPageViews: contentROI.reduce((sum, p) => sum + p.pageViews, 0),
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching Content ROI data:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch Content ROI data" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to fetch Content ROI data", 500, error);
   }
 }

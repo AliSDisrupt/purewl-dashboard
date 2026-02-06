@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchHubSpotConversations } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 // Helper function to parse date strings
 function parseDate(dateStr: string): Date {
@@ -120,11 +121,7 @@ export async function GET(request: Request) {
         } : null,
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching HubSpot conversations:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch conversations" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to fetch conversations", 500, error);
   }
 }

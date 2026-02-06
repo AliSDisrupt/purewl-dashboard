@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchHubSpotDealsByStage } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 // Helper function to parse date strings
 function parseDate(dateStr: string): Date {
@@ -142,11 +143,7 @@ export async function GET(request: Request) {
         end: end.toISOString(),
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching HubSpot deals by stage:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch deals by stage" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to fetch deals by stage", 500, error);
   }
 }

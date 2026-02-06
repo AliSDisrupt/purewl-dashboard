@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchHubSpotLineItems } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -9,10 +10,6 @@ export async function GET(request: Request) {
     const data = await fetchHubSpotLineItems(limit);
     return NextResponse.json({ lineItems: data });
   } catch (error) {
-    console.error("Error fetching HubSpot line items:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch HubSpot line items" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch HubSpot line items", 500, error);
   }
 }

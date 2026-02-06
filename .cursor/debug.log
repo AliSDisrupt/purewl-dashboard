@@ -1,0 +1,110 @@
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":2},"timestamp":1770211497370,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770211498136,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770211498137,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770211498117,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":2},"timestamp":1770211498120,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":2},"timestamp":1770211498121,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770211498124,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:finalMessageError","message":"finalMessage threw","data":{"err":"401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CXo6wZRmP7Vexok1MN2mn\"}"},"timestamp":1770211498482,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:streamCatch","message":"stream catch","data":{"err":"Invalid Anthropic API key. Please check ANTHROPIC_API_KEY in .env.local"},"timestamp":1770211498487,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770211498511,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770211498561,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":4},"timestamp":1770214019138,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770214019211,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770214019211,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770214019190,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":4},"timestamp":1770214019195,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":4},"timestamp":1770214019197,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770214019200,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:finalMessageError","message":"finalMessage threw","data":{"err":"401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_011CXoA9QGHfXRRaSUeJQ8La\"}"},"timestamp":1770214019565,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:streamCatch","message":"stream catch","data":{"err":"Invalid Anthropic API key. Please check ANTHROPIC_API_KEY in .env.local"},"timestamp":1770214019569,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770214019578,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770214019641,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":6},"timestamp":1770214709347,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770214709487,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770214709488,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770214709469,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":6},"timestamp":1770214709471,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":6},"timestamp":1770214709472,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770214709475,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"end_turn","contentLen":1},"timestamp":1770214713819,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770214713820,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770214713843,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770214713874,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":8},"timestamp":1770214745788,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770214745854,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770214745839,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770214745854,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":8},"timestamp":1770214745842,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":8},"timestamp":1770214745843,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770214745844,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"tool_use","contentLen":7},"timestamp":1770214751219,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770214850388,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770214850779,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770214850783,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":2},"timestamp":1770272068079,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770272069073,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770272069050,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770272069074,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":2},"timestamp":1770272069055,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":2},"timestamp":1770272069055,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770272069057,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"tool_use","contentLen":5},"timestamp":1770272073756,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770272082413,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770272082417,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770272082475,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":4},"timestamp":1770272240367,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770272240926,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770272240902,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770272240927,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":4},"timestamp":1770272240910,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":4},"timestamp":1770272240911,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770272240912,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"tool_use","contentLen":4},"timestamp":1770272244293,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770272298269,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770272298300,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770272298464,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":16},"timestamp":1770276079902,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770276080279,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770276080230,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770276080280,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":16},"timestamp":1770276080240,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":15},"timestamp":1770276080241,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770276080251,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"end_turn","contentLen":1},"timestamp":1770276083361,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770276083362,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770276083407,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770276083424,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":18},"timestamp":1770276099407,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770276099495,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770276099496,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770276099474,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":18},"timestamp":1770276099478,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":15},"timestamp":1770276099479,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770276099484,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"end_turn","contentLen":1},"timestamp":1770276102173,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770276102175,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770276102219,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770276102240,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":20},"timestamp":1770278627695,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770278628035,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770278628038,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770278627931,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":20},"timestamp":1770278627950,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":15},"timestamp":1770278627956,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770278627967,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"end_turn","contentLen":1},"timestamp":1770278631543,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770278631549,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770278631545,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770278631601,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:sendMessage","message":"fetch start","data":{"messageCount":22},"timestamp":1770278647029,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:afterFetch","message":"response received","data":{"ok":true,"status":200,"contentType":"text/event-stream"},"timestamp":1770278647132,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"ChatInterface.tsx:streamBranch","message":"entering stream branch","data":{"hasBody":true},"timestamp":1770278647133,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"route.ts:postEntry","message":"POST handler entered","data":{"accept":"text/event-stream"},"timestamp":1770278647098,"sessionId":"debug-session","hypothesisId":"H1"}
+{"location":"route.ts:afterJson","message":"request.json done","data":{"messageCount":22},"timestamp":1770278647105,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:streamStart","message":"stream branch entered","data":{"messageCount":15},"timestamp":1770278647106,"sessionId":"debug-session","hypothesisId":"H2"}
+{"location":"route.ts:beforeClaudeStream","message":"calling anthropic.messages.stream","data":{},"timestamp":1770278647110,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:afterFinalMessage","message":"finalMessage received","data":{"stopReason":"end_turn","contentLen":1},"timestamp":1770278650135,"sessionId":"debug-session","hypothesisId":"H3"}
+{"location":"route.ts:beforeEnqueueComplete","message":"about to enqueue complete","data":{"contentLen":1},"timestamp":1770278650138,"sessionId":"debug-session","hypothesisId":"H4"}
+{"location":"ChatInterface.tsx:completeEvent","message":"got complete event","data":{"hasContent":true},"timestamp":1770278650197,"sessionId":"debug-session","hypothesisId":"H5"}
+{"location":"ChatInterface.tsx:returnResult","message":"returning result","data":{"contentLength":1},"timestamp":1770278650202,"sessionId":"debug-session","hypothesisId":"H5"}

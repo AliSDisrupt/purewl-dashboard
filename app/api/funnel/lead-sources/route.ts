@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchGA4LeadSources } from "@/lib/mcp/ga4-campaigns";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -8,13 +9,8 @@ export async function GET(request: Request) {
     const endDate = searchParams.get("endDate") || "yesterday";
 
     const data = await fetchGA4LeadSources({ startDate, endDate });
-    
     return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("Error fetching lead sources:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch lead sources" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to fetch lead sources", 500, error);
   }
 }

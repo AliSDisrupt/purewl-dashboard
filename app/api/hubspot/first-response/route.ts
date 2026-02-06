@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchHubSpotEmails } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 // Helper function to parse date strings
 function parseDate(dateStr: string): Date {
@@ -117,11 +118,7 @@ export async function GET(request: Request) {
         },
       },
     });
-  } catch (error: any) {
-    console.error("Error calculating first response:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to calculate first response" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to calculate first response", 500, error);
   }
 }

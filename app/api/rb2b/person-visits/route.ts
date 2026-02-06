@@ -2,8 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import RB2BPersonVisit from "@/lib/db/models/RB2BPersonVisit";
 
+function isEmptyPayloadError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    !process.env.MONGODB_URI ||
+    msg.includes("MONGODB_URI is not defined") ||
+    msg.includes("MongoNetworkError") ||
+    msg.includes("MongoServerSelectionError") ||
+    msg.includes("connection") ||
+    msg.includes("ECONNREFUSED") ||
+    msg.includes("timed out")
+  );
+}
+
 // GET: Fetch RB2B person visits (aggregated visitors)
 export async function GET(request: NextRequest) {
+  if (!process.env.MONGODB_URI) {
+    const limit = parseInt(new URL(request.url).searchParams.get("limit") || "50", 10);
+    const offset = parseInt(new URL(request.url).searchParams.get("offset") || "0", 10);
+    return NextResponse.json({
+      personVisits: [],
+      total: 0,
+      limit,
+      offset,
+      hasMore: false,
+    });
+  }
+
   try {
     await connectDB();
 
@@ -63,10 +88,22 @@ export async function GET(request: NextRequest) {
       offset,
       hasMore: offset + limit < total,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching RB2B person visits:", error);
+    if (isEmptyPayloadError(error)) {
+      const { searchParams } = new URL(request.url);
+      const limit = parseInt(searchParams.get("limit") || "50", 10);
+      const offset = parseInt(searchParams.get("offset") || "0", 10);
+      return NextResponse.json({
+        personVisits: [],
+        total: 0,
+        limit,
+        offset,
+        hasMore: false,
+      });
+    }
     return NextResponse.json(
-      { error: error.message || "Failed to fetch person visits" },
+      { error: error instanceof Error ? error.message : "Failed to fetch person visits" },
       { status: 500 }
     );
   }
@@ -74,6 +111,12 @@ export async function GET(request: NextRequest) {
 
 // GET by identity_key: Get specific person visit
 export async function POST(request: NextRequest) {
+  if (!process.env.MONGODB_URI) {
+    return NextResponse.json(
+      { error: "Person visit not found" },
+      { status: 404 }
+    );
+  }
   try {
     await connectDB();
 
@@ -97,10 +140,16 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ personVisit });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching RB2B person visit:", error);
+    if (isEmptyPayloadError(error)) {
+      return NextResponse.json(
+        { error: "Person visit not found" },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(
-      { error: error.message || "Failed to fetch person visit" },
+      { error: error instanceof Error ? error.message : "Failed to fetch person visit" },
       { status: 500 }
     );
   }

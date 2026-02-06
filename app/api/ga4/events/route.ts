@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchGA4Events } from "@/lib/mcp/ga4-campaigns";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -10,10 +11,6 @@ export async function GET(request: Request) {
     const data = await fetchGA4Events({ startDate, endDate });
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching GA4 events:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch GA4 events data" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch GA4 events data", 500, error);
   }
 }

@@ -1,11 +1,11 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   createdAt: string;
   lastLoginAt?: string;
   loginHistory: Array<{
@@ -15,142 +15,150 @@ export interface User {
   }>;
 }
 
-const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
+const USERS_FILE = path.join(process.cwd(), "data", "users.json");
 
-// Ensure data directory exists
 function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), 'data');
+  const dataDir = path.join(process.cwd(), "data");
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 }
 
-// Load users from file
-export function loadUsers(): User[] {
+function loadUsersSync(): User[] {
   ensureDataDir();
-  if (!fs.existsSync(USERS_FILE)) {
-    return [];
-  }
+  if (!fs.existsSync(USERS_FILE)) return [];
   try {
-    const data = fs.readFileSync(USERS_FILE, 'utf-8');
+    const data = fs.readFileSync(USERS_FILE, "utf-8");
     return JSON.parse(data);
-  } catch (error) {
-    console.error('Error loading users:', error);
+  } catch {
     return [];
   }
 }
 
-// Save users to file
-export function saveUsers(users: User[]): void {
+function saveUsersSync(users: User[]): void {
   ensureDataDir();
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
-// Get user by ID or email
-export function getUserById(id: string): User | undefined {
-  const users = loadUsers();
-  return users.find(u => u.id === id);
+/** Use MongoDB when MONGODB_URI is set; otherwise fall back to file storage. */
+async function useMongo(): Promise<boolean> {
+  return !!process.env.MONGODB_URI;
 }
 
-export function getUserByEmail(email: string): User | undefined {
-  const users = loadUsers();
-  return users.find(u => u.email === email);
+export async function getUserById(id: string): Promise<User | undefined> {
+  if (await useMongo()) {
+    const mongo = await import("@/lib/storage/users-mongo");
+    return mongo.getUserById(id);
+  }
+  const users = loadUsersSync();
+  return users.find((u) => u.id === id);
 }
 
-// Create or update user
-export function upsertUser(user: Partial<User> & { id: string; email: string; name: string }): User {
-  const users = loadUsers();
-  const existing = users.find(u => u.id === user.id || u.email === user.email);
-  
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  if (await useMongo()) {
+    const mongo = await import("@/lib/storage/users-mongo");
+    return mongo.getUserByEmail(email);
+  }
+  const users = loadUsersSync();
+  return users.find((u) => u.email === email);
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  if (await useMongo()) {
+    const mongo = await import("@/lib/storage/users-mongo");
+    const list = await mongo.getAllUsers();
+    // One-time migration: if DB is empty but file has users, copy them over
+    if (list.length === 0) {
+      const fileUsers = loadUsersSync();
+      if (fileUsers.length > 0) {
+        for (const u of fileUsers) {
+          await mongo.upsertUser({
+            id: u.id,
+            email: u.email,
+            name: u.name,
+            role: u.role,
+            createdAt: u.createdAt,
+          });
+        }
+        return mongo.getAllUsers();
+      }
+    }
+    return list;
+  }
+  return loadUsersSync();
+}
+
+export async function upsertUser(
+  user: Partial<User> & { id: string; email: string; name: string }
+): Promise<User> {
+  if (await useMongo()) {
+    const mongo = await import("@/lib/storage/users-mongo");
+    return mongo.upsertUser(user);
+  }
+  const users = loadUsersSync();
+  const existing = users.find((u) => u.id === user.id || u.email === user.email);
   if (existing) {
-    // Update existing user
     Object.assign(existing, {
       ...user,
       loginHistory: existing.loginHistory || [],
     });
-    saveUsers(users);
+    saveUsersSync(users);
     return existing;
-  } else {
-    // Create new user
-    const newUser: User = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role || 'user',
-      createdAt: user.createdAt || new Date().toISOString(),
-      loginHistory: [],
-    };
-    users.push(newUser);
-    saveUsers(users);
-    return newUser;
   }
+  const newUser: User = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role || "user",
+    createdAt: user.createdAt || new Date().toISOString(),
+    loginHistory: [],
+  };
+  users.push(newUser);
+  saveUsersSync(users);
+  return newUser;
 }
 
-// Track login - only track if last login was more than 5 minutes ago
-export function trackLogin(userId: string, ip?: string, userAgent?: string): void {
-  const users = loadUsers();
-  const user = users.find(u => u.id === userId);
-  
-  if (user) {
-    const now = new Date();
-    const MIN_TIME_BETWEEN_LOGINS = 5 * 60 * 1000; // 5 minutes in milliseconds
-    
-    // Check if last login was recent (within 5 minutes)
-    if (user.lastLoginAt) {
-      const lastLoginTime = new Date(user.lastLoginAt);
-      const timeSinceLastLogin = now.getTime() - lastLoginTime.getTime();
-      
-      // If last login was less than 5 minutes ago, don't track this as a new login
-      if (timeSinceLastLogin < MIN_TIME_BETWEEN_LOGINS) {
-        return; // Skip tracking this login
-      }
-    }
-    
-    const loginEntry = {
-      timestamp: now.toISOString(),
-      ip,
-      userAgent,
-    };
-    
-    user.loginHistory = user.loginHistory || [];
-    user.loginHistory.unshift(loginEntry); // Add to beginning
-    
-    // Filter out duplicate logins that are too close together (within 5 minutes)
-    const uniqueLogins: typeof user.loginHistory = [];
-    for (const login of user.loginHistory) {
-      const loginTime = new Date(login.timestamp);
-      const isDuplicate = uniqueLogins.some(existing => {
-        const existingTime = new Date(existing.timestamp);
-        const timeDiff = Math.abs(loginTime.getTime() - existingTime.getTime());
-        return timeDiff < MIN_TIME_BETWEEN_LOGINS;
-      });
-      
-      if (!isDuplicate) {
-        uniqueLogins.push(login);
-      }
-    }
-    
-    user.loginHistory = uniqueLogins.slice(0, 10); // Keep last 10 unique logins
-    user.lastLoginAt = loginEntry.timestamp;
-    
-    saveUsers(users);
+export async function trackLogin(
+  userId: string,
+  ip?: string,
+  userAgent?: string
+): Promise<void> {
+  if (await useMongo()) {
+    const mongo = await import("@/lib/storage/users-mongo");
+    return mongo.trackLogin(userId, ip, userAgent);
   }
+  const users = loadUsersSync();
+  const user = users.find((u) => u.id === userId);
+  if (!user) return;
+  const now = new Date();
+  const MIN = 5 * 60 * 1000;
+  if (user.lastLoginAt && now.getTime() - new Date(user.lastLoginAt).getTime() < MIN) return;
+  const loginEntry = { timestamp: now.toISOString(), ip, userAgent };
+  user.loginHistory = user.loginHistory || [];
+  user.loginHistory.unshift(loginEntry);
+  const uniqueLogins: User["loginHistory"] = [];
+  for (const login of user.loginHistory) {
+    const t = new Date(login.timestamp).getTime();
+    const isDup = uniqueLogins.some((e) => Math.abs(new Date(e.timestamp).getTime() - t) < MIN);
+    if (!isDup) uniqueLogins.push(login);
+  }
+  user.loginHistory = uniqueLogins.slice(0, 10);
+  user.lastLoginAt = loginEntry.timestamp;
+  saveUsersSync(users);
 }
 
-// Update user role
-export function updateUserRole(userId: string, role: 'admin' | 'user'): boolean {
-  const users = loadUsers();
-  const user = users.find(u => u.id === userId);
-  
-  if (user) {
-    user.role = role;
-    saveUsers(users);
-    return true;
+export async function updateUserRole(
+  userId: string,
+  role: "admin" | "user"
+): Promise<boolean> {
+  if (await useMongo()) {
+    const mongo = await import("@/lib/storage/users-mongo");
+    return mongo.updateUserRole(userId, role);
   }
-  return false;
-}
-
-// Get all users
-export function getAllUsers(): User[] {
-  return loadUsers();
+  const users = loadUsersSync();
+  const user = users.find((u) => u.id === userId);
+  if (!user) return false;
+  user.role = role;
+  saveUsersSync(users);
+  return true;
 }

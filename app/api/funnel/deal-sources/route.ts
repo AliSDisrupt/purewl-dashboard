@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchHubSpotDeals } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 // Helper function to parse date strings
 function parseDate(dateStr: string): Date {
@@ -141,11 +142,7 @@ export async function GET(request: Request) {
         uniqueRevenueSources: revenueSources.length,
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching deal sources:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch deal sources" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError("Failed to fetch deal sources", 500, error);
   }
 }

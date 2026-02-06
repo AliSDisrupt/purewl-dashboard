@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   
-  // Debug logging for Railway (can be removed after confirming it works)
-  if (process.env.NODE_ENV === "production") {
+  // Debug logging only when explicitly enabled (e.g. DEBUG_MIDDLEWARE=1)
+  if (process.env.NODE_ENV === "production" && process.env.DEBUG_MIDDLEWARE === "1") {
     console.log("Middleware check:", {
       pathname,
       hasAuth: !!req.auth,
@@ -14,6 +14,15 @@ export default auth((req) => {
     });
   }
   
+  // Allow unauthenticated Atlas chat in dev when x-atlas-test header is set (for scripts/test-atlas-api.js)
+  if (
+    pathname === "/api/claude/chat" &&
+    process.env.NODE_ENV === "development" &&
+    req.headers.get("x-atlas-test") === "1"
+  ) {
+    return NextResponse.next();
+  }
+
   // Allow access to auth pages, API routes, and webhooks
   if (
     pathname.startsWith("/auth") ||

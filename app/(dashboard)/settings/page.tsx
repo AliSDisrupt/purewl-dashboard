@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 interface StatusData {
   claude: {
     configured: boolean;
+    adminKeyConfigured?: boolean;
     apiKey: string | null;
     connected: boolean;
     error: string | null;
@@ -185,7 +186,7 @@ export default function SettingsPage() {
                 <Zap className="h-5 w-5" />
                 Claude API Usage
               </CardTitle>
-              <CardDescription>Anthropic Claude API usage and costs (fetched from Admin API key)</CardDescription>
+              <CardDescription>Anthropic Claude API usage and costs (costs require ANTHROPIC_ADMIN_KEY)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -201,6 +202,46 @@ export default function SettingsPage() {
                   {data.claude.error}
                 </div>
               )}
+
+              {/* Summary: Total cost, Input, Output, Total tokens - always visible */}
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <h4 className="text-sm font-semibold text-muted-foreground mb-3">API usage summary</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total cost (USD)</p>
+                    <p className="text-xl font-bold">
+                      {data.claude.costs != null
+                        ? `$${data.claude.costs.totalCost.toFixed(2)}`
+                        : "—"}
+                    </p>
+                    {!data.claude.costs && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {data.claude.adminKeyConfigured
+                          ? "Cost data unavailable (API may not support cost report for this account)"
+                          : "Set ANTHROPIC_ADMIN_KEY for cost data"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Input tokens</p>
+                    <p className="text-xl font-bold">
+                      {(data.claude.usage.inputTokens ?? data.claude.usage.tokensUsed ?? 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Output tokens</p>
+                    <p className="text-xl font-bold">
+                      {(data.claude.usage.outputTokens ?? 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total tokens</p>
+                    <p className="text-xl font-bold">
+                      {(data.claude.usage.tokensUsed ?? 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -242,18 +283,14 @@ export default function SettingsPage() {
                   <p className="text-sm text-muted-foreground">Total Tokens</p>
                   <p className="text-2xl font-bold">{data.claude.usage.tokensUsed?.toLocaleString() || '0'}</p>
                 </div>
-                {data.claude.usage.inputTokens !== undefined && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Input Tokens</p>
-                    <p className="text-2xl font-bold">{data.claude.usage.inputTokens.toLocaleString()}</p>
-                  </div>
-                )}
-                {data.claude.usage.outputTokens !== undefined && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Output Tokens</p>
-                    <p className="text-2xl font-bold">{data.claude.usage.outputTokens.toLocaleString()}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm text-muted-foreground">Input Tokens</p>
+                  <p className="text-2xl font-bold">{(data.claude.usage.inputTokens ?? 0).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Output Tokens</p>
+                  <p className="text-2xl font-bold">{(data.claude.usage.outputTokens ?? 0).toLocaleString()}</p>
+                </div>
               </div>
 
               {data.claude.usage.cacheHitRate !== undefined && data.claude.usage.cacheHitRate > 0 && (

@@ -2,39 +2,25 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
+import { getEnvVar, getEnvVarRequired } from "@/lib/env";
 
 // Allowed email domains for Google OAuth
 const ALLOWED_DOMAINS = ["purevpn.com", "puresquare.com", "disrupt.com"];
 
-// Local admin credentials
-const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "DisruptPartnerships2026!",
-};
-
-// Helper function to strip quotes from env vars (Railway sometimes adds quotes)
-function getEnvVar(key: string): string | undefined {
-  const value = process.env[key];
-  if (!value) return undefined;
-  // Remove surrounding quotes if present
-  return value.replace(/^["']|["']$/g, '');
+// Local admin credentials (password from env in production)
+function getAdminCredentials() {
+  const password = process.env.ADMIN_PASSWORD ?? "DisruptPartnerships2026!";
+  return { username: "admin", password };
 }
 
-// Validate required environment variables
-const nextAuthSecret = getEnvVar("NEXTAUTH_SECRET");
-if (!nextAuthSecret) {
-  throw new Error("NEXTAUTH_SECRET is required. Please set it in your environment variables.");
-}
-
+const nextAuthSecret = getEnvVarRequired("NEXTAUTH_SECRET");
 const nextAuthUrl = getEnvVar("NEXTAUTH_URL");
 if (!nextAuthUrl) {
   console.warn("⚠️ NEXTAUTH_URL is not set. This may cause issues in production.");
 }
 
-// Validate Google OAuth credentials
 const googleClientId = getEnvVar("GOOGLE_CLIENT_ID");
 const googleClientSecret = getEnvVar("GOOGLE_CLIENT_SECRET");
-
 if (!googleClientId || !googleClientSecret) {
   console.warn("⚠️ Google OAuth credentials are missing. Google sign-in will not be available.");
 }
@@ -61,10 +47,10 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
-        // Check credentials
+        const admin = getAdminCredentials();
         if (
-          credentials.username === ADMIN_CREDENTIALS.username &&
-          credentials.password === ADMIN_CREDENTIALS.password
+          credentials.username === admin.username &&
+          credentials.password === admin.password
         ) {
           return {
             id: "admin",

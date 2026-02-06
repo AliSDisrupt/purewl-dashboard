@@ -5,31 +5,20 @@ import { fetchHubSpotDeals } from "@/lib/mcp/hubspot";
 import { getUsageStats } from "@/lib/usage-tracker";
 
 /**
- * Fetch Anthropic usage data directly from the API handler
- * This is called asynchronously and doesn't block other API tests
+ * Fetch Anthropic usage and cost directly (no HTTP self-request).
+ * Uses shared lib so we get cost data reliably when ANTHROPIC_ADMIN_KEY is set.
  */
-async function fetchAnthropicUsage() {
+async function fetchAnthropicUsageDirect(): Promise<{
+  success: true;
+  usage: { totalTokens: number; inputTokens: number; outputTokens: number; cachedInputTokens: number; cacheCreationTokens: number; byModel: Record<string, unknown> };
+  costs: { totalCost: number; tokenCosts: number; webSearchCosts: number; codeExecutionCosts: number; byModel: Record<string, unknown> } | null;
+  period: { startingAt: string; endingAt: string; daysBack: number } | null;
+  cacheHitRate: number;
+} | null> {
   try {
-    // Use absolute URL or construct from current request
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const url = `${baseUrl}/api/anthropic/usage?days=7`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Add a timeout to prevent blocking
-      signal: AbortSignal.timeout(5000), // 5 second timeout
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Usage API error: ${response.status}`);
-    }
-    
-    return await response.json();
+    const { fetchAnthropicUsageAndCost } = await import("@/lib/anthropic-usage-report");
+    return await fetchAnthropicUsageAndCost(7, "1d");
   } catch (error: any) {
-    // Silently fail - we'll use local tracking instead
     console.warn("Could not fetch Anthropic usage data (using local tracking):", error.message);
     return null;
   }
@@ -38,13 +27,16 @@ async function fetchAnthropicUsage() {
 export async function GET() {
   const usageStats = getUsageStats();
   
-  // Fetch real usage data from Anthropic API (non-blocking - don't wait if it fails)
-  // This runs in parallel with other API tests
-  const anthropicUsagePromise = fetchAnthropicUsage().catch(() => null);
+  // Fetch real usage data from Anthropic API (direct call, no self-request)
+  const anthropicUsagePromise = fetchAnthropicUsageDirect();
   
+  const adminKey = process.env.ANTHROPIC_ADMIN_KEY?.trim();
+  const adminKeyConfigured = !!(adminKey && adminKey.startsWith('sk-ant-admin'));
+
   const status = {
     claude: {
       configured: !!process.env.ANTHROPIC_API_KEY || !!process.env.ANTHROPIC_ADMIN_KEY,
+      adminKeyConfigured,
       apiKey: process.env.ANTHROPIC_API_KEY ? `${process.env.ANTHROPIC_API_KEY.substring(0, 10)}...` : 
                (process.env.ANTHROPIC_ADMIN_KEY ? `${process.env.ANTHROPIC_ADMIN_KEY.substring(0, 10)}...` : null),
       connected: false,

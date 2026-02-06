@@ -2,31 +2,32 @@
 
 import { Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from "react-markdown";
+import { AssistantMarkdown } from "./AssistantMarkdown";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
   toolCalls?: number;
   toolCallsInfo?: Array<{ name: string; status: string }>;
+  isStreaming?: boolean;
 }
 
-export function ChatMessage({ role, content, toolCalls, toolCallsInfo }: ChatMessageProps) {
+export function ChatMessage({ role, content, toolCalls, toolCallsInfo, isStreaming }: ChatMessageProps) {
   const isUser = role === "user";
 
   return (
     <div
       className={cn(
-        "flex gap-3 p-4 rounded-lg",
+        "flex gap-3 p-4 rounded-2xl shadow-sm",
         isUser
-          ? "bg-primary/10 ml-12"
-          : "bg-muted/50 mr-12"
+          ? "bg-primary/10 ml-10 rounded-br-md"
+          : "bg-muted/60 mr-10 rounded-bl-md border border-border/50"
       )}
     >
       <div
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted"
+          "flex shrink-0 items-center justify-center rounded-full",
+          isUser ? "h-9 w-9 bg-primary text-primary-foreground" : "h-9 w-9 bg-primary/15 text-primary"
         )}
       >
         {isUser ? (
@@ -35,45 +36,37 @@ export function ChatMessage({ role, content, toolCalls, toolCallsInfo }: ChatMes
           <Bot className="h-4 w-4" />
         )}
       </div>
-      <div className="flex-1 space-y-2">
-        <div className="text-sm font-medium">
+      <div className="flex-1 space-y-2 min-w-0">
+        <div className="text-sm font-medium text-foreground">
           {isUser ? "You" : "Atlas"}
         </div>
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          <ReactMarkdown
-            components={{
-              code: ({ node, ...props }) => (
-                <code
-                  className="bg-muted px-1 py-0.5 rounded text-xs"
-                  {...props}
-                />
-              ),
-              pre: ({ node, ...props }) => (
-                <pre
-                  className="bg-muted p-3 rounded-lg overflow-x-auto text-xs"
-                  {...props}
-                />
-              ),
-            }}
-          >
-            {content}
-          </ReactMarkdown>
+        <div className="text-sm leading-relaxed">
+          {isUser ? (
+            <div className="whitespace-pre-wrap break-words">{content}</div>
+          ) : (
+            <>
+              <AssistantMarkdown content={content} />
+              {isStreaming && (
+                <span className="inline-block w-2 h-4 ml-0.5 bg-primary animate-pulse rounded align-middle" aria-hidden />
+              )}
+            </>
+          )}
         </div>
         {toolCalls && toolCalls > 0 && (
-          <div className="text-xs text-muted-foreground mt-2 space-y-1">
-            <div>Used {toolCalls} tool{toolCalls > 1 ? "s" : ""}</div>
+          <div className="text-xs text-muted-foreground mt-3 pt-2 border-t border-border/50 space-y-2">
+            <div className="font-medium">Used {toolCalls} tool{toolCalls > 1 ? "s" : ""}</div>
             {toolCallsInfo && toolCallsInfo.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-1">
+              <div className="flex flex-wrap gap-2">
                 {toolCallsInfo.map((tool, idx) => (
                   <span
                     key={idx}
                     className={cn(
-                      "px-2 py-0.5 rounded text-xs",
+                      "inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium",
                       tool.status === "completed"
-                        ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                        ? "bg-green-500/20 text-green-700 dark:text-green-400"
                         : tool.status === "error"
-                        ? "bg-red-500/20 text-red-600 dark:text-red-400"
-                        : "bg-blue-500/20 text-blue-600 dark:text-blue-400"
+                        ? "bg-red-500/20 text-red-700 dark:text-red-400"
+                        : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
                     )}
                   >
                     {tool.name.replace(/_/g, " ")}

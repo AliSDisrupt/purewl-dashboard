@@ -1,321 +1,227 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CampaignsTable } from "@/components/linkedin/CampaignsTable";
 import { LinkedInMetrics } from "@/components/linkedin/LinkedInMetrics";
-import { GA4AdsMetrics } from "@/components/ads/GA4AdsMetrics";
 import { GoogleAdsMetrics } from "@/components/ads/GoogleAdsMetrics";
 import { RedditAdsMetrics } from "@/components/ads/RedditAdsMetrics";
-import { LinkedInAdsSummaryCards } from "@/components/ads/LinkedInAdsSummaryCards";
-import { CampaignPerformanceTable } from "@/components/ads/CampaignPerformanceTable";
-import { AdsTrendsChart } from "@/components/ads/AdsTrendsChart";
-import { LeadsPipelineSection } from "@/components/ads/LeadsPipelineSection";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
 
-// Default LinkedIn Ads Account: PureVPN - Partner & Enterprise Solutions
-const PUREVPN_ACCOUNT_ID = "514469053"; // PureVPN - Partner & Enterprise Solutions
-const PUREVPN_ACCOUNT_URN = `urn:li:sponsoredAccount:${PUREVPN_ACCOUNT_ID}`;
+// Date range helper functions (synced with DateRangePicker)
+const DATE_RANGE_KEY = "dashboard-date-range";
+const DATE_RANGE_TYPE_KEY = "dashboard-date-range-type";
+const CUSTOM_START_DATE_KEY = "dashboard-custom-start-date";
+const CUSTOM_END_DATE_KEY = "dashboard-custom-end-date";
+
+type DateRangeType = "preset" | "custom" | "today" | "yesterday";
+
+function getDateRangeFromStorage(): { startDate: string; endDate: string } {
+  if (typeof window === "undefined") {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    return {
+      startDate: start.toISOString().split("T")[0]!,
+      endDate: end.toISOString().split("T")[0]!,
+    };
+  }
+
+  const savedType = localStorage.getItem(DATE_RANGE_TYPE_KEY) as DateRangeType | null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (savedType === "today") {
+    const todayStr = format(today, "yyyy-MM-dd");
+    return { startDate: todayStr, endDate: todayStr };
+  }
+
+  if (savedType === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = format(yesterday, "yyyy-MM-dd");
+    return { startDate: yesterdayStr, endDate: yesterdayStr };
+  }
+
+  if (savedType === "custom") {
+    const savedStart = localStorage.getItem(CUSTOM_START_DATE_KEY);
+    const savedEnd = localStorage.getItem(CUSTOM_END_DATE_KEY);
+    if (savedStart && savedEnd) {
+      return {
+        startDate: format(new Date(savedStart), "yyyy-MM-dd"),
+        endDate: format(new Date(savedEnd), "yyyy-MM-dd"),
+      };
+    }
+  }
+
+  // Default to preset (last 30 days)
+  const savedDays = localStorage.getItem(DATE_RANGE_KEY);
+  const days = savedDays ? parseInt(savedDays) : 30;
+  const start = new Date(today);
+  start.setDate(start.getDate() - days);
+  return {
+    startDate: format(start, "yyyy-MM-dd"),
+    endDate: format(today, "yyyy-MM-dd"),
+  };
+}
+
+// Convert YYYY-MM-DD to format expected by API (30daysAgo, yesterday, or YYYY-MM-DD)
+function formatDateForAPI(date: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dateObj = new Date(date);
+  dateObj.setHours(0, 0, 0, 0);
+  
+  if (dateObj.getTime() === today.getTime()) {
+    return "today";
+  }
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (dateObj.getTime() === yesterday.getTime()) {
+    return "yesterday";
+  }
+  
+  const daysDiff = Math.ceil((today.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysDiff > 0 && daysDiff <= 365) {
+    return `${daysDiff}daysAgo`;
+  }
+  
+  return date;
+}
 
 // Fetch functions
-async function fetchLinkedInAccounts() {
-  const res = await fetch("/api/linkedin/accounts");
-  if (!res.ok) throw new Error("Failed to fetch LinkedIn accounts");
-  return res.json();
-}
-
-async function fetchLinkedInAccountsDetail() {
-  const res = await fetch("/api/linkedin/accounts-detail");
-  if (!res.ok) throw new Error("Failed to fetch LinkedIn accounts detail");
-  return res.json();
-}
-
-async function fetchLinkedInCampaigns(accountId: string) {
-  const res = await fetch(`/api/linkedin/campaigns?accountId=${encodeURIComponent(accountId)}&includeAnalytics=true`);
-  if (!res.ok) throw new Error("Failed to fetch LinkedIn campaigns");
-  return res.json();
-}
-
-async function fetchLinkedInAnalytics(accountId: string, daysBack: number = 30) {
-  const res = await fetch(`/api/linkedin/analytics?accountId=${encodeURIComponent(accountId)}&daysBack=${daysBack}`);
-  if (!res.ok) throw new Error("Failed to fetch LinkedIn analytics");
-  return res.json();
-}
-
-async function fetchGA4Ads(startDate: string, endDate: string) {
-  const res = await fetch(`/api/ga4/ads?startDate=${startDate}&endDate=${endDate}`);
-  if (!res.ok) throw new Error("Failed to fetch GA4 ads data");
-  return res.json();
-}
-
-async function fetchGoogleAds(startDate: string, endDate: string) {
-  const res = await fetch(`/api/google-ads?startDate=${startDate}&endDate=${endDate}`);
+async function fetchWindsorAIGoogleAds(startDate: string, endDate: string, accountName?: string) {
+  const accountParam = accountName ? `&accountName=${encodeURIComponent(accountName)}` : "";
+  const res = await fetch(`/api/windsor-ai/google-ads?startDate=${startDate}&endDate=${endDate}${accountParam}`);
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Failed to fetch Google Ads data");
+    throw new Error(error.message || "Failed to fetch Windsor AI Google Ads data");
   }
   return res.json();
 }
 
-async function fetchRedditAds(startDate: string, endDate: string) {
-  const res = await fetch(`/api/reddit-ads?startDate=${startDate}&endDate=${endDate}`);
+async function fetchWindsorAIRedditAds(startDate: string, endDate: string, accountName?: string) {
+  const accountParam = accountName ? `&accountName=${encodeURIComponent(accountName)}` : "";
+  const url = `/api/windsor-ai/reddit-ads?startDate=${startDate}&endDate=${endDate}${accountParam}`;
+  console.log("Fetching Reddit Ads from:", url);
+  const res = await fetch(url);
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Failed to fetch Reddit Ads data");
+    console.error("Reddit Ads API Error:", error);
+    // Include details in error message if available
+    const errorMsg = error.error || error.message || "Failed to fetch Windsor AI Reddit Ads data";
+    const detailsMsg = error.details ? ` Details: ${typeof error.details === 'string' ? error.details : JSON.stringify(error.details)}` : "";
+    throw new Error(`${errorMsg}${detailsMsg}`);
   }
-  return res.json();
+  const data = await res.json();
+  console.log("Reddit Ads API Response:", { 
+    hasData: !!data, 
+    campaignsCount: data.campaigns?.length || 0,
+    summary: data.summary 
+  });
+  return data;
 }
 
-async function fetchHubSpotLinkedInAds(daysBack: number = 30) {
-  const res = await fetch(`/api/hubspot/linkedin-ads?daysBack=${daysBack}`);
+async function fetchWindsorAILinkedInAds(startDate: string, endDate: string, accountName?: string) {
+  const accountParam = accountName ? `&accountName=${encodeURIComponent(accountName)}` : "";
+  const res = await fetch(`/api/windsor-ai/linkedin-ads?startDate=${startDate}&endDate=${endDate}${accountParam}`);
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message || "Failed to fetch HubSpot LinkedIn Ads data");
+    throw new Error(error.message || "Failed to fetch Windsor AI LinkedIn Ads data");
   }
   return res.json();
 }
 
 export default function AdsPage() {
-  const [linkedInDaysBack, setLinkedInDaysBack] = useState(30);
-
-  // Fetch HubSpot LinkedIn Ads data
-  const {
-    data: hubSpotLinkedInData,
-    isLoading: hubSpotLinkedInLoading,
-    refetch: refetchHubSpotLinkedIn,
-  } = useQuery({
-    queryKey: ["hubspot-linkedin-ads", linkedInDaysBack],
-    queryFn: () => fetchHubSpotLinkedInAds(linkedInDaysBack),
-    refetchInterval: 300000, // Refresh every 5 minutes
-  });
-
-  // Fetch accounts with detailed info to see which has activity
-  const { data: accountsDetailData, isLoading: accountsLoading, refetch: refetchAccounts } = useQuery({
-    queryKey: ["linkedin-accounts-detail"],
-    queryFn: fetchLinkedInAccountsDetail,
-    refetchInterval: 300000, // Refresh every 5 minutes
-  });
-
-  // Find PureVPN - Partner & Enterprise Solutions account (by ID or name)
-  const purevpnAccount = accountsDetailData?.accounts?.find(
-    (acc: any) =>
-      acc.simpleId === PUREVPN_ACCOUNT_ID ||
-      acc.id === PUREVPN_ACCOUNT_URN ||
-      acc.name?.toLowerCase().includes("purevpn") && acc.name?.toLowerCase().includes("partner") ||
-      acc.name?.toLowerCase().includes("enterprise solutions")
+  // Get date range from localStorage (synced with DateRangePicker)
+  const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string }>(() => 
+    getDateRangeFromStorage()
   );
 
-  // Also show all accounts with activity for debugging
-  const accountsWithActivity = accountsDetailData?.accounts?.filter(
-    (acc: any) => acc.hasData && acc.analytics && (acc.analytics.impressions > 0 || acc.analytics.clicks > 0)
-  ) || [];
+  // Listen for date range changes
+  useEffect(() => {
+    const handleDateRangeChange = () => {
+      setDateRange(getDateRangeFromStorage());
+    };
 
-  const accountId = purevpnAccount?.id || PUREVPN_ACCOUNT_URN;
+    window.addEventListener("storage", handleDateRangeChange);
+    window.addEventListener("dateRangeChange", handleDateRangeChange);
+    
+    // Also check on mount and periodically
+    const interval = setInterval(() => {
+      const newRange = getDateRangeFromStorage();
+      if (newRange.startDate !== dateRange.startDate || newRange.endDate !== dateRange.endDate) {
+        setDateRange(newRange);
+      }
+    }, 1000);
 
-  // Fetch campaigns for PureVPN - Partner & Enterprise Solutions account
-  const { data: campaignsData, isLoading: campaignsLoading } = useQuery({
-    queryKey: ["linkedin-campaigns", accountId],
-    queryFn: () => fetchLinkedInCampaigns(accountId),
-    enabled: !!accountId,
-    refetchInterval: 300000,
-  });
+    return () => {
+      window.removeEventListener("storage", handleDateRangeChange);
+      window.removeEventListener("dateRangeChange", handleDateRangeChange);
+      clearInterval(interval);
+    };
+  }, [dateRange.startDate, dateRange.endDate]);
 
-  // Fetch analytics for PureVPN - Partner & Enterprise Solutions account
-  const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
-    queryKey: ["linkedin-analytics", accountId],
-    queryFn: () => fetchLinkedInAnalytics(accountId, 30),
-    enabled: !!accountId,
-    refetchInterval: 300000,
-  });
-
-  const campaigns = campaignsData?.campaigns || [];
+  const { startDate, endDate } = dateRange;
   
-  // Calculate metrics from campaign-level analytics if account-level shows no data
-  // Use full metrics object from analyticsData if available, otherwise create default with all fields
-  let metrics = analyticsData?.metrics || {
+  const {
+    data: windsorAILinkedInData,
+    isLoading: windsorAILinkedInLoading,
+    error: windsorAILinkedInError,
+  } = useQuery({
+    queryKey: ["windsor-ai-linkedin-ads", startDate, endDate, "PureVPN - Partner & Enterprise Solution"],
+    queryFn: () => fetchWindsorAILinkedInAds(startDate, endDate, "PureVPN - Partner & Enterprise Solution"),
+    refetchInterval: 300000, // Refresh every 5 minutes
+  });
+
+  // Fetch all LinkedIn campaigns (including inactive) from LinkedIn API
+  const LINKEDIN_ACCOUNT_ID = "514469053"; // PureVPN - Partner & Enterprise Solutions
+  const LINKEDIN_ACCOUNT_URN = `urn:li:sponsoredAccount:${LINKEDIN_ACCOUNT_ID}`;
+  
+  const {
+    data: linkedInCampaignsData,
+    isLoading: linkedInCampaignsLoading,
+  } = useQuery({
+    queryKey: ["linkedin-campaigns-all", LINKEDIN_ACCOUNT_ID],
+    queryFn: async () => {
+      const res = await fetch(`/api/linkedin/campaigns?accountId=${encodeURIComponent(LINKEDIN_ACCOUNT_URN)}&includeAnalytics=true`);
+      if (!res.ok) throw new Error("Failed to fetch LinkedIn campaigns");
+      return res.json();
+    },
+    refetchInterval: 300000,
+  });
+
+  // Prepare metrics from Windsor AI LinkedIn data
+  const metrics = windsorAILinkedInData?.metrics || {
     impressions: 0,
     clicks: 0,
     spend: 0,
     conversions: 0,
-    totalEngagements: 0,
-    likes: 0,
-    comments: 0,
-    shares: 0,
-    reactions: 0,
-    follows: 0,
-    companyPageClicks: 0,
-    landingPageClicks: 0,
-    externalWebsiteConversions: 0,
-    externalWebsitePostClickConversions: 0,
-    externalWebsitePostViewConversions: 0,
-    oneClickLeads: 0,
-    qualifiedLeads: 0,
-    validWorkEmailLeads: 0,
-    videoStarts: 0,
-    videoViews: 0,
-    videoCompletions: 0,
-    conversionValueInLocalCurrency: 0,
-    sends: 0,
-    opens: 0,
-    replies: 0,
-    clicksOnSend: 0,
-    jobApplies: 0,
-    jobViews: 0,
-    jobSaves: 0,
-    textUrlClicks: 0,
-    cardClicks: 0,
-    cardImpressions: 0,
     ctr: 0,
     cpc: 0,
     cpm: 0,
-    costPerConversion: 0,
   };
-  
-  // If account-level has no data, aggregate from campaign-level analytics
-  if (!analyticsData?.hasData && campaigns.length > 0) {
-    const campaignMetrics = campaigns.reduce((acc: any, campaign: any) => {
-      if (campaign.analytics) {
-        // Core metrics
-        acc.impressions += campaign.analytics.impressions || 0;
-        acc.clicks += campaign.analytics.clicks || 0;
-        acc.spend += campaign.analytics.spend || 0;
-        acc.conversions += campaign.analytics.conversions || 0;
-        
-        // Engagement metrics
-        acc.totalEngagements = (acc.totalEngagements || 0) + (campaign.analytics.totalEngagements || 0);
-        acc.likes = (acc.likes || 0) + (campaign.analytics.likes || 0);
-        acc.comments = (acc.comments || 0) + (campaign.analytics.comments || 0);
-        acc.shares = (acc.shares || 0) + (campaign.analytics.shares || 0);
-        acc.reactions = (acc.reactions || 0) + (campaign.analytics.reactions || 0);
-        acc.follows = (acc.follows || 0) + (campaign.analytics.follows || 0);
-        acc.companyPageClicks = (acc.companyPageClicks || 0) + (campaign.analytics.companyPageClicks || 0);
-        acc.landingPageClicks = (acc.landingPageClicks || 0) + (campaign.analytics.landingPageClicks || 0);
-        
-        // Conversion metrics
-        acc.externalWebsiteConversions = (acc.externalWebsiteConversions || 0) + (campaign.analytics.externalWebsiteConversions || 0);
-        acc.externalWebsitePostClickConversions = (acc.externalWebsitePostClickConversions || 0) + (campaign.analytics.externalWebsitePostClickConversions || 0);
-        acc.externalWebsitePostViewConversions = (acc.externalWebsitePostViewConversions || 0) + (campaign.analytics.externalWebsitePostViewConversions || 0);
-        acc.oneClickLeads = (acc.oneClickLeads || 0) + (campaign.analytics.oneClickLeads || 0);
-        acc.qualifiedLeads = (acc.qualifiedLeads || 0) + (campaign.analytics.qualifiedLeads || 0);
-        acc.validWorkEmailLeads = (acc.validWorkEmailLeads || 0) + (campaign.analytics.validWorkEmailLeads || 0);
-        acc.conversionValueInLocalCurrency = (acc.conversionValueInLocalCurrency || 0) + (campaign.analytics.conversionValueInLocalCurrency || 0);
-        
-        // Video metrics
-        acc.videoStarts = (acc.videoStarts || 0) + (campaign.analytics.videoStarts || 0);
-        acc.videoViews = (acc.videoViews || 0) + (campaign.analytics.videoViews || 0);
-        acc.videoCompletions = (acc.videoCompletions || 0) + (campaign.analytics.videoCompletions || 0);
-        
-        // Messaging metrics
-        acc.sends = (acc.sends || 0) + (campaign.analytics.sends || 0);
-        acc.opens = (acc.opens || 0) + (campaign.analytics.opens || 0);
-        acc.replies = (acc.replies || 0) + (campaign.analytics.replies || 0);
-        acc.clicksOnSend = (acc.clicksOnSend || 0) + (campaign.analytics.clicksOnSend || 0);
-        
-        // Job ad metrics
-        acc.jobApplies = (acc.jobApplies || 0) + (campaign.analytics.jobApplies || 0);
-        acc.jobViews = (acc.jobViews || 0) + (campaign.analytics.jobViews || 0);
-        acc.jobSaves = (acc.jobSaves || 0) + (campaign.analytics.jobSaves || 0);
-        
-        // Additional click metrics
-        acc.textUrlClicks = (acc.textUrlClicks || 0) + (campaign.analytics.textUrlClicks || 0);
-        acc.cardClicks = (acc.cardClicks || 0) + (campaign.analytics.cardClicks || 0);
-        acc.cardImpressions = (acc.cardImpressions || 0) + (campaign.analytics.cardImpressions || 0);
-      }
-      return acc;
-    }, {
-      impressions: 0,
-      clicks: 0,
-      spend: 0,
-      conversions: 0,
-      totalEngagements: 0,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      reactions: 0,
-      follows: 0,
-      companyPageClicks: 0,
-      landingPageClicks: 0,
-      externalWebsiteConversions: 0,
-      externalWebsitePostClickConversions: 0,
-      externalWebsitePostViewConversions: 0,
-      oneClickLeads: 0,
-      qualifiedLeads: 0,
-      validWorkEmailLeads: 0,
-      videoStarts: 0,
-      videoViews: 0,
-      videoCompletions: 0,
-      conversionValueInLocalCurrency: 0,
-      sends: 0,
-      opens: 0,
-      replies: 0,
-      clicksOnSend: 0,
-      jobApplies: 0,
-      jobViews: 0,
-      jobSaves: 0,
-      textUrlClicks: 0,
-      cardClicks: 0,
-      cardImpressions: 0,
-    });
-    
-    // Calculate derived metrics
-    campaignMetrics.ctr = campaignMetrics.impressions > 0 
-      ? (campaignMetrics.clicks / campaignMetrics.impressions) * 100 
-      : 0;
-    campaignMetrics.cpc = campaignMetrics.clicks > 0 
-      ? campaignMetrics.spend / campaignMetrics.clicks 
-      : 0;
-    campaignMetrics.cpm = campaignMetrics.impressions > 0 
-      ? (campaignMetrics.spend / campaignMetrics.impressions) * 1000 
-      : 0;
-    campaignMetrics.costPerConversion = campaignMetrics.externalWebsiteConversions > 0 
-      ? campaignMetrics.spend / campaignMetrics.externalWebsiteConversions 
-      : 0;
-    
-    // Use campaign metrics if they have any data
-    if (campaignMetrics.impressions > 0 || campaignMetrics.clicks > 0 || campaignMetrics.spend > 0) {
-      metrics = campaignMetrics;
-    }
-  }
-  
-  // Check if we have data from either account-level or campaign-level
-  const hasAccountData = analyticsData?.hasData || false;
-  const hasCampaignData = campaigns.some((c: any) => 
-    c.analytics && (c.analytics.impressions > 0 || c.analytics.clicks > 0 || c.analytics.spend > 0)
-  );
-  const hasActiveCampaigns = campaigns.some((c: any) => 
-    c.status === "ACTIVE" || c.status === "RUNNING"
-  );
-  const activeCampaignsCount = campaigns.filter((c: any) => 
-    c.status === "ACTIVE" || c.status === "RUNNING"
-  ).length;
-  
-  // Show data if we have account data, campaign data, or active campaigns
-  const hasData = hasAccountData || hasCampaignData || hasActiveCampaigns;
 
-  // Fetch GA4 Ads data (Reddit + FluentForm)
-  const { data: ga4AdsData, isLoading: ga4AdsLoading } = useQuery({
-    queryKey: ["ga4-ads"],
-    queryFn: () => fetchGA4Ads("30daysAgo", "yesterday"),
+  // Fetch Google Ads data (Windsor AI only)
+  const { data: windsorAIGoogleAdsData, isLoading: windsorAIGoogleAdsLoading, error: windsorAIGoogleAdsError } = useQuery({
+    queryKey: ["windsor-ai-google-ads", startDate, endDate, "PureVPN B2B - Business VPN"],
+    queryFn: () => fetchWindsorAIGoogleAds(formatDateForAPI(startDate), formatDateForAPI(endDate), "PureVPN B2B - Business VPN"),
     refetchInterval: 300000,
+    retry: false,
   });
 
-  // Fetch Google Ads data
-  const { data: googleAdsData, isLoading: googleAdsLoading, error: googleAdsError } = useQuery({
-    queryKey: ["google-ads"],
-    queryFn: () => fetchGoogleAds("30daysAgo", "yesterday"),
+  // Fetch Reddit Ads data (Windsor AI only)
+  // Using "admin_PureWL" as account name (matches Windsor AI dashboard)
+  const { data: windsorAIRedditAdsData, isLoading: windsorAIRedditLoading, error: windsorAIRedditError } = useQuery({
+    queryKey: ["windsor-ai-reddit-ads", startDate, endDate, "admin_PureWL"],
+    queryFn: () => fetchWindsorAIRedditAds(formatDateForAPI(startDate), formatDateForAPI(endDate), "admin_PureWL"),
     refetchInterval: 300000,
-    retry: false, // Don't retry if OAuth is not configured
-  });
-
-  // Fetch Reddit Ads data
-  const { data: redditAdsData, isLoading: redditAdsLoading, error: redditAdsError } = useQuery({
-    queryKey: ["reddit-ads"],
-    queryFn: () => fetchRedditAds("30daysAgo", "yesterday"),
-    refetchInterval: 300000,
+    retry: false,
   });
 
   return (
@@ -328,192 +234,150 @@ export default function AdsPage() {
         </p>
       </div>
 
-      {/* Account Info */}
-      {accountsLoading ? (
-        <Card>
-          <CardContent className="py-8">
-            <p className="text-muted-foreground text-center">Loading account information...</p>
-          </CardContent>
-        </Card>
-      ) : purevpnAccount ? (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  {purevpnAccount.name}
-                </CardTitle>
-                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                  <span>Account ID: {purevpnAccount.simpleId}</span>
-                  <span>•</span>
-                  <span>Total Campaigns: {purevpnAccount.totalCampaigns || 0}</span>
-                  <span>•</span>
-                  <span>Active Campaigns: {purevpnAccount.activeCampaigns || 0}</span>
-                  {purevpnAccount.hasData && (
-                    <>
-                      <span>•</span>
-                      <span className="text-green-500">Has Activity</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchAccounts()}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-            </div>
-          </CardHeader>
-          {purevpnAccount.analytics && (
-            <CardContent>
-              <div className="text-sm text-muted-foreground">
-                Last 30 days: {purevpnAccount.analytics.impressions || 0} impressions, {purevpnAccount.analytics.clicks || 0} clicks, ${(purevpnAccount.analytics.spend || 0).toFixed(2)} spent
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="py-8">
-            <div className="flex items-center gap-2 text-yellow-500">
-              <AlertCircle className="h-4 w-4" />
-              <p className="text-sm">
-                PureVPN - Partner & Enterprise Solutions account not found. Using account ID: {PUREVPN_ACCOUNT_ID}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Debug: Show accounts with activity */}
-      {accountsWithActivity.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Accounts with Activity (Last 30 Days)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {accountsWithActivity.map((acc: any) => (
-                <div key={acc.id} className="p-3 rounded-lg border border-border bg-muted/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{acc.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        ID: {acc.simpleId} • {acc.activeCampaigns} active campaigns
-                      </div>
-                    </div>
-                    <div className="text-right text-sm">
-                      <div>Impressions: {acc.analytics?.impressions || 0}</div>
-                      <div>Clicks: {acc.analytics?.clicks || 0}</div>
-                      <div>Spend: ${(acc.analytics?.spend || 0).toFixed(2)}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Tabs for different ad sources */}
-      <Tabs defaultValue="hubspot-linkedin" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="hubspot-linkedin">
-            LinkedIn (HubSpot)
-          </TabsTrigger>
-          <TabsTrigger value="linkedin">
-            LinkedIn Ads
-          </TabsTrigger>
+      <Tabs defaultValue="google" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="google">
             Google Ads
           </TabsTrigger>
           <TabsTrigger value="reddit">
             Reddit Ads
           </TabsTrigger>
-          <TabsTrigger value="ga4">
-            GA4 Ads (Reddit & FluentForm)
+          <TabsTrigger value="linkedin">
+            LinkedIn Ads
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="linkedin" className="mt-6 space-y-6">
-          {/* LinkedIn Metrics - Always show, display all metrics */}
-          <LinkedInMetrics
-            metrics={metrics}
-            isLoading={analyticsLoading}
-            hasData={hasAccountData || hasCampaignData || hasActiveCampaigns}
-            dateRange="Last 30 days"
-          />
-
-          {/* Show message if we have active campaigns but no analytics data yet */}
-          {hasActiveCampaigns && !hasAccountData && !hasCampaignData && (
+          {windsorAILinkedInError && !windsorAILinkedInData ? (
             <Card>
-              <CardHeader>
-                <CardTitle>Active Campaigns Detected</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  You have {activeCampaignsCount} active campaign(s), 
-                  but no analytics data is available for the last 30 days. This could mean:
+              <CardContent className="py-8">
+                <div className="flex items-center gap-2 text-destructive mb-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <p className="font-medium">LinkedIn Ads Data Unavailable</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {windsorAILinkedInError instanceof Error ? windsorAILinkedInError.message : "Failed to fetch LinkedIn Ads data from Windsor AI"}
                 </p>
-                <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
-                  <li>Campaigns were recently activated and haven't generated data yet</li>
-                  <li>Campaigns are active but haven't received impressions/clicks in this period</li>
-                  <li>Analytics data may be delayed (check back in a few hours)</li>
-                </ul>
+              </CardContent>
+            </Card>
+          ) : windsorAILinkedInData ? (
+            <>
+              {windsorAILinkedInData.note && (
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">🔗 Windsor AI</Badge>
+                      <p className="text-sm text-muted-foreground">{windsorAILinkedInData.note}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              <LinkedInMetrics
+                metrics={metrics}
+                isLoading={windsorAILinkedInLoading}
+                hasData={!!windsorAILinkedInData && (windsorAILinkedInData.summary?.totalClicks > 0 || windsorAILinkedInData.summary?.totalSpend > 0)}
+                dateRange={`${format(new Date(startDate), "MMM d")} - ${format(new Date(endDate), "MMM d")}`}
+              />
+              {/* Show all campaigns from LinkedIn API, merged with Windsor AI performance data */}
+              {linkedInCampaignsData?.campaigns && linkedInCampaignsData.campaigns.length > 0 ? (
+                <CampaignsTable
+                  campaigns={linkedInCampaignsData.campaigns.map((c: any) => {
+                    // Try to find matching Windsor AI campaign data by name
+                    const windsorCampaign = windsorAILinkedInData?.campaigns?.find(
+                      (wc: any) => wc.name?.toLowerCase() === c.name?.toLowerCase()
+                    );
+                    
+                    // Use Windsor AI data if available, otherwise use LinkedIn API analytics
+                    const analytics = windsorCampaign ? {
+                      impressions: windsorCampaign.impressions || 0,
+                      clicks: windsorCampaign.clicks || 0,
+                      spend: windsorCampaign.spend || 0,
+                      conversions: windsorCampaign.conversions || 0,
+                      ctr: windsorCampaign.ctr || 0,
+                      cpc: windsorCampaign.cpc || 0,
+                    } : c.analytics || {
+                      impressions: 0,
+                      clicks: 0,
+                      spend: 0,
+                      conversions: 0,
+                    };
+                    
+                    return {
+                      id: c.id,
+                      name: c.name,
+                      status: c.status,
+                      objective: c.objective || "",
+                      createdAt: c.createdAt || "",
+                      accountId: c.accountId || LINKEDIN_ACCOUNT_ID,
+                      accountName: c.accountName || "PureVPN - Partner & Enterprise Solutions",
+                      analytics,
+                    };
+                  })}
+                  isLoading={windsorAILinkedInLoading || linkedInCampaignsLoading}
+                />
+              ) : windsorAILinkedInData?.campaigns && windsorAILinkedInData.campaigns.length > 0 ? (
+                // Fallback to Windsor AI campaigns if LinkedIn API is not available
+                <CampaignsTable
+                  campaigns={windsorAILinkedInData.campaigns.map((c: any) => ({
+                    id: c.id,
+                    name: c.name,
+                    status: c.status,
+                    objective: "",
+                    createdAt: "",
+                    accountId: LINKEDIN_ACCOUNT_ID,
+                    accountName: "PureVPN - Partner & Enterprise Solutions",
+                    analytics: {
+                      impressions: c.impressions,
+                      clicks: c.clicks,
+                      spend: c.spend,
+                      conversions: c.conversions,
+                      ctr: c.ctr,
+                      cpc: c.cpc,
+                    },
+                  }))}
+                  isLoading={windsorAILinkedInLoading}
+                />
+              ) : null}
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-8">
+                <p className="text-muted-foreground text-center">
+                  {windsorAILinkedInLoading
+                    ? "Loading LinkedIn Ads data..."
+                    : "No LinkedIn Ads data available"}
+                </p>
               </CardContent>
             </Card>
           )}
-
-          {/* LinkedIn Campaigns - Always show campaigns */}
-          <CampaignsTable
-            campaigns={campaigns}
-            isLoading={campaignsLoading}
-          />
         </TabsContent>
 
         <TabsContent value="google" className="mt-6">
-          {googleAdsError ? (
+          {windsorAIGoogleAdsError && !windsorAIGoogleAdsData ? (
             <Card>
               <CardContent className="py-8">
-                <div className="flex items-center gap-2 text-yellow-500 mb-2">
+                <div className="flex items-center gap-2 text-destructive mb-2">
                   <AlertCircle className="h-4 w-4" />
-                  <p className="font-medium">Google Ads API Setup Required</p>
+                  <p className="font-medium">Google Ads Data Unavailable</p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {googleAdsError instanceof Error
-                    ? googleAdsError.message
-                    : "Google Ads OAuth credentials not configured"}
+                  {windsorAIGoogleAdsError instanceof Error ? windsorAIGoogleAdsError.message : "Failed to fetch Google Ads data from Windsor AI"}
                 </p>
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                  <p className="text-sm font-medium mb-2">To enable Google Ads:</p>
-                  <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
-                    <li>Create OAuth 2.0 credentials in Google Cloud Console</li>
-                    <li>Add the service account to your Google Ads account (840-576-7621)</li>
-                    <li>Add these to .env.local:
-                      <ul className="list-disc list-inside ml-4 mt-1">
-                        <li>GOOGLE_ADS_CLIENT_ID</li>
-                        <li>GOOGLE_ADS_CLIENT_SECRET</li>
-                        <li>GOOGLE_ADS_REFRESH_TOKEN</li>
-                      </ul>
-                    </li>
-                  </ol>
-                </div>
               </CardContent>
             </Card>
-          ) : googleAdsData ? (
+          ) : windsorAIGoogleAdsData ? (
             <GoogleAdsMetrics
-              data={googleAdsData}
-              isLoading={googleAdsLoading}
+              data={windsorAIGoogleAdsData}
+              isLoading={windsorAIGoogleAdsLoading}
             />
           ) : (
             <Card>
               <CardContent className="py-8">
                 <p className="text-muted-foreground text-center">
-                  {googleAdsLoading ? "Loading Google Ads data..." : "No Google Ads data available"}
+                  {windsorAIGoogleAdsLoading
+                    ? "Loading Google Ads data..."
+                    : "No Google Ads data available"}
                 </p>
               </CardContent>
             </Card>
@@ -521,135 +385,66 @@ export default function AdsPage() {
         </TabsContent>
 
         <TabsContent value="reddit" className="mt-6">
-          {redditAdsError ? (
+          {windsorAIRedditLoading ? (
             <Card>
-              <CardContent className="py-8">
-                <div className="flex items-center gap-2 text-red-500 mb-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <p className="font-medium">Error Loading Reddit Ads</p>
+              <CardContent className="py-12">
+                <div className="text-center text-muted-foreground">
+                  Loading Reddit Ads data...
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {redditAdsError instanceof Error
-                    ? redditAdsError.message
-                    : "Failed to fetch Reddit Ads data"}
-                </p>
               </CardContent>
             </Card>
-          ) : redditAdsData ? (
+          ) : windsorAIRedditError && !windsorAIRedditAdsData ? (
+            <Card>
+              <CardContent className="py-8">
+                <div className="flex items-center gap-2 text-destructive mb-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <p className="font-medium">Reddit Ads Data Unavailable</p>
+                </div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {windsorAIRedditError instanceof Error ? windsorAIRedditError.message : "Failed to fetch Reddit Ads data from Windsor AI"}
+                </p>
+                {windsorAIRedditError instanceof Error && windsorAIRedditError.message.includes("400") && (
+                  <div className="mt-3 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <p className="text-xs font-medium mb-1 text-yellow-600 dark:text-yellow-400">400 Bad Request Error</p>
+                    <p className="text-xs text-muted-foreground">
+                      This usually means:
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>One or more field names are invalid for Reddit Ads</li>
+                        <li>The date_preset format might be incorrect</li>
+                        <li>The API key might not have access to Reddit Ads data</li>
+                      </ul>
+                      Check server logs for the detailed error message from Windsor AI.
+                    </p>
+                  </div>
+                )}
+                <div className="mt-4 p-3 bg-muted rounded-lg">
+                  <p className="text-xs font-medium mb-1">Debug Info:</p>
+                  <p className="text-xs text-muted-foreground">
+                    Account: admin_PureWL<br />
+                    Date Range: Last 30 days<br />
+                    Check browser console and server logs for available account names
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : windsorAIRedditAdsData ? (
             <RedditAdsMetrics
-              data={redditAdsData}
-              isLoading={redditAdsLoading}
+              data={windsorAIRedditAdsData}
+              isLoading={windsorAIRedditLoading}
             />
           ) : (
             <Card>
               <CardContent className="py-8">
                 <p className="text-muted-foreground text-center">
-                  {redditAdsLoading ? "Loading Reddit Ads data..." : "No Reddit Ads data available"}
+                  No Reddit Ads data available
                 </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="ga4" className="mt-6">
-          {ga4AdsData ? (
-            <GA4AdsMetrics
-              data={ga4AdsData}
-              isLoading={ga4AdsLoading}
-            />
-          ) : (
-            <Card>
-              <CardContent className="py-8">
-                <p className="text-muted-foreground text-center">
-                  {ga4AdsLoading ? "Loading GA4 ads data..." : "No GA4 ads data available"}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* HubSpot LinkedIn Ads Tab */}
-        <TabsContent value="hubspot-linkedin" className="mt-6 space-y-6">
-          {/* Date Range Selector */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>LinkedIn Ads Performance (HubSpot Data)</CardTitle>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={linkedInDaysBack}
-                    onChange={(e) => setLinkedInDaysBack(Number(e.target.value))}
-                    className="px-3 py-1.5 text-sm border rounded-md bg-background"
-                  >
-                    <option value={7}>Last 7 days</option>
-                    <option value={30}>Last 30 days</option>
-                    <option value={90}>Last 90 days</option>
-                  </select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => refetchHubSpotLinkedIn()}
-                    disabled={hubSpotLinkedInLoading}
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 mr-2 ${
-                        hubSpotLinkedInLoading ? "animate-spin" : ""
-                      }`}
-                    />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Summary Cards */}
-          {hubSpotLinkedInData && (
-            <LinkedInAdsSummaryCards
-              summary={hubSpotLinkedInData.summary}
-              isLoading={hubSpotLinkedInLoading}
-            />
-          )}
-
-          {/* Campaign Performance Table */}
-          {hubSpotLinkedInData && (
-            <CampaignPerformanceTable
-              campaigns={hubSpotLinkedInData.campaigns}
-              isLoading={hubSpotLinkedInLoading}
-            />
-          )}
-
-          {/* Daily Trends Chart */}
-          {hubSpotLinkedInData && (
-            <AdsTrendsChart
-              trends={hubSpotLinkedInData.dailyTrends}
-              isLoading={hubSpotLinkedInLoading}
-            />
-          )}
-
-          {/* Leads & Pipeline Section */}
-          {hubSpotLinkedInData && (
-            <LeadsPipelineSection
-              contacts={hubSpotLinkedInData.contacts}
-              deals={hubSpotLinkedInData.deals}
-              conversations={hubSpotLinkedInData.conversations}
-              pipelineBreakdown={hubSpotLinkedInData.pipelineBreakdown}
-              isLoading={hubSpotLinkedInLoading}
-            />
-          )}
-
-          {/* Error State */}
-          {!hubSpotLinkedInData && !hubSpotLinkedInLoading && (
-            <Card>
-              <CardContent className="py-8">
-                <div className="flex items-center gap-2 text-yellow-500 mb-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <p className="font-medium">No HubSpot LinkedIn Ads Data</p>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  No contacts found with LinkedIn as source (utm_source=linkedin, utm_medium=paid).
-                  Make sure your LinkedIn Ads campaigns are properly tracking leads in HubSpot.
-                </p>
+                {windsorAIRedditError && (
+                  <div className="mt-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                      Error: {windsorAIRedditError instanceof Error ? windsorAIRedditError.message : "Unknown error"}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

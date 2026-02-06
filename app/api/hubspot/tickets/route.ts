@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchHubSpotTickets } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -9,10 +10,6 @@ export async function GET(request: Request) {
     const data = await fetchHubSpotTickets(limit);
     return NextResponse.json({ tickets: data });
   } catch (error) {
-    console.error("Error fetching HubSpot tickets:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch HubSpot tickets" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch HubSpot tickets", 500, error);
   }
 }

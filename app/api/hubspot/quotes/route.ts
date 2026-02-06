@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchHubSpotQuotes } from "@/lib/mcp/hubspot";
+import { apiError } from "@/lib/api-response";
 
 export async function GET(request: Request) {
   try {
@@ -9,10 +10,6 @@ export async function GET(request: Request) {
     const data = await fetchHubSpotQuotes(limit);
     return NextResponse.json({ quotes: data });
   } catch (error) {
-    console.error("Error fetching HubSpot quotes:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch HubSpot quotes" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch HubSpot quotes", 500, error);
   }
 }
