@@ -90,8 +90,8 @@ export const authConfig: NextAuthConfig = {
         session.user.id = token.sub as string;
         
         // Use token role for middleware/Edge Runtime compatibility
-        // API routes can fetch fresh role from storage when needed via /api/auth/get-role
-        // This avoids Edge Runtime issues with file system imports
+        // Role updates require a page refresh to take effect
+        // Client-side components check /api/auth/get-role for fresh role from database
         session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
       }
       return session;

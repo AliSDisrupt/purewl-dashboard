@@ -203,23 +203,30 @@ export default function AdminPage() {
     session?.user?.role === "admin" || session?.user?.email === "admin@orion.local"
   );
 
+  // Check for updated role from storage periodically
   useEffect(() => {
     if (session?.user?.email) {
-      fetch("/api/auth/get-role")
-        .then((res) => res.json())
-        .then((data) => {
+      const checkRole = async () => {
+        try {
+          const res = await fetch("/api/auth/get-role");
+          const data = await res.json();
           if (data.role) {
-            setIsAdmin(
-              data.role === "admin" || session?.user?.email === "admin@orion.local"
-            );
+            const adminStatus = data.role === "admin" || session?.user?.email === "admin@orion.local";
+            setIsAdmin(adminStatus);
           }
-        })
-        .catch(() => {
+        } catch (error) {
+          console.error("Failed to check role:", error);
           setIsAdmin(
             session?.user?.role === "admin" ||
               session?.user?.email === "admin@orion.local"
           );
-        });
+        }
+      };
+      
+      checkRole();
+      // Check every 10 seconds for role updates
+      const interval = setInterval(checkRole, 10000);
+      return () => clearInterval(interval);
     }
   }, [session]);
 
@@ -281,9 +288,16 @@ export default function AdminPage() {
       // If updating the current user's role, reload to refresh session
       const currentId = session?.user?.id || session?.user?.email;
       const targetId = variables.userId;
-      if (currentId === targetId || session?.user?.email === targetId) {
+      const targetEmail = users?.find(u => u.id === targetId)?.email;
+      
+      if (currentId === targetId || session?.user?.email === targetId || session?.user?.email === targetEmail) {
         console.log('[Admin Page] Current user role changed, reloading page...');
-        setTimeout(() => window.location.reload(), 500);
+        // Show a message before reload
+        alert(`Your role has been updated to ${variables.role}. The page will reload to apply changes.`);
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        // For other users, show a success message
+        alert(`Successfully updated ${targetEmail || targetId}'s role to ${variables.role}. They may need to refresh their page to see changes.`);
       }
     },
     onError: (error: any) => {
