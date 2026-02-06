@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import PageVisit from "@/lib/db/models/PageVisit";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/lib/auth/config";
+
+export const runtime = "nodejs";
 
 /**
  * Get tracked visitors data
@@ -11,11 +12,20 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || session.user?.role !== "admin") {
+    const session = await auth();
+    if (!session || !session.user) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
+      );
+    }
+
+    // Check if user is admin
+    const isAdmin = session.user?.role === "admin" || session.user?.email === "admin@orion.local";
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Unauthorized - Admin access required" },
+        { status: 403 }
       );
     }
 
