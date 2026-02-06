@@ -81,16 +81,27 @@ interface RB2BVisitor {
 }
 
 async function fetchRB2BVisitors(limit: number = 100) {
-  // Fetch from new rb2b_person_visits collection (aggregated visitors)
-  const res = await fetch(`/api/rb2b/person-visits?limit=${limit}`);
-  if (!res.ok) {
-    throw new Error("Failed to fetch visitors");
-  }
-  const data = await res.json();
-  
-  // Transform rb2b_person_visits format to match the UI interface
-  return {
-    visitors: (data.personVisits || []).map((pv: any) => ({
+  try {
+    // Fetch from new rb2b_person_visits collection (aggregated visitors)
+    const res = await fetch(`/api/rb2b/person-visits?limit=${limit}`);
+    const data = await res.json();
+    
+    // If there's an error in the response but status is 200, handle it gracefully
+    if (data.error && !data.personVisits) {
+      console.warn("RB2B API returned error:", data.error);
+      return {
+        visitors: [],
+        total: 0,
+      };
+    }
+    
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to fetch visitors");
+    }
+    
+    // Transform rb2b_person_visits format to match the UI interface
+    return {
+      visitors: (data.personVisits || []).map((pv: any) => ({
       id: pv._id?.toString() || pv.identity_key,
       email: pv.visitor_data?.business_email,
       firstName: pv.visitor_data?.first_name,
@@ -117,6 +128,14 @@ async function fetchRB2BVisitors(limit: number = 100) {
     })),
     total: data.total || 0,
   };
+  } catch (error: any) {
+    console.error("Error fetching RB2B visitors:", error);
+    // Return empty data instead of throwing to prevent UI crash
+    return {
+      visitors: [],
+      total: 0,
+    };
+  }
 }
 
 export default function SignalsPage() {
@@ -366,8 +385,11 @@ export default function SignalsPage() {
           )}
 
           {error && (
-            <div className="py-8 text-center">
-              <p className="text-red-500">Failed to load visitors</p>
+            <div className="py-8 text-center space-y-2">
+              <p className="text-red-500 font-medium">Failed to load visitors</p>
+              <p className="text-sm text-muted-foreground">
+                {error instanceof Error ? error.message : "Please check your MongoDB connection and try again."}
+              </p>
             </div>
           )}
 

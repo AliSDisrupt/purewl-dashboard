@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import RB2BPersonVisit from "@/lib/db/models/RB2BPersonVisit";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 function isEmptyPayloadError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -90,7 +93,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Error fetching RB2B person visits:", error);
-    if (isEmptyPayloadError(error)) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch person visits";
+    
+    // If MongoDB is not configured or connection fails, return empty data instead of error
+    if (isEmptyPayloadError(error) || !process.env.MONGODB_URI) {
       const { searchParams } = new URL(request.url);
       const limit = parseInt(searchParams.get("limit") || "50", 10);
       const offset = parseInt(searchParams.get("offset") || "0", 10);
@@ -100,10 +106,17 @@ export async function GET(request: NextRequest) {
         limit,
         offset,
         hasMore: false,
+        error: process.env.MONGODB_URI ? undefined : "MongoDB not configured",
       });
     }
+    
+    // For other errors, return error response
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch person visits" },
+      { 
+        error: errorMessage,
+        personVisits: [],
+        total: 0,
+      },
       { status: 500 }
     );
   }
