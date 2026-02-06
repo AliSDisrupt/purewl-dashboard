@@ -126,12 +126,33 @@ export async function updateUserRole(
   userId: string,
   role: "admin" | "user"
 ): Promise<boolean> {
-  if (!process.env.MONGODB_URI) return false;
+  if (!process.env.MONGODB_URI) {
+    console.error("[updateUserRole] MONGODB_URI not defined");
+    return false;
+  }
   await connectDB();
-  const result = await UserModel.findOneAndUpdate(
+  
+  // Try to find user by id first, then by email as fallback
+  let result = await UserModel.findOneAndUpdate(
     { id: userId },
     { role },
     { new: true }
   ).exec();
-  return !!result;
+  
+  // If not found by id, try by email
+  if (!result) {
+    result = await UserModel.findOneAndUpdate(
+      { email: userId.toLowerCase().trim() },
+      { role },
+      { new: true }
+    ).exec();
+  }
+  
+  if (result) {
+    console.log(`[updateUserRole] Successfully updated role for user ${result.id} (${result.email}) to ${role}`);
+    return true;
+  } else {
+    console.error(`[updateUserRole] User not found: ${userId}`);
+    return false;
+  }
 }

@@ -70,19 +70,27 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
     
+    console.log(`[Admin API] Updating role for user: ${targetUserId} to role: ${role}`);
+    
     // Try to find user by ID or email (from DB or file)
     const users = await getAllUsers();
-    const targetUser = users.find(u => u.id === targetUserId || u.email === targetUserId);
+    const targetUser = users.find(u => u.id === targetUserId || u.email === targetUserId || u.email === targetUserId.toLowerCase().trim());
     
     if (!targetUser) {
+      console.error(`[Admin API] User not found: ${targetUserId}`);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     
+    console.log(`[Admin API] Found user: ${targetUser.id} (${targetUser.email}), current role: ${targetUser.role}`);
+    
+    // Use the user's ID (not the input, which might be email)
     const success = await updateUserRole(targetUser.id, role);
     
     if (success) {
-      return NextResponse.json({ success: true });
+      console.log(`[Admin API] Successfully updated role for ${targetUser.email} to ${role}`);
+      return NextResponse.json({ success: true, user: { id: targetUser.id, email: targetUser.email, role } });
     } else {
+      console.error(`[Admin API] Failed to update role for ${targetUser.id}`);
       return NextResponse.json({ error: 'Failed to update user role' }, { status: 500 });
     }
   } catch (error: any) {

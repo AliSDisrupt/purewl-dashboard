@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import Visitor from "@/lib/db/models/Visitor";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 function isEmptyPayloadError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -18,6 +21,7 @@ function isEmptyPayloadError(err: unknown): boolean {
 // GET: Fetch RB2B visitors from MongoDB
 export async function GET(request: NextRequest) {
   if (!process.env.MONGODB_URI) {
+    console.log("[RB2B Visitors API] MONGODB_URI not defined, returning empty data");
     const limit = parseInt(new URL(request.url).searchParams.get("limit") || "50", 10);
     const offset = parseInt(new URL(request.url).searchParams.get("offset") || "0", 10);
     return NextResponse.json({
@@ -26,6 +30,7 @@ export async function GET(request: NextRequest) {
       limit,
       offset,
       hasMore: false,
+      error: "MongoDB not configured",
     });
   }
 
@@ -157,6 +162,18 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
 
+    console.log(`[RB2B Visitors API] Query:`, JSON.stringify(query));
+    console.log(`[RB2B Visitors API] Found ${visitors.length} visitors (total: ${total}, limit: ${limit}, offset: ${offset})`);
+    if (visitors.length > 0) {
+      console.log(`[RB2B Visitors API] Sample visitor:`, {
+        id: visitors[0]._id?.toString(),
+        email: visitors[0].email,
+        fullName: visitors[0].fullName,
+        company: visitors[0].company,
+        visitedAt: visitors[0].visitedAt,
+      });
+    }
+
     // Transform _id to id for frontend compatibility and include ALL fields
     const transformedVisitors = visitors.map((v: any) => ({
       id: v._id.toString(),
@@ -223,13 +240,17 @@ export async function GET(request: NextRequest) {
         updatedAt: v.updatedAt,
       }));
 
-    return NextResponse.json({
+    const response = {
       visitors: transformedVisitors,
       total,
       limit,
       offset,
       hasMore: offset + limit < total,
-    });
+    };
+    
+    console.log(`[RB2B Visitors API] Returning response with ${transformedVisitors.length} visitors`);
+    
+    return NextResponse.json(response);
   } catch (error: unknown) {
     console.error("Error fetching RB2B visitors:", error);
     if (isEmptyPayloadError(error)) {

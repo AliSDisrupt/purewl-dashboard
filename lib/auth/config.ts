@@ -88,9 +88,24 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        // Use token role - client-side components will check storage via API
-        // This avoids Edge Runtime issues while still allowing role updates
-        session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
+        
+        // Try to get fresh role from database/storage (runs in Node.js runtime)
+        // This ensures role updates are reflected immediately
+        try {
+          const { getUserRoleFromStorage } = await import("@/lib/auth/get-user-role");
+          const freshRole = await getUserRoleFromStorage(session.user.email, session.user.id);
+          
+          if (freshRole) {
+            session.user.role = freshRole;
+          } else {
+            // Fallback to token role or default
+            session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
+          }
+        } catch (error) {
+          // If storage check fails, use token role as fallback
+          console.warn('[Auth] Failed to fetch role from storage, using token role:', error);
+          session.user.role = (token.role as 'admin' | 'user') || (session.user.email === 'admin@orion.local' ? 'admin' : 'user');
+        }
       }
       return session;
     },

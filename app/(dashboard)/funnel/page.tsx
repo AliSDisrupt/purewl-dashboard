@@ -485,12 +485,27 @@ const LiveAccountWatch = () => {
     const fetchVisitors = async () => {
       try {
         const res = await fetch('/api/rb2b/visitors?limit=5');
-        if (res.ok) {
-          const data = await res.json();
-          setVisitors(data.visitors || []);
+        const data = await res.json();
+        
+        console.log('[Funnel Page] RB2B visitors response:', {
+          ok: res.ok,
+          status: res.status,
+          visitorsCount: data.visitors?.length || 0,
+          total: data.total || 0,
+          error: data.error,
+        });
+        
+        if (res.ok && data.visitors) {
+          setVisitors(data.visitors);
+        } else if (data.error) {
+          console.warn('[Funnel Page] RB2B API error:', data.error);
+          setVisitors([]);
+        } else {
+          setVisitors([]);
         }
       } catch (err) {
         console.error('Error fetching RB2B visitors:', err);
+        setVisitors([]);
       } finally {
         setLoading(false);
       }

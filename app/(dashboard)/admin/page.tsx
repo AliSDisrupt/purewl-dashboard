@@ -108,16 +108,23 @@ async function fetchUsers() {
 }
 
 async function updateUserRole(userId: string, role: "admin" | "user") {
+  console.log('[updateUserRole] Calling API with:', { userId, role });
   const res = await fetch("/api/admin/users", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, role }),
   });
+  
+  const data = await res.json().catch(() => ({}));
+  
   if (!res.ok) {
+    console.error('[updateUserRole] API error:', { status: res.status, data });
     if (res.status === 403) throw new Error("Unauthorized - Admin access required");
-    throw new Error("Failed to update user role");
+    throw new Error(data.error || "Failed to update user role");
   }
-  return res.json();
+  
+  console.log('[updateUserRole] API success:', data);
+  return data;
 }
 
 async function fetchHealth() {
@@ -260,12 +267,23 @@ export default function AdminPage() {
   const updateRoleMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: "admin" | "user" }) =>
       updateUserRole(userId, role),
-    onSuccess: async (_, variables) => {
+    onSuccess: async (data, variables) => {
+      console.log('[Admin Page] Role update successful:', { userId: variables.userId, role: variables.role, response: data });
       setConfirmRole(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       await queryClient.refetchQueries({ queryKey: ["admin-users"] });
+      
+      // If updating the current user's role, reload to refresh session
       const currentId = session?.user?.id || session?.user?.email;
-      if (currentId === variables.userId) setTimeout(() => window.location.reload(), 500);
+      const targetId = variables.userId;
+      if (currentId === targetId || session?.user?.email === targetId) {
+        console.log('[Admin Page] Current user role changed, reloading page...');
+        setTimeout(() => window.location.reload(), 500);
+      }
+    },
+    onError: (error: any) => {
+      console.error('[Admin Page] Role update failed:', error);
+      alert(`Failed to update role: ${error.message || 'Unknown error'}`);
     },
   });
 
