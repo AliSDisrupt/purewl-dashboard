@@ -312,6 +312,44 @@ export interface CrossChannelInsight {
   recommendation: string;
 }
 
+export interface AdsPlatformPerformance {
+  platform: "google_ads" | "reddit_ads" | "linkedin_ads";
+  impressions: number;
+  clicks: number;
+  spend: number;
+  conversions: number;
+  ctr: number;
+  cpc: number;
+  conversionRate: number;
+  cpa: number;
+  performance: "excellent" | "good" | "needs_attention" | "poor";
+  weekOverWeek: {
+    impressions: { current: number; previous: number; change: number };
+    clicks: { current: number; previous: number; change: number };
+    spend: { current: number; previous: number; change: number };
+    conversions: { current: number; previous: number; change: number };
+    ctr: { current: number; previous: number; change: number };
+    cpc: { current: number; previous: number; change: number };
+  };
+  insights: string[];
+  recommendations: string[];
+}
+
+export interface AdsInsights {
+  platformPerformance: AdsPlatformPerformance[];
+  topPerformingPlatform: string;
+  underperformingPlatform: string;
+  totalSpend: number;
+  totalConversions: number;
+  averageCtr: number;
+  averageCpc: number;
+  averageCpa: number;
+  efficiencyTrend: "improving" | "declining" | "stable";
+  keyFindings: string[];
+  actionableRecommendations: string[];
+  adsSummary: string;
+}
+
 /** Full Claude output schema (orion-insights-spec ClaudeOutput). */
 export interface InsightsClaudeOutput {
   generatedAt: string;

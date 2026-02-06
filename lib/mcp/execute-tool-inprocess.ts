@@ -397,9 +397,9 @@ export async function executeToolInProcess(
       const posts = await fetchRedditPosts({ subreddit, limit });
       if (query) {
         return posts.filter(
-          (post: { title?: string; content?: string }) =>
-            post.title?.toLowerCase().includes(query.toLowerCase()) ||
-            post.content?.toLowerCase().includes(query.toLowerCase())
+          (post) =>
+            (post.title?.toLowerCase() ?? "").includes(query.toLowerCase()) ||
+            (post.content?.toLowerCase() ?? "").includes(query.toLowerCase())
         );
       }
       return posts;

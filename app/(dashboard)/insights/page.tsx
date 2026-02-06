@@ -518,7 +518,7 @@ export default function InsightsPage() {
                         backgroundColor: "#1E293B",
                         color: "#F8FAFC"
                       }}
-                      formatter={(value: number) => [value.toLocaleString(), ""]}
+                      formatter={(value: number | undefined) => [value?.toLocaleString() ?? "0", ""]}
                       labelStyle={{ color: "#F8FAFC" }}
                       labelFormatter={(label) => label}
                     />
@@ -999,7 +999,11 @@ export default function InsightsPage() {
                         <div className="text-sm text-muted-foreground">
                           {safeNum(b?.leadsLost)} leads lost, ${safeNum(b?.potentialRevenue).toFixed(2)} potential revenue
                         </div>
-                        <div className="text-xs mt-1">{safeStr(b?.recommendation)}</div>
+                        <div className="text-xs mt-1">
+                          {Array.isArray(b?.recommendations) && b.recommendations.length > 0
+                            ? b.recommendations.join(", ")
+                            : ""}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1113,7 +1117,7 @@ export default function InsightsPage() {
                     <CardDescription>Detailed performance metrics for each ad platform</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {insights.adsInsights.platformPerformance.map((platform, i) => (
+                    {insights.adsInsights.platformPerformance.map((platform: any, i: number) => (
                       <div key={i} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold capitalize">{safeStr(platform.platform).replace(/_/g, " ")}</h3>
@@ -1224,7 +1228,7 @@ export default function InsightsPage() {
                           <div className="pt-3 border-t">
                             <div className="text-xs font-semibold text-muted-foreground mb-2">Insights</div>
                             <ul className="space-y-1">
-                              {platform.insights.map((insight, idx) => (
+                              {platform.insights.map((insight: string, idx: number) => (
                                 <li key={idx} className="text-sm text-foreground flex items-start gap-2">
                                   <span className="text-primary mt-0.5">•</span>
                                   <span>{insight}</span>
@@ -1239,7 +1243,7 @@ export default function InsightsPage() {
                           <div className="pt-3 border-t">
                             <div className="text-xs font-semibold text-muted-foreground mb-2">Recommendations</div>
                             <ul className="space-y-1">
-                              {platform.recommendations.map((rec, idx) => (
+                              {platform.recommendations.map((rec: string, idx: number) => (
                                 <li key={idx} className="text-sm text-foreground flex items-start gap-2">
                                   <span className="text-green-600 dark:text-green-400 mt-0.5">→</span>
                                   <span>{rec}</span>
@@ -1262,7 +1266,7 @@ export default function InsightsPage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {insights.adsInsights.keyFindings.map((finding, i) => (
+                      {insights.adsInsights.keyFindings.map((finding: string, i: number) => (
                         <li key={i} className="text-sm text-foreground flex items-start gap-2">
                           <span className="text-primary mt-0.5">•</span>
                           <span>{finding}</span>
@@ -1281,7 +1285,7 @@ export default function InsightsPage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {insights.adsInsights.actionableRecommendations.map((rec, i) => (
+                      {insights.adsInsights.actionableRecommendations.map((rec: string, i: number) => (
                         <li key={i} className="text-sm text-foreground flex items-start gap-2">
                           <span className="text-green-600 dark:text-green-400 mt-0.5">→</span>
                           <span>{rec}</span>

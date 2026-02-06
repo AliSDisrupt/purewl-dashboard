@@ -131,8 +131,8 @@ export async function GET(request: Request) {
       filteredItems: filteredData.length,
       accountNames: [...new Set(data.data.map((d) => d.account_name))],
       dateRange: {
-        min: data.data.length > 0 ? Math.min(...data.data.map((d) => d.date)) : null,
-        max: data.data.length > 0 ? Math.max(...data.data.map((d) => d.date)) : null,
+        min: data.data.length > 0 ? Math.min(...data.data.map((d) => new Date(d.date).getTime())) : null,
+        max: data.data.length > 0 ? Math.max(...data.data.map((d) => new Date(d.date).getTime())) : null,
       },
     });
 
@@ -254,6 +254,8 @@ export async function GET(request: Request) {
         totalClicks: 0,
         totalSpend: 0,
         totalConversions: 0,
+        averageCtr: 0,
+        averageCpc: 0,
       }
     );
 

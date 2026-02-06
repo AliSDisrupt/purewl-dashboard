@@ -20,6 +20,7 @@ interface ServiceUsage {
   googleAds: UsageStats;
   redditAds: UsageStats;
   reports: UsageStats;
+  "windsor-ai": UsageStats;
 }
 
 // In-memory store (resets on server restart)
@@ -61,6 +62,11 @@ const usageStats: ServiceUsage = {
     lastRequest: null,
   },
   reports: {
+    requests: 0,
+    tokensUsed: 0,
+    lastRequest: null,
+  },
+  "windsor-ai": {
     requests: 0,
     tokensUsed: 0,
     lastRequest: null,
@@ -135,6 +141,11 @@ export function getUsageStats(): ServiceUsage {
       requests: usageStats.reports.requests,
       tokensUsed: usageStats.reports.tokensUsed,
       lastRequest: usageStats.reports.lastRequest ? new Date(usageStats.reports.lastRequest) : null,
+    },
+    "windsor-ai": {
+      requests: usageStats["windsor-ai"].requests,
+      tokensUsed: usageStats["windsor-ai"].tokensUsed,
+      lastRequest: usageStats["windsor-ai"].lastRequest ? new Date(usageStats["windsor-ai"].lastRequest) : null,
     },
   };
   return copy;

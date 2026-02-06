@@ -162,8 +162,8 @@ export async function GET(request: Request) {
       datasources: allDataSources,
       searchingForAccount: accountName,
       dateRange: {
-        min: data.data.length > 0 ? Math.min(...data.data.map((d) => d.date)) : null,
-        max: data.data.length > 0 ? Math.max(...data.data.map((d) => d.date)) : null,
+        min: data.data.length > 0 ? Math.min(...data.data.map((d) => new Date(d.date).getTime())) : null,
+        max: data.data.length > 0 ? Math.max(...data.data.map((d) => new Date(d.date).getTime())) : null,
       },
     });
 
@@ -318,6 +318,8 @@ export async function GET(request: Request) {
         totalClicks: 0,
         totalSpend: 0,
         totalConversions: 0,
+        averageCtr: 0,
+        averageCpc: 0,
       }
     );
 

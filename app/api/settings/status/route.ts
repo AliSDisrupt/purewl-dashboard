@@ -53,7 +53,7 @@ export async function GET() {
         byModel: {},
         period: null,
       },
-      costs: null,
+      costs: null as { totalCost: number; tokenCosts: number; webSearchCosts: number; codeExecutionCosts: number; byModel: Record<string, unknown> } | null,
       limits: {
         rateLimit: 20, // requests per minute
         maxTokens: 4096,
@@ -185,9 +185,9 @@ export async function GET() {
       cacheCreationTokens: anthropicUsageData.usage.cacheCreationTokens || 0,
       cacheHitRate: anthropicUsageData.cacheHitRate || 0,
       byModel: anthropicUsageData.usage.byModel || {},
-      period: anthropicUsageData.period || null,
+      period: (anthropicUsageData.period as any) ?? null,
     };
-    status.claude.costs = anthropicUsageData.costs || null;
+    status.claude.costs = (anthropicUsageData.costs as any) || null;
   }
 
   // Test Claude API

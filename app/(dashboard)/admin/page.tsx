@@ -151,6 +151,17 @@ async function fetchLatestInsights() {
   return res.json();
 }
 
+async function fetchTrackedVisitors(limit: number, page: number) {
+  const res = await fetch(`/api/tracking/visitors?limit=${limit}&page=${page}`);
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Unauthorized - Admin access required");
+    }
+    throw new Error("Failed to fetch tracked visitors");
+  }
+  return res.json();
+}
+
 async function generateInsights() {
   const res = await fetch("/api/insights/generate", { method: "POST" });
   if (!res.ok) {

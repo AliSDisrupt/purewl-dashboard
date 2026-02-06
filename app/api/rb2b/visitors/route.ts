@@ -260,7 +260,9 @@ export async function DELETE() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { getUserByEmail, getUserById } = await import("@/lib/storage/users");
-    const userData = session.user.email ? getUserByEmail(session.user.email) : getUserById(session.user.id ?? "");
+    const userData = session.user.email 
+      ? await getUserByEmail(session.user.email) 
+      : await getUserById(session.user.id ?? "");
     const isAdmin = userData?.role === "admin" || session.user?.email === "admin@orion.local" || session.user?.role === "admin";
     if (!isAdmin) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });

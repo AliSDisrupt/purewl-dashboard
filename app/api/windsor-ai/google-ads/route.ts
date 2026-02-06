@@ -211,6 +211,8 @@ export async function GET(request: Request) {
         totalClicks: 0,
         totalCost: 0,
         totalConversions: 0,
+        averageCtr: 0,
+        averageCpc: 0,
       }
     );
 
