@@ -18,12 +18,30 @@ export async function POST(request: Request) {
     const userAgent = request.headers.get('user-agent') || undefined;
     
     // Create or update user (MongoDB or file)
+    // Use email as ID if no ID is provided (for Google OAuth users)
+    const userId = session.user.id || session.user.email || `user-${Date.now()}`;
     const isAdmin = session.user.email === 'admin@orion.local' || session.user.id === 'admin';
-    const userData = await upsertUser({
-      id: session.user.id || session.user.email,
+    
+    console.log('[Track Login] Saving user:', {
+      id: userId,
       email: session.user.email,
-      name: session.user.name || session.user.email.split('@')[0],
+      name: session.user.name,
+      role: session.user.role,
+      isAdmin,
+    });
+    
+    const userData = await upsertUser({
+      id: userId,
+      email: session.user.email,
+      name: session.user.name || session.user.email?.split('@')[0] || 'Unknown User',
       role: session.user.role || (isAdmin ? 'admin' : 'user'),
+    });
+    
+    console.log('[Track Login] User saved:', {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
     });
     
     // Track login

@@ -101,9 +101,14 @@ async function fetchUsers() {
   const res = await fetch("/api/admin/users");
   if (!res.ok) {
     if (res.status === 403) throw new Error("Unauthorized - Admin access required");
-    throw new Error("Failed to fetch users");
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to fetch users");
   }
   const data = await res.json();
+  console.log('[Admin Page] Fetched users:', {
+    count: data.users?.length || 0,
+    users: data.users?.map((u: User) => ({ id: u.id, email: u.email, name: u.name, role: u.role })),
+  });
   return data.users as User[];
 }
 

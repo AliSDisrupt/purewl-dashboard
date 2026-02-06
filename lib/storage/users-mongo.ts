@@ -56,17 +56,29 @@ export async function upsertUser(
   }
   await connectDB();
   const email = user.email.toLowerCase().trim();
-  const existing = await UserModel.findOne({
-    $or: [{ id: user.id }, { email }],
-  }).exec();
+  
+  // Try to find existing user by email first (for Google OAuth users who might have different IDs)
+  let existing = await UserModel.findOne({ email }).exec();
+  
+  // If not found by email, try by ID
+  if (!existing && user.id) {
+    existing = await UserModel.findOne({ id: user.id }).exec();
+  }
 
   if (existing) {
+    // Update existing user - preserve ID if it exists, otherwise use the provided one
+    if (user.id && existing.id !== user.id) {
+      existing.id = user.id;
+    }
     existing.name = user.name ?? existing.name;
+    existing.email = email; // Ensure email is normalized
     if (user.role) existing.role = user.role as "admin" | "user";
     await existing.save();
+    console.log(`[MongoDB] Updated user: ${existing.email} (${existing.id})`);
     return docToUser(existing);
   }
 
+  // Create new user
   const newUser = await UserModel.create({
     id: user.id,
     email,
@@ -75,6 +87,7 @@ export async function upsertUser(
     createdAt: user.createdAt || new Date().toISOString(),
     loginHistory: [],
   });
+  console.log(`[MongoDB] Created new user: ${newUser.email} (${newUser.id})`);
   return docToUser(newUser);
 }
 
