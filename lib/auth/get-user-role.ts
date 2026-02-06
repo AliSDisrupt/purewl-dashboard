@@ -1,15 +1,17 @@
 /**
  * Get user role from storage (MongoDB or file)
  * Used in Node.js runtime (API routes, session callbacks)
+ * Uses dynamic imports to avoid Edge Runtime issues
  */
-
-import { getUserByEmail, getUserById } from '@/lib/storage/users';
 
 export async function getUserRoleFromStorage(
   email?: string | null,
   userId?: string | null
 ): Promise<'admin' | 'user' | null> {
   try {
+    // Dynamic import to avoid Edge Runtime issues (fs, path, process.cwd)
+    const { getUserByEmail, getUserById } = await import('@/lib/storage/users');
+    
     let userData = null;
     if (email) {
       userData = await getUserByEmail(email);

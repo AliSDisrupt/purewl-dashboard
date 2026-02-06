@@ -1,5 +1,41 @@
-import fs from "fs";
-import path from "path";
+// Lazy imports to avoid Edge Runtime issues
+// Check if we're in Edge Runtime (where Node.js APIs aren't available)
+function isEdgeRuntime(): boolean {
+  return (typeof (globalThis as any).EdgeRuntime !== 'undefined') || 
+         (typeof process !== 'undefined' && process.env.NEXT_RUNTIME === 'edge');
+}
+
+let fs: typeof import("fs") | null = null;
+let path: typeof import("path") | null = null;
+
+function getNodeModules() {
+  // In Edge Runtime, these will fail - but we check before calling
+  if (isEdgeRuntime()) {
+    throw new Error("Cannot use file system in Edge Runtime");
+  }
+  if (!fs) fs = require("fs");
+  if (!path) path = require("path");
+  return { fs, path };
+}
+
+function getUsersFile(): string {
+  if (isEdgeRuntime()) {
+    throw new Error("Cannot access file system in Edge Runtime");
+  }
+  const { path } = getNodeModules();
+  return path!.join(process.cwd(), "data", "users.json");
+}
+
+function ensureDataDir() {
+  if (isEdgeRuntime()) {
+    throw new Error("Cannot access file system in Edge Runtime");
+  }
+  const { fs, path } = getNodeModules();
+  const dataDir = path!.join(process.cwd(), "data");
+  if (!fs!.existsSync(dataDir)) {
+    fs!.mkdirSync(dataDir, { recursive: true });
+  }
+}
 
 export interface User {
   id: string;
@@ -15,20 +51,13 @@ export interface User {
   }>;
 }
 
-const USERS_FILE = path.join(process.cwd(), "data", "users.json");
-
-function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), "data");
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-}
-
 function loadUsersSync(): User[] {
+  const { fs } = getNodeModules();
   ensureDataDir();
-  if (!fs.existsSync(USERS_FILE)) return [];
+  const USERS_FILE = getUsersFile();
+  if (!fs!.existsSync(USERS_FILE)) return [];
   try {
-    const data = fs.readFileSync(USERS_FILE, "utf-8");
+    const data = fs!.readFileSync(USERS_FILE, "utf-8");
     return JSON.parse(data);
   } catch {
     return [];
@@ -36,8 +65,10 @@ function loadUsersSync(): User[] {
 }
 
 function saveUsersSync(users: User[]): void {
+  const { fs } = getNodeModules();
   ensureDataDir();
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  const USERS_FILE = getUsersFile();
+  fs!.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
 /** Use MongoDB when MONGODB_URI is set; otherwise fall back to file storage. */
@@ -46,6 +77,14 @@ async function useMongo(): Promise<boolean> {
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
+  if (isEdgeRuntime()) {
+    // In Edge Runtime, always use MongoDB if available, otherwise return undefined
+    if (process.env.MONGODB_URI) {
+      const mongo = await import("@/lib/storage/users-mongo");
+      return mongo.getUserById(id);
+    }
+    return undefined;
+  }
   if (await useMongo()) {
     const mongo = await import("@/lib/storage/users-mongo");
     return mongo.getUserById(id);
@@ -55,6 +94,14 @@ export async function getUserById(id: string): Promise<User | undefined> {
 }
 
 export async function getUserByEmail(email: string): Promise<User | undefined> {
+  if (isEdgeRuntime()) {
+    // In Edge Runtime, always use MongoDB if available, otherwise return undefined
+    if (process.env.MONGODB_URI) {
+      const mongo = await import("@/lib/storage/users-mongo");
+      return mongo.getUserByEmail(email);
+    }
+    return undefined;
+  }
   if (await useMongo()) {
     const mongo = await import("@/lib/storage/users-mongo");
     return mongo.getUserByEmail(email);
